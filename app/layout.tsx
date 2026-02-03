@@ -1,28 +1,70 @@
-import type { Metadata } from "next";
-import { Roboto_Serif } from "next/font/google"; // 1. Импортируем шрифт
 import "./globals.css";
+import localFont from "next/font/local";
+import ScreenScaler from "@/components/ScreenScaler";
 
-// 2. Настраиваем его (загружаем латиницу и кириллицу)
-const robotoSerif = Roboto_Serif({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-roboto-serif", // Создаем переменную для Tailwind
-  display: "swap",
+// Подключаем Roboto Serif (все веса)
+const robotoSerif = localFont({
+  src: [
+    {
+      path: './fonts/RobotoSerif_120pt-Thin.woff',
+      weight: '100',
+      style: 'normal',
+    },
+    {
+      path: './fonts/RobotoSerif_120pt-ExtraLight.woff',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: './fonts/RobotoSerif_120pt-Light.woff',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: './fonts/RobotoSerif_120pt-Regular.woff',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './fonts/RobotoSerif_120pt-Medium.woff',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: './fonts/RobotoSerif_120pt-SemiBold.woff',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: './fonts/RobotoSerif_120pt-Bold.woff',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: './fonts/RobotoSerif_120pt-Black.woff',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-roboto-serif', // Имя переменной
+  display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: "Gosht Group",
-  description: "Premium Hospitality",
+export const metadata = {
+  title: "GOSHT Group",
+  description: "Premium Steakhouse & Catering",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      {/* 3. Добавляем шрифт в body. Теперь он доступен во всем приложении */}
-      <body className={robotoSerif.className}>
+    <html lang="ru">
+      {/* Добавляем переменную в body */}
+      <body className={`${robotoSerif.variable} bg-black text-white antialiased`}>
+          <ScreenScaler />
         {children}
       </body>
     </html>

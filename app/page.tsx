@@ -1,19 +1,22 @@
 import Header from "@/components/Header";
+// Убедись, что импортируешь именно HeroSlider, а не HeroSliderClient!
+// Если VS Code автоматически написал HeroSliderClient - исправь на HeroSlider
+import HeroSlider from "@/components/HeroSlider"; 
+import RunningLine from "@/components/RunningLine";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
+    <main className="min-h-screen bg-[#0c0c0c]">
       <Header />
       
-      {/* Центральный блок */}
-      <div className="flex h-screen w-full flex-col items-center justify-center">
-        {/* Главный заголовок */}
-        <h1 className="text-6xl md:text-9xl font-bold tracking-widest uppercase text-center">
-          Gosht
-        </h1>
-        <p className="mt-6 text-xs md:text-sm tracking-[0.5em] text-gray-500 uppercase">
-          Premium Hospitality
-        </p>
+      {/* HeroSlider здесь используется БЕЗ параметров, 
+          потому что серверный компонент сам скачивает данные */}
+      <HeroSlider />
+      
+      <RunningLine />
+
+      <div className="h-screen bg-[#131313] flex items-center justify-center text-white/20">
+        Здесь будет следующий блок
       </div>
     </main>
   );
