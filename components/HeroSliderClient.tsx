@@ -59,7 +59,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
   const nextSlide = slides[nextIndex];
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#0c0c0c]">
+    <div className="relative w-full h-screen overflow-hidden bg-[#0D0D0D]">
       {/* 1. ФОНОВЫЕ КАРТИНКИ (Смена через opacity) */}
       <div className="absolute inset-0 w-full h-full z-0">
         {slides.map((slide, index) => (
@@ -84,7 +84,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
           </div>
         ))}
         {/* Градиент поверх фото */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/100 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/85 z-10" />
       </div>
 
       {/* 2. ТЕКСТОВЫЙ КОНТЕНТ */}
@@ -121,8 +121,8 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
             className="group relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none"
           >
             {/* Блюр под кнопкой */}
-            <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-md transition-all duration-300 group-hover:backdrop-blur-xl" />
-            <span className="text-[12px] md:text-[15px] text-white tracking-[0.2em] uppercase font-light transition-colors duration-300">
+            <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-3xl transition-all duration-300 group-hover:backdrop-blur-3xl" />
+            <span className="text-[12px] md:text-[15px] text-white tracking-[0.1em] uppercase font-light transition-colors duration-300">
               {currentSlide.buttonText}
             </span>
             <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">

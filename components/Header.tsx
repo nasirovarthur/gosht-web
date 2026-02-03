@@ -26,7 +26,7 @@ export default function Header() {
       {/* =======================================
           1. ГЛАВНАЯ ШАПКА
          ======================================= */}
-      <header className="fixed top-0 left-0 w-full z-50 bg-[#131313] text-[#d1d1d1] transition-all duration-300 border-b border-white/5">
+      <header className="fixed top-0 left-0 w-full z-40 bg-[#0D0D0D] text-[#d1d1d1] transition-all duration-300 border-b border-white/5">
         <div className="flex items-center justify-between w-full h-[80px] md:h-[100px] px-4 md:px-10 relative">
           
           {/* Кнопка МЕНЮ */}
@@ -89,7 +89,7 @@ export default function Header() {
       {/* Затемнение и размытие под меню */}
       <div
         onClick={() => setIsOpen(false)}
-        className={`fixed inset-0 z-[49] bg-black/10 ${
+        className={`fixed inset-0 z-[49] bg-black/60 ${
           isOpen
             ? "opacity-100 backdrop-blur-[4px] visible"
             : "opacity-0 backdrop-blur-none visible"
@@ -111,7 +111,7 @@ export default function Header() {
       >
         
         {/* Верхняя панель шторки (z-10 чтобы быть выше фона) */}
-        <div className="flex items-center justify-between w-full h-[80px] md:h-[100px] px-4 md:px-10 flex-shrink-0 border-b border-white/5 relative z-10">
+        <div className="flex items-center justify-between w-full h-[80px] md:h-[100px] px-4 md:px-10 flex-shrink-0 border-b border-white/5 relative z-20">
             <button 
                 onClick={() => setIsOpen(false)}
                 className="group flex items-center gap-3 md:gap-4 pl-4 pr-4 md:pl-6 md:pr-8 h-[40px] md:h-[60px] border border-white/10 rounded-full hover:bg-white/5 transition-all"
