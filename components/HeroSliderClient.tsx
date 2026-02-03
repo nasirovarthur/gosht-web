@@ -32,7 +32,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
     resetTimer();
     timerRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % slides.length);
-    }, 6000);
+    }, 10000); // 10 секунд
   }, [resetTimer, slides.length]);
 
   // Эффект параллакса
@@ -69,8 +69,9 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
               index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
             }`}
           >
-            <div 
-               className="relative w-full h-full"
+            <div
+              className="relative w-full h-full"
+              style={{ transform: `translateY(${offsetY * 0.50}px)` }}
             >
               <Image
                 src={slide.image}
@@ -83,7 +84,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
           </div>
         ))}
         {/* Градиент поверх фото */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 z-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/100 z-10" />
       </div>
 
       {/* 2. ТЕКСТОВЫЙ КОНТЕНТ */}
@@ -117,28 +118,16 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
             href={currentSlide.buttonUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none"
+            className="group relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none"
           >
             {/* Блюр под кнопкой */}
             <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-md transition-all duration-300 group-hover:backdrop-blur-xl" />
             <span className="text-[12px] md:text-[15px] text-white tracking-[0.2em] uppercase font-light transition-colors duration-300">
               {currentSlide.buttonText}
             </span>
-            <span className="inline-block transition-transform duration-300 group-hover:translate-x-2 group-hover:scale-110">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5 12H19M19 12L12 5M19 12L12 19"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+            <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
           </a>
@@ -168,13 +157,16 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
         {/* Номер слайда */}
         <div className="flex items-baseline gap-2 text-white font-serif">
             <span className="text-[32px] md:text-[42px] leading-none">{currentIndex + 1}</span>
-            <div className="h-[1px] w-8 md:w-12 bg-white/50 -translate-y-2 overflow-hidden relative">
+            <div className="h-[1px] w-8 md:w-12 bg-white/20 -translate-y-2 overflow-hidden relative">
               <div 
                 key={currentIndex} 
-                className="h-full bg-white animate-progress"
+                className="h-full bg-white"
+                style={{
+                  animation: 'progressBar 10s linear forwards'
+                }}
               ></div>
             </div>
-            <span className="text-[16px] md:text-[20px] text-white/40">{slides.length}</span>
+            <span className="text-[16px] md:text-[20px] text-white/40">{((currentIndex + 1) % slides.length) + 1}</span>
         </div>
 
         {/* Стрелки */}

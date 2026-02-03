@@ -1,6 +1,6 @@
 "use client"; 
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 
 export default function Header() {
@@ -12,6 +12,12 @@ export default function Header() {
     "ПАРТНЕРЫ", "ПРОГРАММА ЛОЯЛЬНОСТИ", "ФРАНШИЗЫ", 
     "О КОМПАНИИ", "ВАКАНСИИ", "КОНТАКТЫ",
   ];
+
+  // Для анимации стрелки
+  const [hoveredIndex, setHoveredIndex] = useState<number|null>(null);
+  const [lastIndex, setLastIndex] = useState<number>(0);
+  const [arrowTop, setArrowTop] = useState<number>(0);
+  const menuRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   const languages = ["UZ", "RU", "EN"];
 
@@ -52,15 +58,38 @@ export default function Header() {
           </div>
           
           <div className="md:hidden w-[80px]"></div>
+
+        {/* Языки (Desktop) */}
+          <div className="hidden md:flex justify-end min-w-[140px]">
+            <div className="group relative flex items-center h-[60px] bg-transparent border border-white/10 rounded-full overflow-hidden transition-all duration-500 hover:w-[220px] w-[80px] hover:bg-white/5 cursor-pointer">
+                <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0 pointer-events-none">
+                    <span className="text-[16px] font-light tracking-[0.1em] uppercase text-white">{lang}</span>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center gap-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-75">
+                    {languages.map((item) => (
+                        <button 
+                            key={item} 
+                            onClick={() => setLang(item)} 
+                            className={`text-[14px] font-light tracking-[0.1em] transition-colors uppercase ${lang === item ? "text-white" : "text-white/40 hover:text-white"}`}
+                        >
+                            {item}
+                        </button>
+                    ))}
+                </div>
+            </div>
+          </div>
+          
+          <div className="md:hidden w-[80px]"></div>
         </div>
       </header>
+      
       {/* =======================================
           2. ШТОРКА МЕНЮ
          ======================================= */}
       {/* Затемнение и размытие под меню */}
       <div
         onClick={() => setIsOpen(false)}
-        className={`fixed inset-0 z-[59] bg-black/60 ${
+        className={`fixed inset-0 z-[49] bg-black/10 ${
           isOpen
             ? "opacity-100 backdrop-blur-[4px] visible"
             : "opacity-0 backdrop-blur-none visible"
@@ -78,7 +107,7 @@ export default function Header() {
         className={`fixed top-0 left-0 h-full z-[60] bg-[#131313] text-[#d1d1d1] transform transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] w-full flex flex-col justify-between overflow-hidden ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
-        style={{ maxWidth: 'min(100%, 700px)', width: 'min(100vw, 700px)' }}
+        style={{ maxWidth: 'min(100vw, 700px)', width: 'min(100vw, 700px)', maxHeight: 'min(100%)', height: 'min(100%)'}}
       >
         
         {/* Верхняя панель шторки (z-10 чтобы быть выше фона) */}
@@ -111,20 +140,43 @@ export default function Header() {
         </div>
 
         {/* СПИСОК МЕНЮ (z-10 чтобы быть выше фона) */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-14 border-r border-white/5 flex flex-col justify-center relative z-10">
-            <nav className="flex flex-col gap-6 md:gap-7 pl-4 md:pl-12">
+        <div className="flex-1 overflow-y-auto p-6 md:p-6 border-r border-white/5 flex flex-col justify-start relative z-10">
+            <nav className="flex flex-col gap-6 md:gap-8 pl-14 md:pl- mt-20 md:mt-12 relative">
+                {/* Анимированная стрелка */}
+                <span
+                  className="absolute left-10 flex items-center h-[22px] md:h-[28px] pointer-events-none"
+                  style={{
+                    top: arrowTop,
+                    opacity: hoveredIndex !== null ? 1 : 0,
+                    transition: 'top 0.4s cubic-bezier(.22,1,.36,1), opacity 1s cubic-bezier(.4,2,.3,1)',
+                  }}
+                >
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 12H18M18 12L13 7M18 12L13 17" stroke="#4A4A4A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
                 {menuItems.map((item, index) => (
-                    <a 
-                        key={index} 
-                        href="#" 
-                        className="text-[16px] md:text-[22px] font-serif font-light text-white hover:text-white/60 transition-colors uppercase tracking-[0.05em] leading-tight flex items-center gap-4"
-                    >
-                        {item}
-                    </a>
+                  <a 
+                    key={index} 
+                    href="#" 
+                    ref={el => { menuRefs.current[index] = el; }}
+                    className="text-[19px] md:text-[24px] font-serif font-light text-white hover:text-white/60 transition-colors uppercase tracking-[0.05em] leading-tight flex items-center gap-4 pl-8 relative"
+                    onMouseEnter={() => {
+                      setHoveredIndex(index);
+                      setLastIndex(index);
+                      if (menuRefs.current[index]) {
+                        setArrowTop(menuRefs.current[index].offsetTop);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredIndex(null);
+                    }}
+                  >
+                    {item}
+                  </a>
                 ))}
             </nav>
         </div>
-
         {/* ЛОГОТИП ВНИЗУ */}
         <div className="pointer-events-none z-0 absolute bottom-0 right-[-80] bottom-[-150] w-[90%] h-[800px] overflow-hidden">
             <div className="relative w-full h-full">

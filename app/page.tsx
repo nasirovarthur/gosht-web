@@ -9,8 +9,6 @@ export default function Home() {
     <main className="min-h-screen bg-[#0c0c0c]">
       <Header />
       
-      {/* HeroSlider здесь используется БЕЗ параметров, 
-          потому что серверный компонент сам скачивает данные */}
       <HeroSlider />
       
       <RunningLine />
