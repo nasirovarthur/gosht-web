@@ -2,19 +2,20 @@
 
 import { useEffect } from "react";
 
-// Важно: export default function
 export default function ScreenScaler() {
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      // Если экран шире 1920px
+      const textContent = document.getElementById('hero-text-content');
+      
+      if (!textContent) return;
+      
       if (width > 1920) {
         const scale = width / 1920;
-        // @ts-ignore
-        document.body.style.zoom = scale;
+        textContent.style.transform = `scale(${scale})`;
+        textContent.style.transformOrigin = 'bottom left';
       } else {
-        // @ts-ignore
-        document.body.style.zoom = 1;
+        textContent.style.transform = 'scale(1)';
       }
     };
 

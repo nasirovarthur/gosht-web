@@ -64,7 +64,7 @@ export default function RootLayout({
     <html lang="ru">
       {/* Добавляем переменную в body */}
       <body className={`${robotoSerif.variable} bg-black text-white antialiased`}>
-          <ScreenScaler />
+          {<ScreenScaler />}
         {children}
       </body>
     </html>

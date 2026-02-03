@@ -8,6 +8,7 @@ async function getData() {
       title,
       subtitle,
       description,
+      showButton,
       buttonText,
       image
     }

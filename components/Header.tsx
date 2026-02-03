@@ -90,28 +90,12 @@ export default function Header() {
 
       {/* Сама панель меню */}
       <div 
-        className={`fixed top-0 left-0 h-full z-[60] bg-[#131313] text-[#d1d1d1] transform transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] w-full md:w-1/2 flex flex-col overflow-hidden ${
+        className={`fixed top-0 left-0 h-full z-[60] bg-[#131313] text-[#d1d1d1] transform transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] w-full flex flex-col justify-between overflow-hidden ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        style={{ maxWidth: 'min(100%, 700px)', width: 'min(100vw, 700px)' }}
       >
         
-        {/* --- НОВЫЙ ФОНОВЫЙ ЛОГОТИП (WATERMARK) --- */}
-        {/* ФИКС: 
-            - translate-x-[10%] вместо 30% (подвинули влево)
-            - w-[100%] вместо 120% (чуть меньше, чтобы текст влезал) 
-        */}
-        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-            <div className="absolute top-1/2 -translate-y-1/2 right-10 top-30 translate-x-[10%] w-[90%] h-[90%]">
-                <Image
-                  src="/Menu-logo.svg" 
-                  alt="Background Logo"
-                  fill
-                  className="object-contain"
-                />
-            </div>
-        </div>
-
-
         {/* Верхняя панель шторки (z-10 чтобы быть выше фона) */}
         <div className="flex items-center justify-between w-full h-[80px] md:h-[100px] px-4 md:px-10 flex-shrink-0 border-b border-white/5 relative z-10">
             <button 
@@ -154,6 +138,18 @@ export default function Header() {
                     </a>
                 ))}
             </nav>
+        </div>
+
+        {/* ЛОГОТИП ВНИЗУ */}
+        <div className="pointer-events-none z-0 absolute bottom-0 right-[-80] bottom-[-150] w-[90%] h-[800px] overflow-hidden">
+            <div className="relative w-full h-full">
+                <Image
+                  src="/menu-logo.svg" 
+                  alt="Background Logo"
+                  fill
+                  className="object-contain"
+                />
+            </div>
         </div>
       </div>
     </>

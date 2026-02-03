@@ -7,12 +7,12 @@ export default defineType({
   fields: [
     defineField({
       name: 'title',
-      title: 'Заголовок (например: INTERNATIONAL)',
+      title: 'Заголовок',
       type: 'string',
     }),
     defineField({
       name: 'subtitle',
-      title: 'Надзаголовок (например: GLOBAL PRESENCE)',
+      title: 'Надзаголовок',
       type: 'string',
     }),
     defineField({
@@ -20,11 +20,18 @@ export default defineType({
       title: 'Описание снизу',
       type: 'string',
     }),
+    
     defineField({
       name: 'buttonText',
       title: 'Текст кнопки',
       type: 'string',
-      initialValue: 'ВСЕ ПРОЕКТЫ'
+      initialValue: 'Замените текст'
+    }),
+    defineField({
+      name: 'showButton',
+      title: 'Показывать кнопку',
+      type: 'boolean',
+      initialValue: true
     }),
     defineField({
       name: 'image',

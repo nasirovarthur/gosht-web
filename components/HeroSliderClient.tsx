@@ -9,6 +9,7 @@ type Slide = {
   subtitle: string;
   title: string;
   description: string;
+  showButton: boolean;
   buttonText: string;
   image: string;
   link: string; // <--- Добавили это поле, чтобы TS не ругался
@@ -86,35 +87,38 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
       </div>
 
       {/* 2. ТЕКСТОВЫЙ КОНТЕНТ */}
-      <div className="relative z-30 h-full flex flex-col justify-end px-4 md:px-10 pb-6 md:pb-12">
-        {/* КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: key={currentIndex} заставляет React пересоздавать блок текста при смене слайда -> запускается анимация fade-up заново */}
+      <div id="hero-text-content" className="relative z-30 h-full flex flex-col justify-end px-4 md:px-10 pb-6 md:pb-12">
         <div key={currentIndex} className="max-w-4xl opacity-0 animate-fade-up">
-            
-            {/* Надзаголовок */}
-            <div className="flex items-center gap-4 mb-4 md:mb-6">
-                <div className="h-[1px] w-8 md:w-12 bg-[#d1d1d1]/60"></div>
-                <span className="text-[#d1d1d1] text-[10px] md:text-[14px] tracking-[0.2em] uppercase font-light">
-                  {currentSlide.subtitle}
-                </span>
-            </div>
+      
+      {/* Надзаголовок */}
+      <div className="flex items-center gap-4 mb-2 md:mb-3">
+          <span className="text-[#d1d1d1] text-[10px] md:text-[14px] tracking-[0.2em] uppercase font-light">
+            {currentSlide.subtitle}
+          </span>
+      </div>
 
-            {/* Заголовок */}
-            <h1 className="text-white text-[42px] md:text-[70px] leading-[1.1] font-serif uppercase tracking-tight mb-6 md:mb-8">
-              {currentSlide.title}
-            </h1>
+      {/* Заголовок */}
+      <h1 className="text-white text-[42px] md:text-[70px] leading-[1.1] font-serif uppercase tracking-tight mb-3 md:mb-4">
+        {currentSlide.title}
+      </h1>
 
-            {/* Описание */}
-            <p className="text-[#d1d1d1]/80 text-[14px] md:text-[18px] max-w-xl leading-relaxed font-light mb-10 md:mb-14">
-              {currentSlide.description}
-            </p>
+      {/* Описание */}
+      <div className="flex items-center gap-4 mb-10 md:mb-14">
+          <div className="h-[1px] w-8 md:w-12 bg-[#d1d1d1]/60"></div>
+          <p className="text-[#d1d1d1]/80 text-[14px] md:text-[18px] max-w-xl leading-relaxed font-light">
+            {currentSlide.description}
+          </p>
+      </div>
 
-            {/* Кнопка */}
-            <button className="group relative px-8 py-3 md:px-10 md:py-4 border border-white/20 rounded-full overflow-hidden hover:border-white/40 transition-colors">
-                <span className="relative z-10 text-[10px] md:text-[12px] text-white tracking-[0.2em] uppercase group-hover:text-black transition-colors duration-500">
-                  {currentSlide.buttonText} &rarr;
-                </span>
-                <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
-            </button>
+      {/* Кнопка с проверкой включения в админке */}
+      {currentSlide.showButton && (
+        <button className="group relative px-8 py-3 md:px-10 md:py-4 border border-white/20 rounded-full overflow-hidden hover:border-white/40 transition-colors">
+            <span className="relative z-10 text-[10px] md:text-[12px] text-white tracking-[0.2em] uppercase group-hover:text-black transition-colors duration-500">
+              {currentSlide.buttonText} &rarr;
+            </span>
+            <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
+        </button>
+      )}
         </div>
       </div>
 
