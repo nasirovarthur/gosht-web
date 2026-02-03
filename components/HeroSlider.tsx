@@ -8,8 +8,8 @@ async function getData() {
       title,
       subtitle,
       description,
-      showButton,
       buttonText,
+      showButton,
       image
     }
   `;
@@ -26,6 +26,7 @@ export default async function HeroSlider() {
     subtitle: slide.subtitle,
     description: slide.description,
     buttonText: slide.buttonText || "ПОДРОБНЕЕ",
+    showButton: slide.showButton !== false,
     image: urlFor(slide.image).url(),
   }));
 
