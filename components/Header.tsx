@@ -50,42 +50,27 @@ export default function Header() {
                 />
             </div>
           </div>
-
-          {/* Языки (Desktop) */}
-          <div className="hidden md:flex justify-end min-w-[140px]">
-            <div className="group relative flex items-center h-[60px] bg-transparent border border-white/10 rounded-full overflow-hidden transition-all duration-500 hover:w-[220px] w-[80px] hover:bg-white/5 cursor-pointer">
-                <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0 pointer-events-none">
-                    <span className="text-[16px] font-light tracking-[0.1em] uppercase text-white">{lang}</span>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center gap-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-75">
-                    {languages.map((item) => (
-                        <button 
-                            key={item} 
-                            onClick={() => setLang(item)} 
-                            className={`text-[14px] font-light tracking-[0.1em] transition-colors uppercase ${lang === item ? "text-white" : "text-white/40 hover:text-white"}`}
-                        >
-                            {item}
-                        </button>
-                    ))}
-                </div>
-            </div>
-          </div>
           
           <div className="md:hidden w-[80px]"></div>
         </div>
       </header>
-
-
       {/* =======================================
           2. ШТОРКА МЕНЮ
          ======================================= */}
-      
-      {/* Затемнение фона (Backdrop) */}
-      <div 
+      {/* Затемнение и размытие под меню */}
+      <div
         onClick={() => setIsOpen(false)}
-        className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-md transition-opacity duration-700 ${
-            isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+        className={`fixed inset-0 z-[59] bg-black/60 ${
+          isOpen
+            ? "opacity-100 backdrop-blur-[4px] visible"
+            : "opacity-0 backdrop-blur-none visible"
         }`}
+        style={{
+          transitionProperty: 'opacity, filter',
+          transitionDuration: '700ms',
+          transitionTimingFunction: 'ease',
+          pointerEvents: isOpen ? 'auto' : 'none',
+        }}
       ></div>
 
       {/* Сама панель меню */}

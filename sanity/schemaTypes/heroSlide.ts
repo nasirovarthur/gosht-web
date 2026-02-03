@@ -27,6 +27,12 @@ export default defineType({
       type: 'string',
       initialValue: 'Замените текст'
     }),
+      defineField({
+        name: 'buttonUrl',
+        title: 'Ссылка для кнопки',
+        type: 'url',
+        description: 'Укажите ссылку, на которую ведет кнопка',
+      }),
     defineField({
       name: 'showButton',
       title: 'Показывать кнопку',

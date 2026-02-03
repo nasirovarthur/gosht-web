@@ -113,11 +113,11 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
       {/* Кнопка: теперь она в общем блоке и зависит от showButton */}
       {currentSlide.showButton && (
         <div className="mt-2">
-          <button className="group relative px-8 py-3 md:px-10 md:py-4 border border-white/20 rounded-full overflow-hidden hover:border-white/40 transition-colors">
-              <span className="relative z-10 text-[10px] md:text-[12px] text-white tracking-[0.2em] uppercase group-hover:text-black transition-colors duration-500">
+          <button className="group relative px-8 py-3 md:px-10 md:py-4 border border-white/20 rounded-full overflow-hidden transition-all duration-500 hover:border-white/60">
+              <span className="relative z-10 text-[10px] md:text-[12px] text-white tracking-[0.2em] uppercase group-hover:text-black transition-colors duration-500 ease-in-out">
                 {currentSlide.buttonText} &rarr;
-              </span>
-              <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
+          </span>
+              <div className="absolute inset-0 bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out origin-center"></div>
           </button>
         </div>
       )}
