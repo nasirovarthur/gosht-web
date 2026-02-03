@@ -10,7 +10,8 @@ async function getData() {
       description,
       buttonText,
       showButton,
-      image
+      image,
+      buttonUrl
     }
   `;
   const data = await client.fetch(query);
@@ -28,6 +29,7 @@ export default async function HeroSlider() {
     buttonText: slide.buttonText || "ПОДРОБНЕЕ",
     showButton: slide.showButton !== false,
     image: urlFor(slide.image).url(),
+    buttonUrl: slide.buttonUrl,
   }));
 
   // Если слайдов в базе нет — не ломаем сайт, а ничего не показываем (или можно заглушку)

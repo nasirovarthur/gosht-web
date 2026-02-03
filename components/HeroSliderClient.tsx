@@ -112,26 +112,52 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
 
       {/* Кнопка: теперь она в общем блоке и зависит от showButton */}
       {currentSlide.showButton && currentSlide.buttonUrl ? (
-        <div className="mt-2">
+        <div className="mt-2 flex justify-start">
           <a
             href={currentSlide.buttonUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative px-8 py-3 md:px-10 md:py-4 border border-white/20 rounded-full overflow-hidden transition-all duration-500 hover:border-white/60"
+            className="relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none"
           >
-            <span className="relative z-10 text-[10px] md:text-[12px] text-white tracking-[0.2em] uppercase group-hover:text-black transition-colors duration-500 ease-in-out">
-              {currentSlide.buttonText} &rarr;
+            {/* Блюр под кнопкой */}
+            <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-md transition-all duration-300 group-hover:backdrop-blur-xl" />
+            <span className="text-[12px] md:text-[15px] text-white tracking-[0.2em] uppercase font-light transition-colors duration-300">
+              {currentSlide.buttonText}
             </span>
-            <div className="absolute inset-0 bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out origin-center"></div>
+            <span className="inline-block transition-transform duration-300 group-hover:translate-x-2 group-hover:scale-110">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 12H19M19 12L12 5M19 12L12 19"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
           </a>
         </div>
       ) : currentSlide.showButton ? (
-        <div className="mt-2">
-          <button className="group relative px-8 py-3 md:px-10 md:py-4 border border-white/20 rounded-full overflow-hidden transition-all duration-500 hover:border-white/60">
-            <span className="relative z-10 text-[10px] md:text-[12px] text-white tracking-[0.2em] uppercase group-hover:text-black transition-colors duration-500 ease-in-out">
-              {currentSlide.buttonText} &rarr;
+        <div className="mt-2 flex justify-start">
+          <button
+            className="relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none"
+          >
+            {/* Блюр под кнопкой */}
+            <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-md transition-all duration-300 group-hover:backdrop-blur-xl" />
+            <span className="text-[12px] md:text-[15px] text-white tracking-[0.2em] uppercase font-light transition-colors duration-300">
+              {currentSlide.buttonText}
             </span>
-            <div className="absolute inset-0 bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out origin-center"></div>
+            <span className="inline-block transition-transform duration-300 group-hover:translate-x-2 group-hover:scale-110">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
           </button>
         </div>
       ) : null}
