@@ -28,6 +28,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
   // Используем глобальный язык из Context
   const { lang } = useLanguage();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   // Функция для получения текста на нужном языке
   const getText = (textObj: LocalizedString): string => {
@@ -47,11 +48,31 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
     }, 10000);
   }, [resetTimer, slides.length]);
 
-  // Параллакс эффект (работает везде)
+  // Параллакс эффект с requestAnimationFrame для плавности
   useEffect(() => {
-    const handleScroll = () => setOffsetY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    let lastScrollY = 0;
+
+    const handleScroll = () => {
+      lastScrollY = window.scrollY;
+      
+      // Отменяем предыдущий RAF если он ещё не выполнен
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+
+      // Используем RAF для синхронизации с refresh rate браузера
+      rafRef.current = requestAnimationFrame(() => {
+        setOffsetY(lastScrollY);
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -81,7 +102,10 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
             {/* Контейнер с параллаксом: двигает и картинку, и градиент одновременно */}
             <div
               className="relative w-full h-full"
-              style={{ transform: `translateY(${offsetY * 0.50}px)` }}
+              style={{ 
+                transform: `translate3d(0, ${offsetY * 0.50}px, 0)`,
+                willChange: 'transform'
+              }}
             >
               <Image
                 src={slide.image}

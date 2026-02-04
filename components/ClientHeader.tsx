@@ -28,7 +28,8 @@ export default function ClientHeader({ navItems, headerText }: ClientHeaderProps
   const pathname = usePathname();
   
   // Не показываем Header внутри Sanity Studio
-  if (pathname.startsWith('/studio')) {
+  // Проверяем наличие /studio в пути (может быть /uz/studio, /ru/studio и т.д.)
+  if (pathname.includes('/studio')) {
     return null;
   }
 

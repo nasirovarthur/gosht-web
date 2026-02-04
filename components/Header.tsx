@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 
 // Типы данных, которые придут из Sanity
@@ -28,6 +29,8 @@ type HeaderProps = {
 
 export default function Header({ navItems = [], headerText }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
   
   // Используем глобальный язык из Context
   const { lang, setLang } = useLanguage();
@@ -42,6 +45,24 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
   // Функция для получения нужного перевода
   const getLabel = (labelObj: LocalizedString) => {
     return labelObj[lang] || labelObj.uz || "";
+  };
+
+  // Функция для смены языка с перенаправлением
+  const handleLanguageChange = (newLang: "uz" | "ru" | "en") => {
+    // Сохраняем текущую позицию скролла
+    const scrollPosition = window.scrollY;
+    
+    setLang(newLang);
+    // Заменяем язык в текущем URL
+    const newPathname = pathname.replace(/^\/(uz|ru|en)/, `/${newLang}`);
+    
+    // Используем router.push с опцией scroll: false чтобы не прыгать вверх
+    router.push(newPathname || `/${newLang}`, { scroll: false });
+    
+    // Восстанавливаем позицию скролла после небольшой задержки
+    setTimeout(() => {
+      window.scrollTo(0, scrollPosition);
+    }, 0);
   };
 
   // Локализованные текст кнопок
@@ -73,7 +94,7 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
 
           {/* 2. ЛОГОТИП */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <Link href="/" className="relative w-[120px] h-[50px] md:w-[200px] md:h-[80px] hover:opacity-80 transition-opacity cursor-pointer z-50 block">
+            <Link href={`/${lang}`} className="relative w-[120px] h-[50px] md:w-[200px] md:h-[80px] hover:opacity-80 transition-opacity cursor-pointer z-50 block">
                 <Image
                   src="/logo.svg" 
                   alt="GOSHT Logo"
@@ -96,7 +117,7 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
                     {languages.map((item) => (
                         <button 
                             key={item} 
-                            onClick={() => setLang(item)} 
+                            onClick={() => handleLanguageChange(item)} 
                             className={`text-[14px] font-light tracking-[0.1em] transition-colors uppercase ${lang === item ? "text-white" : "text-white/40 hover:text-white"}`}
                         >
                             {item.toUpperCase()}
@@ -145,7 +166,7 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
                 {languages.map((item) => (
                   <button
                     key={item}
-                    onClick={() => setLang(item)}
+                    onClick={() => handleLanguageChange(item)}
                     className={`text-[12px] font-light tracking-[0.15em] transition-colors uppercase ${
                       lang === item ? "text-white underline decoration-1 underline-offset-4" : "text-white/30"
                     }`}
@@ -177,7 +198,7 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
                 {navItems.map((item, index) => (
                   <Link 
                     key={item._key || index} 
-                    href={item.link} 
+                    href={`/${lang}${item.link}`} 
                     ref={el => { menuRefs.current[index] = el; }}
                     className="text-[19px] md:text-[24px] font-serif font-light text-white hover:text-white/60 transition-colors uppercase tracking-[0.05em] leading-tight flex items-center gap-4 pl-8 relative"
                     onMouseEnter={() => {
