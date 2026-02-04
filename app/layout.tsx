@@ -1,6 +1,7 @@
 import "./globals.css";
 import localFont from "next/font/local";
 import RootLayoutClient from "@/components/RootLayoutClient";
+import ScreenScaler from "@/components/ScreenScaler";
 import { client } from "@/lib/sanity"; // Добавили клиент Sanity для загрузки меню
 
 // 1. Подключаем Roboto Serif (твои настройки)
@@ -89,6 +90,7 @@ export default async function RootLayout({
   return (
     <html>
       <body className={`${robotoSerif.variable} bg-black text-white antialiased`}>
+        <ScreenScaler />
         <RootLayoutClient navItems={navItems}>
           {children}
         </RootLayoutClient>

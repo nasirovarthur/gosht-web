@@ -1,8 +1,7 @@
 'use client';
 
-import ScreenScaler from '@/components/ScreenScaler';
-import { LanguageProvider } from '@/context/LanguageContext';
 import ClientHeader from '@/components/ClientHeader';
+import { LanguageProvider } from '@/context/LanguageContext';
 
 type LocalizedString = {
   uz: string;
@@ -21,7 +20,6 @@ export default function RootLayoutClient({
 }: RootLayoutClientProps) {
   return (
     <>
-      <ScreenScaler />
       <LanguageProvider initialLang="en">
         <ClientHeader navItems={navItems} />
         {children}

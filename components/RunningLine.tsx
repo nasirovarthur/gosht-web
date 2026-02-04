@@ -23,7 +23,7 @@ export default function RunningLine({ text }: RunningLineProps) {
   const items = Array(4).fill(displayText);
 
   return (
-    <div className="w-full bg-[#131313] border-y border-white/10 py-10 md:py-16 overflow-hidden flex select-none relative z-20">
+    <div className="w-full bg-[#0F0F0F] border-y border-white/10 py-10 md:py-16 overflow-hidden flex select-none relative z-20">
       
       {/* Лента 1 */}
       <div className="animate-infinite-scroll flex whitespace-nowrap">

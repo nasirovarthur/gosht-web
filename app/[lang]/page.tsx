@@ -2,6 +2,7 @@ import HeroSlider from "@/components/HeroSlider";
 import RunningLine from "@/components/RunningLine";
 import { getNavigation, getHeaderText } from "@/lib/getNavigation";
 import { getRunningLine } from "@/lib/getRunningLine";
+import Restaurants from "@/components/Restaurants";
 
 export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -13,10 +14,8 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
       <HeroSlider />
       
       <RunningLine text={runningLineData?.text} />
-
-      <div className="h-screen bg-[#131313] flex items-center justify-center text-white/20">
-        Здесь будет следующий блок
-      </div>
+      
+      <Restaurants />
     </main>
   );
 }
