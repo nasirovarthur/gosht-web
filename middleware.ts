@@ -6,9 +6,9 @@ const DEFAULT_LANGUAGE = 'uz'
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Если путь начинается с /studio без языка, перенаправляем на /uz/studio
+  // Don't redirect /studio routes - let them be handled by app/studio
   if (pathname === '/studio' || pathname.startsWith('/studio/')) {
-    return NextResponse.redirect(new URL(`/${DEFAULT_LANGUAGE}/studio`, request.url))
+    return NextResponse.next()
   }
 
   // Проверяем есть ли уже язык в URL

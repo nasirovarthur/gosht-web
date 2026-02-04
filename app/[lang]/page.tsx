@@ -3,7 +3,8 @@ import RunningLine from "@/components/RunningLine";
 import { getNavigation, getHeaderText } from "@/lib/getNavigation";
 import { getRunningLine } from "@/lib/getRunningLine";
 
-export default async function Home({ params }: { params: { lang: string } }) {
+export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
   const headerText = await getHeaderText();
   const runningLineData = await getRunningLine();
 

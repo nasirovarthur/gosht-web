@@ -31,8 +31,11 @@ export function LanguageProvider({ children, initialLang = "uz" }: { children: R
       
       // Если сохранённый язык не совпадает с URL, перенаправляем на правильный язык
       if (savedLang !== initialLang && !pathname.includes('/studio')) {
-        const newPathname = pathname.replace(/^\/(uz|ru|en)/, `/${savedLang}`);
-        router.push(newPathname || `/${savedLang}`);
+        // Добавляем небольшую задержку чтобы избежать race condition
+        setTimeout(() => {
+          const newPathname = pathname.replace(/^\/(uz|ru|en)/, `/${savedLang}`);
+          router.push(newPathname || `/${savedLang}`);
+        }, 100);
       }
     } else {
       // Если нет сохранённого языка, сохраняем текущий
@@ -40,7 +43,7 @@ export function LanguageProvider({ children, initialLang = "uz" }: { children: R
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       document.cookie = `preferredLanguage=${initialLang};expires=${expiryDate.toUTCString()};path=/`;
     }
-  }, []);
+  }, [initialLang, pathname, router]);
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);
