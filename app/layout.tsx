@@ -1,8 +1,11 @@
 import "./globals.css";
 import localFont from "next/font/local";
 import ScreenScaler from "@/components/ScreenScaler";
+import ClientHeader from "@/components/ClientHeader"; // Обновили на ClientHeader для условного отображения
+import { client } from "@/lib/sanity"; // Добавили клиент Sanity для загрузки меню
+import { LanguageProvider } from "@/context/LanguageContext";
 
-// Подключаем Roboto Serif (все веса)
+// 1. Подключаем Roboto Serif (твои настройки)
 const robotoSerif = localFont({
   src: [
     {
@@ -46,26 +49,58 @@ const robotoSerif = localFont({
       style: 'normal',
     },
   ],
-  variable: '--font-roboto-serif', // Имя переменной
+  variable: '--font-roboto-serif',
   display: 'swap',
 });
 
+// 2. Твои метаданные
 export const metadata = {
   title: "GOSHT Group",
   description: "Premium Steakhouse & Catering",
 };
 
-export default function RootLayout({
+// 3. Функция получения меню (критично для работы Header)
+async function getNavData() {
+  try {
+    const query = `
+      *[_type == "navigation"][0] {
+        items[] {
+          _key,
+          label,
+          link
+        }
+      }
+    `;
+    const data = await client.fetch(query);
+    return data?.items || [];
+  } catch (error) {
+    console.error("Error fetching nav data:", error);
+    return [];
+  }
+}
+
+// 4. Основной Layout
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Получаем данные для меню на сервере
+  const navItems = await getNavData();
+
   return (
     <html lang="ru">
-      {/* Добавляем переменную в body */}
       <body className={`${robotoSerif.variable} bg-black text-white antialiased`}>
-          {<ScreenScaler />}
-        {children}
+        {/* Компонент масштабирования (должен быть вне LanguageProvider) */}
+        <ScreenScaler />
+        
+        <LanguageProvider>
+          {/* Шапка сайта (условно отображается только вне /studio) */}
+          <ClientHeader navItems={navItems} />
+
+          {/* Основной контент */}
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

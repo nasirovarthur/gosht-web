@@ -2,13 +2,20 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
+import { useLanguage } from "@/context/LanguageContext";
+
+type LocalizedString = {
+  uz: string;
+  ru: string;
+  en: string;
+};
 
 type Slide = {
   id: string;
-  subtitle: string;
-  title: string;
-  description: string;
-  buttonText: string;
+  subtitle: LocalizedString;
+  title: LocalizedString;
+  description: LocalizedString;
+  buttonText: LocalizedString;
   showButton: boolean;
   image: string;
   buttonUrl?: string;
@@ -17,7 +24,15 @@ type Slide = {
 export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
+  
+  // Используем глобальный язык из Context
+  const { lang } = useLanguage();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Функция для получения текста на нужном языке
+  const getText = (textObj: LocalizedString): string => {
+    return textObj[lang] || textObj.uz || '';
+  };
 
   const resetTimer = useCallback(() => {
     if (timerRef.current) {
@@ -70,13 +85,13 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
             >
               <Image
                 src={slide.image}
-                alt={slide.title}
+                alt={getText(slide.title)}
                 fill
                 className="object-cover object-center brightness-[0.6]"
                 priority={index === 0}
               />
               {/* Градиент теперь ВНУТРИ, чтобы не было "отслойки" при движении */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-[#0D0D0D]/90 z-10" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-[#0D0D0D]/95 z-10" />
             </div>
           </div>
         ))}
@@ -89,20 +104,20 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
           {/* Надзаголовок */}
           <div className="flex items-center gap-4 mb-2 md:mb-3">
               <span className="text-[#d1d1d1] text-[10px] md:text-[14px] tracking-[0.2em] uppercase font-light">
-                {currentSlide.subtitle}
+                {getText(currentSlide.subtitle)}
               </span>
           </div>
 
           {/* Заголовок */}
           <h1 className="text-white text-[32px] md:text-[70px] leading-[1.1] font-serif uppercase tracking-tight mb-3 md:mb-4">
-            {currentSlide.title}
+            {getText(currentSlide.title)}
           </h1>
 
           {/* Описание */}
           <div className="flex items-center gap-4 mb-8 md:mb-10">
               <div className="h-[1px] w-8 md:w-12 bg-[#d1d1d1]/60"></div>
               <p className="text-[#d1d1d1]/80 text-[13px] md:text-[18px] max-w-xl leading-relaxed font-light">
-                {currentSlide.description}
+                {getText(currentSlide.description)}
               </p>
           </div>
 
@@ -117,7 +132,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
               >
                 <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-3xl transition-all duration-300 group-hover:backdrop-blur-3xl" />
                 <span className="text-[12px] md:text-[15px] text-white tracking-[0.1em] uppercase font-light transition-colors duration-300">
-                  {currentSlide.buttonText}
+                  {getText(currentSlide.buttonText)}
                 </span>
                 <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -133,7 +148,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
               >
                 <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-md transition-all duration-300 group-hover:backdrop-blur-xl" />
                 <span className="text-[12px] md:text-[15px] text-white tracking-[0.2em] uppercase font-light transition-colors duration-300">
-                  {currentSlide.buttonText}
+                  {getText(currentSlide.buttonText)}
                 </span>
                 <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

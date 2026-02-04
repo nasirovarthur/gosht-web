@@ -1,51 +1,73 @@
+// sanity/schemaTypes/heroSlide.ts
 import { defineField, defineType } from 'sanity'
 
-export default defineType({
+export const heroSlide = defineType({
   name: 'heroSlide',
-  title: 'Главный Слайдер',
+  title: 'Hero Slide',
   type: 'document',
   fields: [
     defineField({
       name: 'title',
-      title: 'Заголовок',
-      type: 'string',
+      title: 'Title',
+      type: 'object',
+      fields: [
+        { name: 'uz', title: "O'zbekcha", type: 'string' },
+        { name: 'ru', title: 'Русский', type: 'string' },
+        { name: 'en', title: 'English', type: 'string' },
+      ],
+      validation: (rule) => rule.custom((fields: any) => {
+        if (!fields?.uz) return "Title in Uzbek is required"
+        return true
+      })
     }),
     defineField({
       name: 'subtitle',
-      title: 'Надзаголовок',
-      type: 'string',
+      title: 'Subtitle',
+      type: 'object',
+      fields: [
+        { name: 'uz', title: "O'zbekcha", type: 'string' },
+        { name: 'ru', title: 'Русский', type: 'string' },
+        { name: 'en', title: 'English', type: 'string' },
+      ],
     }),
     defineField({
       name: 'description',
-      title: 'Описание снизу',
-      type: 'string',
-    }),
-    
-    defineField({
-      name: 'buttonText',
-      title: 'Текст кнопки',
-      type: 'string',
-      initialValue: 'Замените текст'
-    }),
-      defineField({
-        name: 'buttonUrl',
-        title: 'Ссылка для кнопки',
-        type: 'url',
-        description: 'Укажите ссылку, на которую ведет кнопка',
-      }),
-    defineField({
-      name: 'showButton',
-      title: 'Показывать кнопку',
-      type: 'boolean',
-      initialValue: true
+      title: 'Description',
+      type: 'object',
+      fields: [
+        { name: 'uz', title: "O'zbekcha", type: 'string' },
+        { name: 'ru', title: 'Русский', type: 'string' },
+        { name: 'en', title: 'English', type: 'string' },
+      ],
     }),
     defineField({
       name: 'image',
-      title: 'Фоновое фото',
+      title: 'Background Image',
       type: 'image',
       options: {
-        hotspot: true, // Позволяет выбирать центр картинки, чтобы она красиво обрезалась
+        hotspot: true,
       },
+    }),
+    defineField({
+      name: 'buttonText',
+      title: 'Button Text',
+      type: 'object',
+      fields: [
+        { name: 'uz', title: "O'zbekcha", type: 'string' },
+        { name: 'ru', title: 'Русский', type: 'string' },
+        { name: 'en', title: 'English', type: 'string' },
+      ],
+    }),
+    defineField({
+      name: 'buttonUrl',
+      title: 'Button URL',
+      type: 'string',
+    }),
+    defineField({
+      name: 'showButton',
+      title: 'Show Button',
+      type: 'boolean',
+      initialValue: true,
     }),
   ],
 })
