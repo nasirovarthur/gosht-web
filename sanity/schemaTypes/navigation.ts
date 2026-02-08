@@ -33,7 +33,7 @@ export const navigation = defineType({
                 { name: 'en', title: 'English', type: 'string' },
               ],
               // Проверка: Узбекский обязателен
-              validation: (rule) => rule.custom((fields: any) => {
+              validation: (rule) => rule.custom((fields: { uz?: string } | undefined) => {
                 if (!fields?.uz) return 'Название на узбекском обязательно'
                 return true
               })

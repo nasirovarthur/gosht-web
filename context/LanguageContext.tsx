@@ -13,35 +13,34 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children, initialLang = "uz" }: { children: ReactNode; initialLang?: Language }) {
-  const [lang, setLangState] = useState<Language>(initialLang);
-  const [mounted, setMounted] = useState(false);
+  const getSavedLanguage = () => {
+    if (typeof document === "undefined") return undefined;
+    const savedLang = document.cookie
+      .split("; ")
+      .find(row => row.startsWith("preferredLanguage="))
+      ?.split("=")[1] as Language | undefined;
+
+    return savedLang && ["uz", "ru", "en"].includes(savedLang) ? savedLang : undefined;
+  };
+
+  const [lang, setLangState] = useState<Language>(() => getSavedLanguage() ?? initialLang);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    setMounted(true);
-    // Пытаемся получить язык из cookies
-    const savedLang = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('preferredLanguage='))
-      ?.split('=')[1] as Language | undefined;
+    const savedLang = getSavedLanguage();
+    const activeLang = savedLang ?? initialLang;
 
-    if (savedLang && ['uz', 'ru', 'en'].includes(savedLang)) {
-      setLangState(savedLang);
-      
-      // Если сохранённый язык не совпадает с URL, перенаправляем на правильный язык
-      if (savedLang !== initialLang && !pathname.includes('/studio')) {
-        // Добавляем небольшую задержку чтобы избежать race condition
-        setTimeout(() => {
-          const newPathname = pathname.replace(/^\/(uz|ru|en)/, `/${savedLang}`);
-          router.push(newPathname || `/${savedLang}`);
-        }, 100);
-      }
-    } else {
-      // Если нет сохранённого языка, сохраняем текущий
-      const expiryDate = new Date();
-      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-      document.cookie = `preferredLanguage=${initialLang};expires=${expiryDate.toUTCString()};path=/`;
+    const expiryDate = new Date();
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    document.cookie = `preferredLanguage=${activeLang};expires=${expiryDate.toUTCString()};path=/`;
+
+    // Если сохранённый язык не совпадает с URL, перенаправляем на правильный язык
+    if (savedLang && savedLang !== initialLang && !pathname.includes("/studio")) {
+      setTimeout(() => {
+        const newPathname = pathname.replace(/^\/(uz|ru|en)/, `/${savedLang}`);
+        router.push(newPathname || `/${savedLang}`);
+      }, 100);
     }
   }, [initialLang, pathname, router]);
 
@@ -52,10 +51,6 @@ export function LanguageProvider({ children, initialLang = "uz" }: { children: R
     expiryDate.setFullYear(expiryDate.getFullYear() + 1);
     document.cookie = `preferredLanguage=${newLang};expires=${expiryDate.toUTCString()};path=/`;
   };
-
-  if (!mounted) {
-    return <LanguageContext.Provider value={{ lang: initialLang, setLang }}>{children}</LanguageContext.Provider>;
-  }
 
   return (
     <LanguageContext.Provider value={{ lang, setLang }}>

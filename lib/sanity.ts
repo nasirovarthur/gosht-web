@@ -1,5 +1,6 @@
 import { createClient } from 'next-sanity'
 import imageUrlBuilder from '@sanity/image-url'
+import type { SanityImageSource } from '@sanity/image-url/lib/types/types'
 
 // Обратите внимание на слово export перед const client
 export const client = createClient({
@@ -12,6 +13,6 @@ export const client = createClient({
 const builder = imageUrlBuilder(client)
 
 // И здесь тоже должно быть export
-export function urlFor(source: any) {
+export function urlFor(source: SanityImageSource) {
   return builder.image(source)
 }

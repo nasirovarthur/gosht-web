@@ -15,7 +15,7 @@ export const heroSlide = defineType({
         { name: 'ru', title: 'Русский', type: 'string' },
         { name: 'en', title: 'English', type: 'string' },
       ],
-      validation: (rule) => rule.custom((fields: any) => {
+      validation: (rule) => rule.custom((fields: { uz?: string } | undefined) => {
         if (!fields?.uz) return "Title in Uzbek is required"
         return true
       })

@@ -13,7 +13,7 @@ type HeroSlideRaw = {
   description: LocalizedString | string
   buttonText: LocalizedString | string
   showButton: boolean
-  image: any
+  image: unknown
   buttonUrl?: string
 }
 
