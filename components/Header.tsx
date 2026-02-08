@@ -87,7 +87,7 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
               <rect y="5.25" width="18" height="1.5" />
               <rect y="10.5" width="18" height="1.5" />
             </svg>
-            <span className="text-label font-light pt-0.5 text-white/90">
+            <span className="text-ui font-light pt-0.5 text-white/90">
               {getLabel(menuButtonText)}
             </span>
           </button>
@@ -111,14 +111,14 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
           <div className="hidden md:flex justify-end min-w-[140px]">
             <div className="group relative flex items-center h-[60px] bg-transparent border border-white/10 rounded-full overflow-hidden transition-all duration-500 hover:w-[220px] w-[80px] hover:bg-white/5 cursor-pointer">
                 <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0 pointer-events-none">
-                    <span className="text-[16px] font-light tracking-[0.1em] uppercase text-white">{lang.toUpperCase()}</span>
+                    <span className="text-ui font-light text-white">{lang.toUpperCase()}</span>
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center gap-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-75">
                     {languages.map((item) => (
                         <button 
                             key={item} 
                             onClick={() => handleLanguageChange(item)} 
-                            className={`text-[14px] font-light tracking-[0.1em] transition-colors uppercase ${lang === item ? "text-white" : "text-white/40 hover:text-white"}`}
+                            className={`text-ui font-light transition-colors ${lang === item ? "text-white" : "text-white/40 hover:text-white"}`}
                         >
                             {item.toUpperCase()}
                         </button>
@@ -141,7 +141,7 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
       ></div>
 
       <div 
-        className={`fixed top-0 left-0 h-full z-[60] bg-[#131313] text-[#d1d1d1] transform transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] w-full flex flex-col justify-between overflow-hidden ${
+        className={`fixed top-0 left-0 h-full z-[60] bg-panel text-[#d1d1d1] transform transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] w-full flex flex-col justify-between overflow-hidden ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ maxWidth: 'min(100vw, 700px)', width: 'min(100vw, 700px)'}}
@@ -156,7 +156,7 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
                 <svg className="w-[12px] h-[12px] md:w-[16px] md:h-[16px] fill-white/60 group-hover:fill-white transition-colors" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z" />
                 </svg>
-                <span className="text-label font-light pt-0.5 text-white/90">
+                <span className="text-ui font-light pt-0.5 text-white/90">
                   {getLabel(closeButtonText)}
                 </span>
             </button>
@@ -167,7 +167,7 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
                   <button
                     key={item}
                     onClick={() => handleLanguageChange(item)}
-                    className={`text-[12px] font-light tracking-[0.15em] transition-colors uppercase ${
+                    className={`text-ui font-light transition-colors ${
                       lang === item ? "text-white underline decoration-1 underline-offset-4" : "text-white/30"
                     }`}
                   >
@@ -200,7 +200,7 @@ export default function Header({ navItems = [], headerText }: HeaderProps) {
                     key={item._key || index} 
                     href={`/${lang}${item.link}`} 
                     ref={el => { menuRefs.current[index] = el; }}
-                    className="text-[19px] md:text-[24px] font-serif font-light text-white hover:text-white/60 transition-colors uppercase tracking-[0.05em] leading-tight flex items-center gap-4 pl-8 relative"
+                    className="text-nav font-light text-white hover:text-white/60 transition-colors leading-tight flex items-center gap-4 pl-8 relative"
                     onMouseEnter={() => {
                       setHoveredIndex(index);
                       if (menuRefs.current[index]) {

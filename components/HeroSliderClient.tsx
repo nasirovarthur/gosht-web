@@ -155,7 +155,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
                 className="group relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none"
               >
                 <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-3xl transition-all duration-300 group-hover:backdrop-blur-3xl" />
-                <span className="text-[12px] md:text-[15px] text-white tracking-[0.1em] uppercase font-light transition-colors duration-300">
+                <span className="text-ui text-white font-light transition-colors duration-300">
                   {getText(currentSlide.buttonText)}
                 </span>
                 <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">
@@ -171,7 +171,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
                 className="group relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none"
               >
                 <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-md transition-all duration-300 group-hover:backdrop-blur-xl" />
-                <span className="text-[12px] md:text-[15px] text-white tracking-[0.2em] uppercase font-light transition-colors duration-300">
+                <span className="text-ui-wide text-white font-light transition-colors duration-300">
                   {getText(currentSlide.buttonText)}
                 </span>
                 <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">
@@ -188,7 +188,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
       {/* 3. НАВИГАЦИЯ */}
       <div className="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-40 flex items-center gap-6 md:gap-10 pointer-events-auto">
         <div className="flex items-baseline gap-2 text-white font-serif">
-            <span className="text-[24px] md:text-[42px] leading-none">{currentIndex + 1}</span>
+            <span className="text-counter">{currentIndex + 1}</span>
             <div className="h-[1px] w-6 md:w-12 bg-white/20 -translate-y-1 md:-translate-y-2 overflow-hidden relative">
               <div 
                 key={currentIndex} 
@@ -198,7 +198,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
                 }}
               ></div>
             </div>
-            <span className="text-[14px] md:text-[20px] text-white/40">{((currentIndex + 1) % slides.length) + 1}</span>
+            <span className="text-counter-sm text-white/40">{((currentIndex + 1) % slides.length) + 1}</span>
         </div>
 
         <div className="flex gap-2 md:gap-4">

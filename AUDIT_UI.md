@@ -101,3 +101,19 @@ Next: Step 2 — scan key pages/components for concrete high/medium/low issues a
 - Layout: `.page-x`, `.section-y-sm`, `.section-y`, `.section-y-lg`
 - Typography: `.text-display`, `.text-h1`, `.text-title`, `.text-title-sm`, `.text-title-lg`, `.text-body`, `.text-body-lg`, `.text-label`, `.text-marquee`
 - Surfaces: `.bg-base`, `.bg-surface`
+
+## Step 4/5 — Applied Adjustments (Menu, Cards, Adaptives)
+
+### Components Updated to Tokens
+- `components/Header.tsx`
+  - Menu + language controls → `text-ui`, nav items → `text-nav`, panel → `bg-panel`.
+- `components/RestaurantsClient.tsx`
+  - Card surface → `bg-card`, meta text → `text-meta`, empty state → `text-meta`.
+- `components/HeroSliderClient.tsx`
+  - CTA text → `text-ui` / `text-ui-wide`, slide counters → `text-counter` / `text-counter-sm`.
+- `components/RestaurantDetail.tsx`
+  - Large layout gap uses tokenized value; map fallback uses `bg-card`.
+
+### Adaptive Token Adjustments
+- Added token steps for **1024px** and **1440px** to smooth layout scaling:
+  - `--page-x` and `--fs-h1` now progress at `1024`, `1280`, `1440`, `1536`.

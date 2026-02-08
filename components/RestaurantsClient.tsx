@@ -144,7 +144,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
             className="group block flex-shrink-0 w-[85vw] md:min-w-[calc((100%-128px)/3)] md:w-[calc((100%-128px)/3)] snap-start first:ml-[var(--page-x)] last:mr-[var(--page-x)]"
           >
             {/* Карточка */}
-            <div className="relative w-full h-[320px] md:h-[390px] overflow-hidden bg-[#1a1a1a] mb-4 border border-white/5 z-0">
+            <div className="relative w-full h-[320px] md:h-[390px] overflow-hidden bg-card mb-4 border border-white/5 z-0">
                 <div className="absolute inset-0 w-full h-full transition-transform duration-1000 group-hover:scale-105 z-0">
                   <Image src={item.image} alt={getName(item.name)} fill className="object-cover brightness-[0.85] group-hover:brightness-100 transition-all duration-500" />
                 </div>
@@ -163,7 +163,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
                 <h3 className="text-white text-title-sm leading-none mb-3 group-hover:text-white/80 transition-colors">
                     {getName(item.name)}
                 </h3>
-                <div className="flex flex-wrap gap-5 text-[12px] md:text-[13px] text-white/50 uppercase tracking-wide font-light">
+                <div className="flex flex-wrap gap-5 text-meta text-white/50 font-light">
                     {item.hasBanquet && <div className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-white/60"></span><span>{ui.banquet}</span></div>}
                     {item.hasPlayground && <div className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-white/60"></span><span>{ui.playground}</span></div>}
                 </div>
@@ -174,7 +174,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
 
       {filteredItems.length === 0 && (
         <div className="w-full page-x py-24 text-center border-t border-b border-white/5 text-white/30">
-             <span className="text-[13px] uppercase tracking-widest">{lang === 'uz' ? "Ro'yxat bo'sh" : lang === 'ru' ? "Список пуст" : "List is empty"}</span>
+             <span className="text-meta">{lang === 'uz' ? "Ro'yxat bo'sh" : lang === 'ru' ? "Список пуст" : "List is empty"}</span>
         </div>
       )}
     </section>

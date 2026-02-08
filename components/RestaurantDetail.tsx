@@ -135,7 +135,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
           className={`${isMobile ? 'flex flex-col gap-y-[120px]' : 'flex flex-row gap-x-[120px]'} h-full min-h-full`}
         >
           <section className="flex-shrink-0 w-screen min-h-full flex items-start lg:mr-[120px] page-x">
-            <div className="w-full h-full flex flex-col lg:flex-row gap-12 lg:gap-[120px] 2xl:gap-[160px]">
+            <div className="w-full h-full flex flex-col lg:flex-row gap-12 lg:gap-[var(--section-y-lg)] 2xl:gap-[calc(var(--section-y-lg)+40px)]">
               <div className="w-full lg:w-1/2 2xl:w-[520px] 2xl:flex-none h-auto lg:h-full flex flex-col gap-8 px-0">
                 <h1 className="text-white text-h1 font-light mb-8 lg:mb-12">
                   {restaurant.branchName}
@@ -270,7 +270,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                   title="Карта ресторана"
                 />
               ) : (
-                <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center">
+              <div className="w-full h-full bg-card flex items-center justify-center">
                   <a
                     href={restaurant.mapLink}
                     target="_blank"
