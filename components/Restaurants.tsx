@@ -41,10 +41,10 @@ export default async function Restaurants() {
   const items = rawData
     .map((item) => ({
       ...item,
-      image: item.image ? urlFor(item.image).url() : null,
-      logo: item.logo ? urlFor(item.logo).url() : null, // Обрабатываем логотип
+      image: item.image ? urlFor(item.image).url() : undefined,
+      logo: item.logo ? urlFor(item.logo).url() : undefined, // Обрабатываем логотип
     }))
-    .filter((item) => item.image);
+    .filter((item): item is RestaurantRaw & { image: string; logo: string | undefined } => Boolean(item.image));
 
   return <RestaurantsClient items={items} />;
 }
