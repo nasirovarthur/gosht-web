@@ -88,7 +88,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
   const currentSlide = slides[currentIndex];
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#0D0D0D]">
+    <div className="relative w-full h-screen overflow-hidden bg-base">
       
       {/* 1. ФОНОВЫЕ КАРТИНКИ + ГРАДИЕНТ (Двигаются вместе) */}
       <div className="absolute top-0 left-0 w-full z-0 h-[65%] md:h-full transition-all duration-500">
@@ -122,25 +122,25 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
       </div>
 
       {/* 2. ТЕКСТОВЫЙ КОНТЕНТ */}
-      <div id="hero-text-content" className="relative z-30 h-full flex flex-col justify-end px-4 md:px-10 pb-24 md:pb-24 pointer-events-none">
+      <div id="hero-text-content" className="relative z-30 h-full flex flex-col justify-end page-x pb-24 md:pb-24 pointer-events-none">
         <div key={currentIndex} className="max-w-4xl opacity-0 animate-fade-up pointer-events-auto">
       
           {/* Надзаголовок */}
           <div className="flex items-center gap-4 mb-2 md:mb-3">
-              <span className="text-[#d1d1d1] text-[10px] md:text-[14px] tracking-[0.2em] uppercase font-light">
+              <span className="text-[#d1d1d1] text-label font-light">
                 {getText(currentSlide.subtitle)}
               </span>
           </div>
 
           {/* Заголовок */}
-          <h1 className="text-white text-[32px] md:text-[70px] leading-[1.1] font-serif uppercase tracking-tight mb-3 md:mb-4">
+          <h1 className="text-white text-display mb-3 md:mb-4">
             {getText(currentSlide.title)}
           </h1>
 
           {/* Описание */}
           <div className="flex items-center gap-4 mb-8 md:mb-10">
               <div className="h-[1px] w-8 md:w-12 bg-[#d1d1d1]/60"></div>
-              <p className="text-[#d1d1d1]/80 text-[13px] md:text-[18px] max-w-xl leading-relaxed font-light">
+              <p className="text-[#d1d1d1]/80 text-body-lg max-w-xl font-light">
                 {getText(currentSlide.description)}
               </p>
           </div>

@@ -10,11 +10,11 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   const runningLineData = await getRunningLine();
 
   return (
-    <main className="min-h-screen bg-[#0c0c0c]">
+    <main className="min-h-screen bg-base">
       <HeroSlider />
       
       <RunningLine text={runningLineData?.text} />
-      
+
       <Restaurants />
     </main>
   );

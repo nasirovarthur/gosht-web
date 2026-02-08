@@ -94,23 +94,23 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
   };
 
   return (
-    <section className="w-full bg-[#0D0D0D] pb-24 border-t border-white/5 pt-16 overflow-hidden">
+    <section className="w-full bg-base section-y-lg border-t border-white/5 overflow-hidden">
       <style jsx global>{scrollbarHiddenStyles}</style>
 
       {/* HEADER */}
-      <div className="relative px-4 md:px-10 mb-10 flex items-center justify-between md:justify-start">
+      <div className="relative page-x mb-10 flex items-center justify-between md:justify-start">
         
         {/* ТАБЫ */}
         <div className="flex justify-start items-center gap-8 md:gap-12 relative z-10">
           <button onClick={() => setActiveCity("tashkent")} className="group relative pb-2 md:pb-3">
-            <span className={`text-[20px] md:text-[28px] font-serif uppercase tracking-normal transition-colors duration-300 ${activeCity === "tashkent" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
+            <span className={`text-title transition-colors duration-300 ${activeCity === "tashkent" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
               {ui.tashkent}
             </span>
             <span className={`absolute bottom-0 left-0 w-full h-[1px] bg-white transition-all duration-500 ease-out ${activeCity === "tashkent" ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-50 group-hover:opacity-30"}`} />
           </button>
 
           <button onClick={() => setActiveCity("new_york")} className="group relative pb-2 md:pb-3">
-            <span className={`text-[20px] md:text-[28px] font-serif uppercase tracking-normal transition-colors duration-300 ${activeCity === "new_york" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
+            <span className={`text-title transition-colors duration-300 ${activeCity === "new_york" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
               New York
             </span>
             <span className={`absolute bottom-0 left-0 w-full h-[1px] bg-white transition-all duration-500 ease-out ${activeCity === "new_york" ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-50 group-hover:opacity-30"}`} />
@@ -133,7 +133,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
       {/* СЛАЙДЕР */}
       <div 
         ref={scrollContainerRef}
-        className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar scroll-pl-4 md:scroll-pl-10"
+        className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar scroll-pl-[var(--page-x)]"
       >
         {filteredItems.map((item) => (
           <a
@@ -141,7 +141,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
             href={item.url || "#"}
             target="_blank"
             rel="noopener noreferrer"
-            className="group block flex-shrink-0 w-[85vw] md:min-w-[calc((100%-128px)/3)] md:w-[calc((100%-128px)/3)] snap-start first:ml-4 md:first:ml-10 last:mr-4 md:last:mr-10"
+            className="group block flex-shrink-0 w-[85vw] md:min-w-[calc((100%-128px)/3)] md:w-[calc((100%-128px)/3)] snap-start first:ml-[var(--page-x)] last:mr-[var(--page-x)]"
           >
             {/* Карточка */}
             <div className="relative w-full h-[320px] md:h-[390px] overflow-hidden bg-[#1a1a1a] mb-4 border border-white/5 z-0">
@@ -152,7 +152,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
                 
                 {/* ЛОГОТИП: Убрал group-hover:scale-105 */}
                 {item.logo && (
-                    <div className="absolute bottom-5 left-5 w-[70px] h-[70px] md:w-[80px] md:h-[80px] drop-shadow-lg z-20">
+                  <div className="absolute bottom-5 left-5 w-[70px] h-[70px] md:w-[80px] md:h-[80px] drop-shadow-lg z-20">
                         <Image src={item.logo} alt="logo" fill className="object-contain" />
                     </div>
                 )}
@@ -160,7 +160,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
 
             {/* Инфо */}
             <div className="flex flex-col items-start px-1">
-                <h3 className="text-white text-[22px] md:text-[24px] font-serif uppercase leading-none tracking-tight mb-3 group-hover:text-white/80 transition-colors">
+                <h3 className="text-white text-title-sm leading-none mb-3 group-hover:text-white/80 transition-colors">
                     {getName(item.name)}
                 </h3>
                 <div className="flex flex-wrap gap-5 text-[12px] md:text-[13px] text-white/50 uppercase tracking-wide font-light">
@@ -173,7 +173,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="w-full mx-4 md:mx-10 py-24 text-center border-t border-b border-white/5 text-white/30">
+        <div className="w-full page-x py-24 text-center border-t border-b border-white/5 text-white/30">
              <span className="text-[13px] uppercase tracking-widest">{lang === 'uz' ? "Ro'yxat bo'sh" : lang === 'ru' ? "Список пуст" : "List is empty"}</span>
         </div>
       )}
