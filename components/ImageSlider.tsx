@@ -21,42 +21,32 @@ export default function ImageSlider({
   const isVertical = orientation === 'vertical';
   const isSingle = images.length <= 1;
 
-  const getNormalizedIndex = (index: number) => {
-    if (images.length === 0) return 0;
-    const mod = index % images.length;
-    return mod < 0 ? mod + images.length : mod;
-  };
-
-  const safeIndex = images.length ? getNormalizedIndex(currentIndex) : 0;
+  const safeIndex = images.length ? Math.min(Math.max(currentIndex, 0), images.length - 1) : 0;
+  const canGoPrevious = !isSingle && safeIndex > 0;
+  const canGoNext = !isSingle && safeIndex < images.length - 1;
 
   const goToPrevious = () => {
-    if (isSingle) return;
-    setCurrentIndex((prevIndex) => {
-      const normalized = getNormalizedIndex(prevIndex);
-      return normalized === 0 ? images.length - 1 : normalized - 1;
-    });
+    if (!canGoPrevious) return;
+    setCurrentIndex(safeIndex - 1);
   };
 
   const goToNext = () => {
-    if (isSingle) return;
-    setCurrentIndex((prevIndex) => {
-      const normalized = getNormalizedIndex(prevIndex);
-      return normalized === images.length - 1 ? 0 : normalized + 1;
-    });
+    if (!canGoNext) return;
+    setCurrentIndex(safeIndex + 1);
   };
 
   const controls = (
-    <div className={`flex ${isVertical ? 'flex-col' : 'flex-row'} items-center gap-4`}>
+    <div className={`flex ${isVertical ? 'flex-col' : 'flex-row'} items-center gap-7 md:gap-9`}>
       <SliderButton
         onClick={goToPrevious}
         direction={isVertical ? 'up' : 'left'}
-        disabled={isSingle}
+        disabled={!canGoPrevious}
         className="scale-75 md:scale-90"
       />
       <SliderButton
         onClick={goToNext}
         direction={isVertical ? 'down' : 'right'}
-        disabled={isSingle}
+        disabled={!canGoNext}
         className="scale-75 md:scale-90"
       />
     </div>
@@ -65,7 +55,7 @@ export default function ImageSlider({
   const slider = (
     <div
       ref={sliderRef}
-      className={`relative overflow-hidden rounded-2xl shadow-2xl shrink-0 ${
+      className={`relative overflow-hidden shadow-2xl shrink-0 ${
         isVertical
           ? 'w-[80vw] max-w-[880px] aspect-[880/794]'
           : 'w-[80vw] max-w-[880px] aspect-[880/794]'
@@ -99,9 +89,13 @@ export default function ImageSlider({
 
   if (isVertical) {
     return (
-      <div className="flex w-full items-end justify-center gap-6">
-        {!isSingle && <div className="pb-3">{controls}</div>}
+      <div className="relative inline-flex w-fit max-w-full">
         {slider}
+        {!isSingle && (
+          <div className="absolute left-0 bottom-0 -translate-x-[calc(100%+8px)] md:-translate-x-[calc(100%+14px)] z-20">
+            {controls}
+          </div>
+        )}
       </div>
     );
   }

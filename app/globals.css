@@ -73,14 +73,14 @@
 
 @media (min-width: 1440px) {
   :root {
-    --page-x: 120px;
+    --page-x: 64px;
     --fs-h1: 60px;
   }
 }
 
 @media (min-width: 1536px) {
   :root {
-    --page-x: 140px;
+    --page-x: 64px;
     --fs-h1: 64px;
   }
 }

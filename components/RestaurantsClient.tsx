@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import SliderButton from "./SliderButton";
+import { useLanguage } from "@/context/LanguageContext";
 
 const scrollbarHiddenStyles = `
   .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -10,15 +12,16 @@ const scrollbarHiddenStyles = `
 `;
 
 type LocalizedString = {
-  uz: string;
-  ru: string;
-  en: string;
+  uz?: string;
+  ru?: string;
+  en?: string;
 };
 
 type Restaurant = {
   _id: string;
   name: LocalizedString;
-  city: "tashkent" | "new_york";
+  slug?: string;
+  city: string;
   image: string;
   logo?: string;
   hasBanquet?: boolean;
@@ -28,7 +31,7 @@ type Restaurant = {
 
 export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
   const [activeCity, setActiveCity] = useState<"tashkent" | "new_york">("tashkent");
-  const [lang] = useState<"uz" | "ru" | "en">("ru");
+  const { lang } = useLanguage();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Состояния для кнопок
@@ -131,18 +134,27 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
       </div>
 
       {/* СЛАЙДЕР */}
-      <div 
-        ref={scrollContainerRef}
-        className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar scroll-pl-[var(--page-x)]"
-      >
-        {filteredItems.map((item) => (
-          <a
-            key={item._id}
-            href={item.url || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block flex-shrink-0 w-[85vw] md:min-w-[calc((100%-128px)/3)] md:w-[calc((100%-128px)/3)] snap-start first:ml-[var(--page-x)] last:mr-[var(--page-x)]"
-          >
+      <div className="page-x">
+        <div 
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar"
+        >
+        {filteredItems.map((item) => {
+          const normalizedSlug = item.slug ? item.slug.replace(/^\/+|\/+$/g, "") : undefined;
+          const detailHref = normalizedSlug
+            ? `/${lang}/restaurants/${encodeURIComponent(normalizedSlug)}`
+            : "#";
+          const href = normalizedSlug ? detailHref : item.url || "#";
+          const isExternal = !normalizedSlug && Boolean(item.url);
+
+          return (
+            <Link
+              key={item._id}
+              href={href}
+              target={isExternal ? "_blank" : undefined}
+              rel={isExternal ? "noopener noreferrer" : undefined}
+              className="group block flex-shrink-0 w-[78vw] sm:w-[66vw] md:w-[calc((100%-24px)/2)] lg:w-[calc((100%-48px)/3)] snap-start"
+            >
             {/* Карточка */}
             <div className="relative w-full h-[320px] md:h-[390px] overflow-hidden bg-card mb-4 border border-white/5 z-0">
                 <div className="absolute inset-0 w-full h-full transition-transform duration-1000 group-hover:scale-105 z-0">
@@ -168,8 +180,10 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
                     {item.hasPlayground && <div className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-white/60"></span><span>{ui.playground}</span></div>}
                 </div>
             </div>
-          </a>
-        ))}
+            </Link>
+          );
+        })}
+        </div>
       </div>
 
       {filteredItems.length === 0 && (

@@ -21,6 +21,17 @@ export default function RunningLine({ text }: RunningLineProps) {
   // Получаем текст на нужном языке
   const displayText = text?.[lang] || text?.uz || fallbackText;
   const items = Array(4).fill(displayText);
+  const separator = (
+    <svg
+      className="w-4 h-4 md:w-6 md:h-6 text-white/30 shrink-0"
+      viewBox="0 0 12 12"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M6 0L7.5 4.5L12 6L7.5 7.5L6 12L4.5 7.5L0 6L4.5 4.5L6 0Z" fill="currentColor" />
+    </svg>
+  );
 
   return (
     <div className="w-full bg-surface border-y border-white/10 section-y-sm overflow-hidden flex select-none relative z-20">
@@ -28,13 +39,11 @@ export default function RunningLine({ text }: RunningLineProps) {
       {/* Лента 1 */}
       <div className="animate-infinite-scroll flex whitespace-nowrap">
         {items.map((item, index) => (
-          <div key={index} className="flex items-center mx-4 md:mx-4">
+          <div key={index} className="flex items-center mx-4 md:mx-8">
             <span className="text-marquee text-white">
               {item}
             </span>
-            <span className="ml-4 md:ml-8 text-2xl md:text-4xl text-white/30 transform translate-y-[-2px]">
-              ✦
-            </span>
+            <span className="ml-4 md:ml-8 flex items-center">{separator}</span>
           </div>
         ))}
       </div>
@@ -46,9 +55,7 @@ export default function RunningLine({ text }: RunningLineProps) {
             <span className="text-marquee text-white">
               {item}
             </span>
-            <span className="ml-4 md:ml-8 text-2xl md:text-4xl text-white/30 transform translate-y-[-2px]">
-              ✦
-            </span>
+            <span className="ml-4 md:ml-8 flex items-center">{separator}</span>
           </div>
         ))}
       </div>

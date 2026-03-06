@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate:projects:dry": "node sanity/migrations/migrate-restaurants-to-project-branch.mjs --dry-run",
+    "migrate:projects:apply": "node sanity/migrations/migrate-restaurants-to-project-branch.mjs --apply",
+    "reset:restaurants:dry": "node sanity/migrations/reset-restaurant-content.mjs --dry-run",
+    "reset:restaurants:apply": "node sanity/migrations/reset-restaurant-content.mjs --apply"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",

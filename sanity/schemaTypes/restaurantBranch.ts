@@ -12,31 +12,25 @@ const localizedStringField = (name: string, title: string) =>
     ],
   })
 
-const localizedTextField = (name: string, title: string) =>
-  defineField({
-    name,
-    title,
-    type: 'object',
-    fields: [
-      { name: 'uz', title: 'O‘zbekcha', type: 'text', rows: 4 },
-      { name: 'ru', title: 'Русский', type: 'text', rows: 4 },
-      { name: 'en', title: 'English', type: 'text', rows: 4 },
-    ],
-  })
-
-export const restaurants = defineType({
-  name: 'restaurants',
-  title: 'Legacy: Рестораны (старый тип)',
+export const restaurantBranch = defineType({
+  name: 'restaurantBranch',
+  title: 'Филиал проекта',
   type: 'document',
   fields: [
-    localizedStringField('name', 'Название (карточка)'),
-    localizedStringField('branchName', 'Название филиала (детальная страница)'),
+    defineField({
+      name: 'project',
+      title: 'Проект',
+      type: 'reference',
+      to: [{ type: 'restaurant' }],
+      validation: (rule) => rule.required(),
+    }),
+    localizedStringField('branchName', 'Название филиала'),
     defineField({
       name: 'slug',
-      title: 'Slug (URL детальной страницы)',
+      title: 'Slug (для URL)',
       type: 'slug',
       options: {
-        source: 'name.ru',
+        source: 'branchName.ru',
       },
       validation: (rule) =>
         rule.required().custom((value) => {
@@ -45,13 +39,6 @@ export const restaurants = defineType({
             ? 'Уберите "/" в начале slug. Пример: gosht-west'
             : true
         }),
-    }),
-    // НОВОЕ ПОЛЕ: Логотип
-    defineField({
-      name: 'logo',
-      title: 'Логотип ресторана',
-      type: 'image',
-      options: { hotspot: true },
     }),
     defineField({
       name: 'city',
@@ -68,29 +55,22 @@ export const restaurants = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'image',
-      title: 'Фото карточки',
+      name: 'cardImage',
+      title: 'Фото карточки (для главной)',
       type: 'image',
       options: { hotspot: true },
       validation: (rule) => rule.required(),
     }),
-    // НОВЫЕ ПОЛЯ: Метки
     defineField({
-      name: 'hasBanquet',
-      title: 'Есть банкетный зал?',
-      type: 'boolean',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'hasPlayground',
-      title: 'Есть детская площадка?',
-      type: 'boolean',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'url',
-      title: 'Внешняя ссылка (опционально)',
-      type: 'url',
+      name: 'gallery',
+      title: 'Галерея филиала',
+      type: 'array',
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true },
+        },
+      ],
     }),
     localizedStringField('address', 'Адрес'),
     defineField({
@@ -99,32 +79,12 @@ export const restaurants = defineType({
       type: 'string',
     }),
     localizedStringField('workingHours', 'Режим работы'),
-    localizedStringField('averageCheck', 'Средний чек'),
-    localizedTextField('description', 'Краткое описание'),
-    localizedTextField('descriptionExtended', 'Расширенное описание'),
+    localizedStringField('averageCheck', 'Средний чек (для ресторанов)'),
     defineField({
       name: 'yearOpened',
       title: 'Год открытия',
       type: 'string',
-    }),
-    defineField({
-      name: 'menuFile',
-      title: 'Меню (PDF)',
-      type: 'file',
-      options: {
-        accept: 'application/pdf',
-      },
-    }),
-    defineField({
-      name: 'gallery',
-      title: 'Галерея',
-      type: 'array',
-      of: [
-        {
-          type: 'image',
-          options: { hotspot: true },
-        },
-      ],
+      description: 'Показывается в верхнем инфо-блоке детальной страницы.',
     }),
     defineField({
       name: 'map',
@@ -162,27 +122,42 @@ export const restaurants = defineType({
       ],
     }),
     defineField({
-      name: 'chef',
-      title: 'Шеф-повар',
-      type: 'object',
-      fields: [
-        localizedStringField('title', 'Заголовок блока'),
-        localizedStringField('name', 'Имя'),
-        localizedTextField('description', 'Описание'),
-        defineField({
-          name: 'image',
-          title: 'Фото шефа',
-          type: 'image',
-          options: { hotspot: true },
-        }),
-      ],
+      name: 'hasBanquet',
+      title: 'Есть банкетный зал?',
+      type: 'boolean',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'hasPlayground',
+      title: 'Есть детская площадка?',
+      type: 'boolean',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'menuFile',
+      title: 'Меню филиала (PDF)',
+      type: 'file',
+      options: {
+        accept: 'application/pdf',
+      },
+    }),
+    defineField({
+      name: 'externalUrl',
+      title: 'Внешняя ссылка (опционально)',
+      type: 'url',
+    }),
+    defineField({
+      name: 'isActive',
+      title: 'Активный филиал',
+      type: 'boolean',
+      initialValue: true,
     }),
   ],
   preview: {
     select: {
-      title: 'name.ru',
-      subtitle: 'slug.current',
-      media: 'image',
+      title: 'branchName.ru',
+      subtitle: 'project.name.ru',
+      media: 'cardImage',
     },
   },
 })
