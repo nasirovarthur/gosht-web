@@ -12,8 +12,8 @@ const localizedStringField = (name: string, title: string, required = false) =>
     ],
     ...(required
       ? {
-          validation: (rule: { custom: (fn: (value: { uz?: string } | undefined) => true | string) => unknown }) =>
-            rule.custom((value) => (value?.uz ? true : 'Поле на узбекском обязательно')),
+          validation: (rule: any) =>
+            rule.custom((value: any) => (value?.uz ? true : 'Поле на узбекском обязательно')),
         }
       : {}),
   })
@@ -36,14 +36,8 @@ const localizedTextField = (
     ],
     ...(required
       ? {
-          validation: (
-            rule: {
-              custom: (
-                fn: (value: { uz?: string; ru?: string; en?: string } | undefined) => true | string
-              ) => unknown
-            }
-          ) =>
-            rule.custom((value) => {
+          validation: (rule: any) =>
+            rule.custom((value: any) => {
               if (!value?.uz) return 'Описание на узбекском обязательно'
               if (requireAllLanguages && !value?.ru) return 'Описание на русском обязательно'
               if (requireAllLanguages && !value?.en) return 'Описание на английском обязательно'

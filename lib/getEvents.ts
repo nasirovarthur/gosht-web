@@ -153,6 +153,10 @@ function normalizeLocalized(value: LocalizedInput, fallback: Localized): Localiz
   }
 }
 
+function hasLocalizedTextField(value: unknown): value is { text?: LocalizedInput } {
+  return value !== null && typeof value === 'object' && 'text' in value
+}
+
 function normalizeDescription(
   description: EventRaw['description'],
   fallback: Localized[] = []
@@ -163,8 +167,9 @@ function normalizeDescription(
 
   const normalized = description
     .map((paragraph) => {
-      const localizedValue =
-        paragraph && typeof paragraph === 'object' && 'text' in paragraph ? paragraph.text : paragraph
+      const localizedValue = hasLocalizedTextField(paragraph)
+        ? paragraph.text
+        : (paragraph as LocalizedInput)
       return normalizeLocalized(localizedValue, { uz: '', ru: '', en: '' })
     })
     .filter((paragraph) => paragraph.uz || paragraph.ru || paragraph.en)
