@@ -23,7 +23,8 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "sanity": "^4.22.0",
-    "styled-components": "^6.3.8"
+    "styled-components": "^6.3.8",
+    "swiper": "^12.1.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -1,248 +1,105 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import type { EventCategory, EventItem, Localized } from "@/lib/eventsData";
 
-type Localized = {
-  uz: string;
-  ru: string;
-  en: string;
-};
-
-type EventCategory = "event" | "kids";
 type TabValue = "all" | EventCategory;
-
-type EventItem = {
-  id: string;
-  category: EventCategory;
+type EventsListingLabels = {
   title: Localized;
-  image: string;
+  all: Localized;
+  events: Localized;
+  kids: Localized;
+  more: Localized;
 };
 
-const eventsData: EventItem[] = [
-  {
-    id: "e-1",
-    category: "event",
-    title: {
-      uz: "AQUAMARINE X JCOS hamkorlik kechasi",
-      ru: "Коллаборация AQUAMARINE X JCOS",
-      en: "AQUAMARINE X JCOS Collaboration",
-    },
-    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-2",
-    category: "event",
-    title: {
-      uz: "8 mart: desertlar va bayramona kayfiyat",
-      ru: "8 марта: десерты и праздничное настроение",
-      en: "March 8: Desserts and Festive Mood",
-    },
-    image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-3",
-    category: "event",
-    title: {
-      uz: "Yangi kokteyl kartasi va maxsus servis",
-      ru: "Новая коктейльная карта и спецсервис",
-      en: "New Cocktail Menu and Special Service",
-    },
-    image: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-4",
-    category: "kids",
-    title: {
-      uz: "Bolalar uchun oshpazlik master-klassi",
-      ru: "Детский кулинарный мастер-класс",
-      en: "Kids Culinary Masterclass",
-    },
-    image: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-5",
-    category: "event",
-    title: {
-      uz: "Chef’s Table: mavsumiy degustatsiya",
-      ru: "Chef’s Table: сезонная дегустация",
-      en: "Chef’s Table: Seasonal Tasting",
-    },
-    image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-6",
-    category: "kids",
-    title: {
-      uz: "Oilaviy yakshanba: mini-burgerlar",
-      ru: "Семейное воскресенье: мини-бургеры",
-      en: "Family Sunday: Mini Burgers",
-    },
-    image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-7",
-    category: "event",
-    title: {
-      uz: "Live Jazz va signature-menu",
-      ru: "Live Jazz и авторское меню",
-      en: "Live Jazz and Signature Menu",
-    },
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-8",
-    category: "event",
-    title: {
-      uz: "Bahorgi brunch maxsus taklifi",
-      ru: "Весенний brunch special",
-      en: "Spring Brunch Special",
-    },
-    image: "https://images.unsplash.com/photo-1525351326368-efbb5cb6814d?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-9",
-    category: "kids",
-    title: {
-      uz: "Bolalar bayrami: shirinlik studiyasi",
-      ru: "Детский праздник: студия десертов",
-      en: "Kids Party: Dessert Studio",
-    },
-    image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-10",
-    category: "event",
-    title: {
-      uz: "Wine Pairing kechasi",
-      ru: "Вечер Wine Pairing",
-      en: "Wine Pairing Night",
-    },
-    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-11",
-    category: "event",
-    title: {
-      uz: "Chef mehmonlik dinner",
-      ru: "Гостевой ужин от шефа",
-      en: "Guest Chef Dinner",
-    },
-    image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-12",
-    category: "kids",
-    title: {
-      uz: "Kichiklar uchun pitsa kuni",
-      ru: "День пиццы для детей",
-      en: "Pizza Day for Kids",
-    },
-    image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-13",
-    category: "event",
-    title: {
-      uz: "Cocktail Lab: yangi tatlar",
-      ru: "Cocktail Lab: новые вкусы",
-      en: "Cocktail Lab: New Flavors",
-    },
-    image: "https://images.unsplash.com/photo-1461823385004-d7660947a7c0?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-14",
-    category: "kids",
-    title: {
-      uz: "Bolalar cupcake dekor kursi",
-      ru: "Детский курс по декору капкейков",
-      en: "Kids Cupcake Decoration Course",
-    },
-    image: "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1600&h=1000&fit=crop",
-  },
-  {
-    id: "e-15",
-    category: "event",
-    title: {
-      uz: "Yopiq tasting: premium menu",
-      ru: "Закрытый tasting: premium меню",
-      en: "Private Tasting: Premium Menu",
-    },
-    image: "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=1600&h=1000&fit=crop",
-  },
-];
+function pickLocalized(value: Localized, lang: "uz" | "ru" | "en"): string {
+  return value[lang] || value.uz;
+}
 
 function EventsCard({ event }: { event: EventItem }) {
   const { lang } = useLanguage();
   const [imageFailed, setImageFailed] = useState(false);
   const title = event.title[lang] || event.title.uz;
+  const date = event.date[lang] || event.date.uz;
+  const branch = event.branch[lang] || event.branch.uz;
 
   return (
-    <article className="w-full">
-      <div className="relative w-full aspect-[16/10] overflow-hidden bg-[#d8d8d8]">
-        {!imageFailed && (
-          <Image
-            src={event.image}
-            alt={title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 33vw"
-            onError={() => setImageFailed(true)}
-          />
-        )}
-      </div>
-      <h3 className="mt-4 text-[clamp(22px,1.65vw,34px)] leading-[1.05] tracking-[-0.01em] text-black/90 font-light font-serif">
-        {title}
-      </h3>
+    <article className="group w-full">
+      <Link href={`/${lang}/events/${event.slug}`} className="block w-full">
+        <div className="relative w-full aspect-[16/10] overflow-hidden bg-card border border-white/10">
+          {!imageFailed && (
+            <Image
+              src={event.image}
+              alt={title}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+              sizes="(max-width: 1024px) 100vw, 33vw"
+              onError={() => setImageFailed(true)}
+            />
+          )}
+        </div>
+
+        <p className="mt-4 flex items-center gap-2 text-[12px] md:text-[13px] tracking-[0.16em] uppercase text-white/45">
+          <span>{date}</span>
+          <span className="text-white/30">•</span>
+          <span className="text-white/55">{branch}</span>
+        </p>
+
+        <h3 className="mt-2 uppercase text-[clamp(22px,1.65vw,34px)] leading-[1.05] tracking-[-0.01em] text-white/92 font-light font-serif transition-colors duration-300 group-hover:text-[#AE0E16]">
+          {title}
+        </h3>
+      </Link>
     </article>
   );
 }
 
-export default function EventsListingPage() {
+export default function EventsListingPage({
+  events,
+  labels,
+  initialVisibleCount,
+}: {
+  events: EventItem[];
+  labels: EventsListingLabels;
+  initialVisibleCount: number;
+}) {
   const { lang } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabValue>("all");
-  const [visibleCount, setVisibleCount] = useState(12);
-
-  const labels = {
-    title: lang === "uz" ? "VOQEALAR" : lang === "en" ? "EVENTS" : "СОБЫТИЯ",
-    all: lang === "uz" ? "BARCHASI" : lang === "en" ? "ALL" : "ВСЕ",
-    events: lang === "uz" ? "VOQEALAR" : lang === "en" ? "EVENTS" : "СОБЫТИЯ",
-    kids:
-      lang === "uz"
-        ? "BOLALAR TADBIRLARI"
-        : lang === "en"
-          ? "KIDS ACTIVITIES"
-          : "ДЕТСКИЕ МЕРОПРИЯТИЯ",
-    more: lang === "uz" ? "YANA KO'RISH" : lang === "en" ? "LOAD MORE" : "СМОТРЕТЬ ЕЩЕ",
-  };
+  const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
 
   const filteredEvents = useMemo(() => {
-    if (activeTab === "all") return eventsData;
-    return eventsData.filter((item) => item.category === activeTab);
-  }, [activeTab]);
+    if (activeTab === "all") return events;
+    return events.filter((item) => item.category === activeTab);
+  }, [activeTab, events]);
 
   const visibleEvents = filteredEvents.slice(0, visibleCount);
   const canLoadMore = filteredEvents.length > visibleEvents.length;
 
   const onTabClick = (tab: TabValue) => {
     setActiveTab(tab);
-    setVisibleCount(12);
+    setVisibleCount(initialVisibleCount);
   };
 
+  const menuButtonLikeClass =
+    "group flex items-center h-[40px] md:h-[60px] border border-white/10 rounded-full hover:bg-white/5 transition-all active:scale-95";
+  const tabBaseClass =
+    "flex items-center h-[40px] md:h-[60px] border rounded-full transition-colors duration-300 active:scale-95";
+
   return (
-    <section className="w-full bg-[#ECECEC] min-h-screen section-y">
-      <div className="page-x">
-        <div className="mx-auto w-full max-w-[1600px]">
-          <h1 className="text-[clamp(48px,5.4vw,102px)] leading-[0.9] tracking-[-0.02em] text-black font-light font-serif mb-10 md:mb-12">
-            {labels.title}
+    <section className="w-full bg-base min-h-screen section-y-lg">
+      <div className="page-x mb-14 md:mb-16 lg:mb-20">
+        <div className="w-full">
+          <h1 className="text-[clamp(48px,5.4vw,102px)] leading-[0.9] tracking-[-0.02em] text-white font-light font-serif mb-12 md:mb-14">
+            {pickLocalized(labels.title, lang)}
           </h1>
 
-          <div className="flex flex-wrap items-center gap-4 md:gap-6 mb-12 md:mb-14">
+          <div className="flex flex-wrap items-center gap-4 md:gap-6">
             {([
-              { key: "all", label: labels.all },
-              { key: "event", label: labels.events },
-              { key: "kids", label: labels.kids },
+              { key: "all", label: pickLocalized(labels.all, lang) },
+              { key: "event", label: pickLocalized(labels.events, lang) },
+              { key: "kids", label: pickLocalized(labels.kids, lang) },
             ] as const).map((tab) => {
               const isActive = activeTab === tab.key;
               return (
@@ -250,10 +107,10 @@ export default function EventsListingPage() {
                   key={tab.key}
                   type="button"
                   onClick={() => onTabClick(tab.key)}
-                  className={`h-12 md:h-14 px-6 md:px-7 rounded-full text-[11px] md:text-[12px] tracking-[0.12em] uppercase transition-colors ${
+                  className={`${tabBaseClass} pl-6 pr-6 md:pl-8 md:pr-8 text-ui font-light pt-0.5 ${
                     isActive
-                      ? "bg-black text-white"
-                      : "bg-transparent border border-black/25 text-black/70 hover:text-black hover:border-black/45"
+                      ? "bg-white border-white text-black"
+                      : "bg-transparent border-white/10 text-white/90 hover:bg-white/5"
                   }`}
                 >
                   {tab.label}
@@ -261,26 +118,28 @@ export default function EventsListingPage() {
               );
             })}
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 lg:gap-x-8 gap-y-12 lg:gap-y-14">
-            {visibleEvents.map((event) => (
-              <EventsCard key={event.id} event={event} />
-            ))}
-          </div>
-
-          {canLoadMore && (
-            <div className="mt-14 md:mt-16 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setVisibleCount((prev) => prev + 6)}
-                className="h-12 md:h-14 px-8 md:px-9 rounded-full border border-black/25 text-black/85 text-[11px] md:text-[12px] tracking-[0.14em] uppercase hover:border-black/55 hover:text-black transition-colors"
-              >
-                {labels.more}
-              </button>
-            </div>
-          )}
         </div>
       </div>
+
+      <div className="w-full page-x">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-[18px] lg:gap-x-[22.5px] gap-y-20 lg:gap-y-24">
+          {visibleEvents.map((event) => (
+            <EventsCard key={event.id} event={event} />
+          ))}
+        </div>
+      </div>
+
+      {canLoadMore && (
+        <div className="mt-14 md:mt-16 flex justify-center page-x">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((prev) => prev + 6)}
+            className={`${menuButtonLikeClass} pl-6 pr-6 md:pl-8 md:pr-8 text-ui font-light pt-0.5 text-white/90`}
+          >
+            {pickLocalized(labels.more, lang)}
+          </button>
+        </div>
+      )}
     </section>
   );
 }

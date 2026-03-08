@@ -6,7 +6,19 @@ import { restaurant } from './restaurant'
 import { restaurantBranch } from './restaurantBranch'
 import { restaurants } from './restaurants'
 import { groupStorySection } from './groupStorySection'
+import { event } from './event'
+import { eventsSettings } from './eventsSettings'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [navigation, heroSlide, runningLine, groupStorySection, restaurant, restaurantBranch, restaurants],
+  types: [
+    navigation,
+    heroSlide,
+    runningLine,
+    groupStorySection,
+    restaurant,
+    restaurantBranch,
+    restaurants,
+    event,
+    eventsSettings,
+  ],
 }

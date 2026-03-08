@@ -1,6 +1,7 @@
 'use client';
 
 import ClientHeader from '@/components/ClientHeader';
+import Footer from '@/components/Footer';
 import { LanguageProvider } from '@/context/LanguageContext';
 
 type LocalizedString = {
@@ -23,6 +24,7 @@ export default function RootLayoutClient({
       <LanguageProvider initialLang="en">
         <ClientHeader navItems={navItems} />
         {children}
+        <Footer />
       </LanguageProvider>
     </>
   );

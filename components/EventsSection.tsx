@@ -5,69 +5,17 @@ import Link from "next/link";
 import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import SliderButton from "@/components/SliderButton";
+import type { EventItem, Localized } from "@/lib/eventsData";
 
-type Localized = {
-  uz: string;
-  ru: string;
-  en: string;
+type EventCardData = EventItem;
+type EventsSectionLabels = {
+  heading: Localized;
+  allEventsLabel: Localized;
 };
 
-type EventCardData = {
-  id: string;
-  title: Localized;
-  date: Localized;
-  image: string;
-  href: string;
-};
-
-const featuredEvent: EventCardData = {
-  id: "featured",
-  date: {
-    uz: "12 MART 2026",
-    ru: "12 МАРТА 2026",
-    en: "MARCH 12, 2026",
-  },
-  title: {
-    uz: "AQUAMARINE X JCOS hamkorlik kechasi",
-    ru: "Коллаборация AQUAMARINE X JCOS",
-    en: "AQUAMARINE X JCOS Collaboration",
-  },
-  image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=1500&fit=crop",
-  href: "#",
-};
-
-const sideEvents: EventCardData[] = [
-  {
-    id: "side-1",
-    date: {
-      uz: "8 MART 2026",
-      ru: "8 МАРТА 2026",
-      en: "MARCH 8, 2026",
-    },
-    title: {
-      uz: "Desertlar va bayramona kayfiyat",
-      ru: "Десерты и праздничное настроение",
-      en: "Desserts and Festive Mood",
-    },
-    image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=1600&h=1000&fit=crop",
-    href: "#",
-  },
-  {
-    id: "side-2",
-    date: {
-      uz: "6 MART 2026",
-      ru: "6 МАРТА 2026",
-      en: "MARCH 6, 2026",
-    },
-    title: {
-      uz: "Yangi kokteyl karta va maxsus servis",
-      ru: "Новая коктейльная карта и спецсервис",
-      en: "New Cocktail Menu and Special Service",
-    },
-    image: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=1600&h=1000&fit=crop",
-    href: "#",
-  },
-];
+function pickLocalized(value: Localized, lang: "uz" | "ru" | "en"): string {
+  return value[lang] || value.uz;
+}
 
 function EventsLink({ label, href }: { label: string; href: string }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -125,7 +73,7 @@ function EventCard({
 
   return (
     <article className="w-full h-full flex flex-col">
-      <Link href={item.href} className="group block w-full h-full">
+      <Link href={`/${lang}/events/${item.slug}`} className="group block w-full h-full">
         <div className={`relative w-full overflow-hidden bg-card border border-white/10 ${imageWrapClass}`}>
           {!imageFailed && (
             <Image
@@ -140,10 +88,12 @@ function EventCard({
         </div>
 
         <div className={`mt-4 flex flex-col ${metaWrapClass}`}>
-          <p className="text-[11px] md:text-[12px] tracking-[0.18em] uppercase text-white/45">
-            {item.date[lang]}
+          <p className="flex items-center gap-2 text-[12px] md:text-[13px] tracking-[0.16em] uppercase text-white/45">
+            <span>{item.date[lang]}</span>
+            <span className="text-white/30">•</span>
+            <span className="text-white/55">{item.branch[lang]}</span>
           </p>
-          <h3 className={`${titleClass} mt-2 tracking-[-0.01em] text-white/92 font-light font-serif`}>
+          <h3 className={`${titleClass} mt-2 uppercase tracking-[-0.01em] text-white/92 font-light font-serif`}>
             {item.title[lang]}
           </h3>
         </div>
@@ -152,11 +102,23 @@ function EventCard({
   );
 }
 
-export default function EventsSection() {
+export default function EventsSection({
+  featuredEvent,
+  sideEvents,
+  labels,
+}: {
+  featuredEvent: EventItem | null;
+  sideEvents: EventItem[];
+  labels: EventsSectionLabels;
+}) {
   const { lang } = useLanguage();
+  const heading = pickLocalized(labels.heading, lang);
+  const allEventsLabel = pickLocalized(labels.allEventsLabel, lang);
+  const visibleSideEvents = sideEvents.slice(0, 2);
 
-  const heading = lang === "uz" ? "Voqealar" : lang === "en" ? "Events" : "События";
-  const allEventsLabel = lang === "uz" ? "Barcha voqealar" : lang === "en" ? "All events" : "Все события";
+  if (!featuredEvent || visibleSideEvents.length === 0) {
+    return null;
+  }
 
   return (
     <section className="w-full bg-base text-white section-y-lg border-t border-white/5">
@@ -180,8 +142,9 @@ export default function EventsSection() {
 
             <div className="lg:col-span-4 h-full lg:col-start-9">
               <div className="grid grid-cols-1 gap-10 lg:gap-8 h-full lg:grid-rows-2">
-                <EventCard item={sideEvents[0]} variant="small" />
-                <EventCard item={sideEvents[1]} variant="small" />
+                {visibleSideEvents.map((event) => (
+                  <EventCard key={event.id} item={event} variant="small" />
+                ))}
               </div>
             </div>
           </div>
