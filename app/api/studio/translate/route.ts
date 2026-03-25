@@ -21,59 +21,6 @@ type TranslateResult = {
 const MAX_SOURCE_TEXT_LENGTH = 5_000
 const SUPPORTED_TARGET_LANGUAGES = new Set(['uz', 'en', 'ru'])
 
-const languagePrompts: Record<string, string> = {
-  uz: 'Uzbek in Latin script, natural and professional tone.',
-  en: 'English, natural and professional tone.',
-}
-
-function buildPrompt(sourceText: string, sourceLanguage: string, targetLanguages: string[]) {
-  const targetInstructions = targetLanguages
-    .map((language) => `${language}: ${languagePrompts[language] || language}`)
-    .join('\n')
-
-  return [
-    'Translate the provided text carefully.',
-    'Preserve meaning, formatting, line breaks, and list structure.',
-    'Do not translate brand names unless a standard translation exists.',
-    'Return valid JSON only with this exact shape:',
-    '{"translations":{"uz":"...","en":"..."}}',
-    'Do not wrap JSON in markdown code fences.',
-    'Do not add explanations.',
-    `Source language: ${sourceLanguage}`,
-    `Targets:\n${targetInstructions}`,
-    `Text:\n${sourceText}`,
-  ].join('\n\n')
-}
-
-function parseJsonContent(content: string) {
-  try {
-    return JSON.parse(content) as {translations?: Record<string, string>}
-  } catch {
-    return null
-  }
-}
-
-function extractJsonObject(content: string) {
-  const direct = parseJsonContent(content)
-  if (direct) return direct
-
-  const fencedMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
-  if (fencedMatch?.[1]) {
-    const fenced = parseJsonContent(fencedMatch[1].trim())
-    if (fenced) return fenced
-  }
-
-  const firstBrace = content.indexOf('{')
-  const lastBrace = content.lastIndexOf('}')
-
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    const sliced = parseJsonContent(content.slice(firstBrace, lastBrace + 1))
-    if (sliced) return sliced
-  }
-
-  return null
-}
-
 function toDeepLSourceLanguage(language: string) {
   if (language === 'ru') return 'RU'
   if (language === 'en') return 'EN'
@@ -159,147 +106,6 @@ async function translateWithDeepL(
   return {translations}
 }
 
-async function translateWithGemini(
-  sourceText: string,
-  sourceLanguage: string,
-  targetLanguages: string[]
-): Promise<TranslateResult> {
-  const apiKey = process.env.GEMINI_API_KEY
-  const model = process.env.GEMINI_TRANSLATION_MODEL || 'gemini-2.0-flash'
-
-  if (!apiKey) {
-    return {error: 'GEMINI_API_KEY is not configured on the server'}
-  }
-
-  let response: Response
-  try {
-    response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{text: buildPrompt(sourceText, sourceLanguage, targetLanguages)}],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.2,
-            responseMimeType: 'application/json',
-          },
-        }),
-      }
-    )
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown network error'
-    return {error: `Gemini network error: ${message}`}
-  }
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    return {error: `Gemini request failed: ${errorText}`}
-  }
-
-  const completion = (await response.json()) as {
-    candidates?: Array<{
-      content?: {
-        parts?: Array<{
-          text?: string
-        }>
-      }
-    }>
-  }
-
-  const content = completion.candidates?.[0]?.content?.parts?.[0]?.text
-
-  if (!content) {
-    return {error: 'Gemini returned an empty response'}
-  }
-
-  const parsed = extractJsonObject(content)
-
-  if (!parsed?.translations) {
-    return {error: `Gemini returned invalid JSON: ${content}`}
-  }
-
-  return {translations: parsed.translations}
-}
-
-async function translateWithOpenAI(
-  sourceText: string,
-  sourceLanguage: string,
-  targetLanguages: string[]
-): Promise<TranslateResult> {
-  const apiKey = process.env.OPENAI_API_KEY
-  const model = process.env.OPENAI_TRANSLATION_MODEL || 'gpt-4.1-mini'
-
-  if (!apiKey) {
-    return {error: 'OPENAI_API_KEY is not configured on the server'}
-  }
-
-  let response: Response
-  try {
-    response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.2,
-        response_format: {type: 'json_object'},
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are a professional translator for CMS content. Return JSON only in the format {"translations":{"uz":"...","en":"..."}}.',
-          },
-          {
-            role: 'user',
-            content: buildPrompt(sourceText, sourceLanguage, targetLanguages),
-          },
-        ],
-      }),
-    })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown network error'
-    return {error: `OpenAI network error: ${message}`}
-  }
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    return {error: `OpenAI request failed: ${errorText}`}
-  }
-
-  const completion = (await response.json()) as {
-    choices?: Array<{
-      message?: {
-        content?: string
-      }
-    }>
-  }
-
-  const content = completion.choices?.[0]?.message?.content
-
-  if (!content) {
-    return {error: 'OpenAI returned an empty response'}
-  }
-
-  const parsed = extractJsonObject(content)
-
-  if (!parsed?.translations) {
-    return {error: `OpenAI returned invalid JSON: ${content}`}
-  }
-
-  return {translations: parsed.translations}
-}
-
 export async function POST(request: NextRequest) {
   if (
     !isTrustedOriginRequest(request, {
@@ -374,75 +180,35 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const mergedTranslations: Record<string, string> = {}
-    const providerErrors: string[] = []
-
-    if (process.env.DEEPL_API_KEY) {
-      const deepLResult = await translateWithDeepL(
-        sourceText,
-        sourceLanguage,
-        targetLanguages
-      )
-
-      if (deepLResult.translations) {
-        Object.assign(mergedTranslations, deepLResult.translations)
-      } else if (deepLResult.error) {
-        providerErrors.push(deepLResult.error)
-      }
-    }
-
-    const unresolvedAfterDeepL = targetLanguages.filter(
-      (targetLanguage) => !mergedTranslations[targetLanguage]
+    const deepLResult = await translateWithDeepL(
+      sourceText,
+      sourceLanguage,
+      targetLanguages
     )
 
-    if (unresolvedAfterDeepL.length > 0) {
-      const geminiResult = await translateWithGemini(
-        sourceText,
-        sourceLanguage,
-        unresolvedAfterDeepL
-      )
-
-      if (geminiResult.translations) {
-        Object.assign(mergedTranslations, geminiResult.translations)
-      } else if (geminiResult.error) {
-        providerErrors.push(geminiResult.error)
-      }
-    }
-
-    const unresolvedAfterGemini = targetLanguages.filter(
-      (targetLanguage) => !mergedTranslations[targetLanguage]
-    )
-
-    if (unresolvedAfterGemini.length > 0 && process.env.OPENAI_API_KEY) {
-      const openAiResult = await translateWithOpenAI(
-        sourceText,
-        sourceLanguage,
-        unresolvedAfterGemini
-      )
-
-      if (openAiResult.translations) {
-        Object.assign(mergedTranslations, openAiResult.translations)
-      } else if (openAiResult.error) {
-        providerErrors.push(openAiResult.error)
-      }
-    }
-
-    const unresolvedLanguages = targetLanguages.filter(
-      (targetLanguage) => !mergedTranslations[targetLanguage]
-    )
-
-    if (unresolvedLanguages.length > 0) {
+    if (!deepLResult.translations) {
       return NextResponse.json(
         {
-          error:
-            providerErrors[0] ||
-            `Could not translate target languages: ${unresolvedLanguages.join(', ')}`,
+          error: deepLResult.error || 'DeepL translation failed',
         },
         {status: 500}
       )
     }
 
-    return NextResponse.json({translations: mergedTranslations})
+    const unresolvedLanguages = targetLanguages.filter(
+      (targetLanguage) => !deepLResult.translations?.[targetLanguage]
+    )
+
+    if (unresolvedLanguages.length > 0) {
+      return NextResponse.json(
+        {
+          error: `DeepL could not translate target languages: ${unresolvedLanguages.join(', ')}`,
+        },
+        {status: 500}
+      )
+    }
+
+    return NextResponse.json({translations: deepLResult.translations})
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected server error'
     return NextResponse.json({error: `Translation failed: ${message}`}, {status: 500})
