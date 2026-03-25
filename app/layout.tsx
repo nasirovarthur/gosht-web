@@ -1,5 +1,7 @@
 import "./globals.css";
 import localFont from "next/font/local";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Roboto Serif font
 const robotoSerif = localFont({
@@ -63,6 +65,8 @@ export default function RootLayout({
     <html suppressHydrationWarning>
       <body className={`${robotoSerif.variable} bg-black text-white antialiased`}>
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
