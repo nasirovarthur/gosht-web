@@ -2,6 +2,61 @@
   from { width: 0%; }
   to { width: 100%; }
 }
+
+@keyframes infiniteScroll {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
+}
+
+@keyframes logoMarquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes fadeUpIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 36px, 0) scale(0.985);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes fadeDownIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -24px, 0);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes headerSlideIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -120%, 0) scale(0.985);
+    filter: blur(12px);
+  }
+  72% {
+    opacity: 1;
+    transform: translate3d(0, 8px, 0) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -234,4 +289,106 @@ body {
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.animate-infinite-scroll {
+  animation: infiniteScroll 24s linear infinite;
+}
+
+.animate-logo-marquee {
+  animation: logoMarquee 48s linear infinite;
+}
+
+.animate-fade-up {
+  animation: fadeUpIn 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-down {
+  animation: fadeDownIn 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-header-enter {
+  animation: headerSlideIn 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal {
+  --reveal-distance: 42px;
+  --reveal-delay: 0ms;
+  --reveal-duration: 900ms;
+  --reveal-blur: 10px;
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-distance), 0) scale(0.985);
+  filter: blur(var(--reveal-blur));
+  transition:
+    opacity var(--reveal-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    transform var(--reveal-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    filter var(--reveal-duration) cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay);
+  will-change: opacity, transform, filter;
+}
+
+.reveal[data-variant="down"] {
+  transform: translate3d(0, calc(var(--reveal-distance) * -1), 0) scale(0.985);
+}
+
+.reveal[data-variant="left"] {
+  transform: translate3d(calc(var(--reveal-distance) * -1), 0, 0) scale(0.985);
+}
+
+.reveal[data-variant="right"] {
+  transform: translate3d(var(--reveal-distance), 0, 0) scale(0.985);
+}
+
+.reveal[data-variant="zoom"] {
+  transform: translate3d(0, 18px, 0) scale(0.94);
+}
+
+.reveal[data-visible="true"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  .reveal,
+  .animate-fade-up,
+  .animate-fade-down,
+  .animate-header-enter,
+  .animate-infinite-scroll {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* Loader */
+.loader {
+  width: 50px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 8px solid #FFFFFF;
+  animation:
+    l20-1 0.8s infinite linear alternate,
+    l20-2 1.6s infinite linear;
+}
+@keyframes l20-1{
+   0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}
+   12.5% {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100%   0%, 100%   0%, 100%   0% )}
+   25%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 100% 100%, 100% 100% )}
+   50%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
+   62.5% {clip-path: polygon(50% 50%,100%    0, 100%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
+   75%   {clip-path: polygon(50% 50%,100% 100%, 100% 100%,  100% 100%, 100% 100%, 50%  100%, 0%   100% )}
+   100%  {clip-path: polygon(50% 50%,50%  100%,  50% 100%,   50% 100%,  50% 100%, 50%  100%, 0%   100% )}
+}
+@keyframes l20-2{ 
+  0%    {transform:scaleY(1)  rotate(0deg)}
+  49.99%{transform:scaleY(1)  rotate(135deg)}
+  50%   {transform:scaleY(-1) rotate(0deg)}
+  100%  {transform:scaleY(-1) rotate(-135deg)}
 }

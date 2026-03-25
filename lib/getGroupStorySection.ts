@@ -1,4 +1,7 @@
-import { client } from '@/lib/sanity'
+import {
+  getHomeGroupStorySettingsDocument,
+  normalizeHomeGroupStory,
+} from '@/lib/getHomePageSettings'
 
 type LocalizedString = {
   uz?: string
@@ -19,20 +22,7 @@ export interface GroupStorySectionData {
 
 export async function getGroupStorySection(): Promise<GroupStorySectionData | null> {
   try {
-    const query = `
-      *[_type == "groupStorySection" && isActive != false][0]{
-        marquee,
-        titleTop,
-        titleBottom,
-        description,
-        ctaText,
-        ctaUrl,
-        "previewImage": previewImage.asset->url,
-        "portraitImage": portraitImage.asset->url
-      }
-    `
-    const data = await client.fetch<GroupStorySectionData | null>(query)
-    return data || null
+    return normalizeHomeGroupStory(await getHomeGroupStorySettingsDocument())
   } catch (error) {
     console.error('Error fetching group story section:', error)
     return null

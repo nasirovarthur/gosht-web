@@ -1,21 +1,15 @@
 import { notFound } from "next/navigation";
 import RestaurantDetail from "@/components/RestaurantDetail";
 import { client } from "@/lib/sanity";
-
-type Language = "uz" | "ru" | "en";
-
-type LocalizedString = {
-  uz?: string;
-  ru?: string;
-  en?: string;
-};
+import { pickLocalized } from "@/types/i18n";
+import type { LangCode, LocalizedOptional } from "@/types/i18n";
 
 type BranchRestaurantRaw = {
-  branchName?: LocalizedString;
-  address?: LocalizedString;
+  branchName?: LocalizedOptional;
+  address?: LocalizedOptional;
   phone?: string;
-  workingHours?: LocalizedString;
-  averageCheck?: LocalizedString;
+  workingHours?: LocalizedOptional;
+  averageCheck?: LocalizedOptional;
   yearOpened?: string;
   menu?: string;
   gallery?: string[];
@@ -27,30 +21,31 @@ type BranchRestaurantRaw = {
   };
   project?: {
     projectType?: "restaurant" | "barbershop";
-    name?: LocalizedString;
-    description?: LocalizedString;
-    descriptionExtended?: LocalizedString;
-    descriptionAdditional?: LocalizedString;
+    name?: LocalizedOptional;
+    detailPrimaryInfo?: LocalizedOptional;
+    description?: LocalizedOptional;
+    descriptionExtended?: LocalizedOptional;
+    descriptionAdditional?: LocalizedOptional;
     defaultMenu?: string;
     lead?: {
-      title?: LocalizedString;
-      name?: LocalizedString;
-      description?: LocalizedString;
+      title?: LocalizedOptional;
+      name?: LocalizedOptional;
+      description?: LocalizedOptional;
       image?: string;
     };
   };
 };
 
 type LegacyRestaurantRaw = {
-  name?: LocalizedString;
-  branchName?: LocalizedString;
-  address?: LocalizedString;
+  name?: LocalizedOptional;
+  branchName?: LocalizedOptional;
+  address?: LocalizedOptional;
   phone?: string;
-  workingHours?: LocalizedString;
-  averageCheck?: LocalizedString;
-  description?: LocalizedString;
-  descriptionExtended?: LocalizedString;
-  descriptionAdditional?: LocalizedString;
+  workingHours?: LocalizedOptional;
+  averageCheck?: LocalizedOptional;
+  description?: LocalizedOptional;
+  descriptionExtended?: LocalizedOptional;
+  descriptionAdditional?: LocalizedOptional;
   yearOpened?: string;
   menu?: string;
   gallery?: string[];
@@ -61,17 +56,12 @@ type LegacyRestaurantRaw = {
     zoom?: number;
   };
   chef?: {
-    title?: LocalizedString;
-    name?: LocalizedString;
-    description?: LocalizedString;
+    title?: LocalizedOptional;
+    name?: LocalizedOptional;
+    description?: LocalizedOptional;
     image?: string;
   };
 };
-
-function pickLocalized(value: LocalizedString | undefined, lang: Language): string {
-  if (!value) return "";
-  return value[lang] || value.uz || value.ru || value.en || "";
-}
 
 function parseCoordinates(raw: string | undefined): { latitude: number; longitude: number } | null {
   if (!raw) return null;
@@ -127,7 +117,7 @@ async function getBranchRestaurantBySlug(slug: string): Promise<BranchRestaurant
       isActive != false &&
       defined(project->_id) &&
       project->isActive != false &&
-      coalesce(project->projectType, "restaurant") == "restaurant"
+      coalesce(project->projectType, "restaurant") in ["restaurant", "barbershop"]
     ][0] {
       branchName,
       address,
@@ -146,6 +136,7 @@ async function getBranchRestaurantBySlug(slug: string): Promise<BranchRestaurant
       project-> {
         projectType,
         name,
+        detailPrimaryInfo,
         description,
         descriptionExtended,
         descriptionAdditional,
@@ -203,7 +194,7 @@ export default async function RestaurantPage({
   params: Promise<{ lang: string; slug: string }>;
 }) {
   const { lang, slug } = await params;
-  const language = (lang as Language) || "uz";
+  const language = (lang as LangCode) || "uz";
 
   const branchRestaurant = await getBranchRestaurantBySlug(slug);
 
@@ -214,6 +205,10 @@ export default async function RestaurantPage({
       <RestaurantDetail
         restaurant={{
           name: pickLocalized(branchRestaurant.project?.name, language),
+          projectType: branchRestaurant.project?.projectType === "barbershop" ? "barbershop" : "restaurant",
+          primaryInfoValue:
+            pickLocalized(branchRestaurant.project?.detailPrimaryInfo, language) ||
+            pickLocalized(branchRestaurant.project?.name, language),
           branchName:
             pickLocalized(branchRestaurant.branchName, language) ||
             pickLocalized(branchRestaurant.project?.name, language),
@@ -251,6 +246,8 @@ export default async function RestaurantPage({
     <RestaurantDetail
       restaurant={{
         name: pickLocalized(legacyRestaurant.name, language),
+        projectType: "restaurant",
+        primaryInfoValue: pickLocalized(legacyRestaurant.name, language),
         branchName: pickLocalized(legacyRestaurant.branchName, language) || pickLocalized(legacyRestaurant.name, language),
         address: pickLocalized(legacyRestaurant.address, language),
         phone: legacyRestaurant.phone || "",

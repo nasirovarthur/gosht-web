@@ -9,6 +9,8 @@ interface SliderButtonProps {
   disabled?: boolean;
   forceHover?: boolean;
   tone?: 'light' | 'dark';
+  variant?: 'arrow' | 'symbol';
+  symbol?: '+' | '×';
 }
 
 const SliderButton: React.FC<SliderButtonProps> = ({ 
@@ -18,6 +20,8 @@ const SliderButton: React.FC<SliderButtonProps> = ({
   disabled = false,
   forceHover = false,
   tone = 'light',
+  variant = 'arrow',
+  symbol = '+',
 }) => {
   const rotationClass =
     direction === 'left'
@@ -28,8 +32,69 @@ const SliderButton: React.FC<SliderButtonProps> = ({
           ? 'rotate-90'
           : '';
 
+  if (variant === 'symbol') {
+    const icon =
+      symbol === '+' ? (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="relative z-10"
+          aria-hidden="true"
+        >
+          <path d="M8 3V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="relative z-10"
+          aria-hidden="true"
+        >
+          <path d="M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={`group relative flex h-10 w-10 items-center justify-center rounded-full outline-none ${className} ${
+          disabled ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+      >
+        <span className="absolute inset-0 rounded-full border border-white/28 transition-all duration-300 group-hover:border-white/52" />
+        <span
+          className={`absolute inset-0 rounded-full bg-[#AE0E16] transition-transform duration-300 ${
+            !disabled
+              ? forceHover
+                ? 'scale-100'
+                : 'scale-0 group-hover:scale-100'
+              : 'scale-0'
+          }`}
+        />
+        <span
+          className={`inline-flex items-center justify-center transition-colors duration-300 ${
+            tone === 'dark' ? 'text-black' : 'text-white/82'
+          } ${!disabled && (forceHover ? 'text-white' : 'group-hover:text-white')}`}
+        >
+          {icon}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <button
+      type="button"
       onClick={onClick}
       disabled={disabled}
       className={`group relative flex items-center justify-center outline-none ${className} ${rotationClass} ${

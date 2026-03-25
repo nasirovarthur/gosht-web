@@ -1,10 +1,7 @@
 import "./globals.css";
 import localFont from "next/font/local";
-import RootLayoutClient from "@/components/RootLayoutClient";
-import ScreenScaler from "@/components/ScreenScaler";
-import { client } from "@/lib/sanity"; // Добавили клиент Sanity для загрузки меню
 
-// 1. Подключаем Roboto Serif (твои настройки)
+// Roboto Serif font
 const robotoSerif = localFont({
   src: [
     {
@@ -52,48 +49,20 @@ const robotoSerif = localFont({
   display: 'swap',
 });
 
-// 2. Твои метаданные
 export const metadata = {
   title: "GOSHT Group",
   description: "Premium Steakhouse & Catering",
 };
 
-// 3. Функция получения меню (критично для работы Header)
-async function getNavData() {
-  try {
-    const query = `
-      *[_type == "navigation"][0] {
-        items[] {
-          _key,
-          label,
-          link
-        }
-      }
-    `;
-    const data = await client.fetch(query);
-    return data?.items || [];
-  } catch (error) {
-    console.error("Error fetching nav data:", error);
-    return [];
-  }
-}
-
-// 4. Основной Layout
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Получаем данные для меню на сервере
-  const navItems = await getNavData();
-
   return (
-    <html>
+    <html suppressHydrationWarning>
       <body className={`${robotoSerif.variable} bg-black text-white antialiased`}>
-        <ScreenScaler />
-        <RootLayoutClient navItems={navItems}>
-          {children}
-        </RootLayoutClient>
+        {children}
       </body>
     </html>
   );

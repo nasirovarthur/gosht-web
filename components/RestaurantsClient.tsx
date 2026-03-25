@@ -21,11 +21,14 @@ type Restaurant = {
   _id: string;
   name: LocalizedString;
   slug?: string;
+  projectType: "restaurant" | "barbershop";
   city: string;
   image: string;
   logo?: string;
   hasBanquet?: boolean;
   hasPlayground?: boolean;
+  hasVipRoom?: boolean;
+  hasKidsHaircut?: boolean;
   url?: string;
 };
 
@@ -45,6 +48,22 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
     tashkent: lang === 'uz' ? "Toshkent" : lang === 'ru' ? "Ташкент" : "Tashkent",
     banquet: lang === 'uz' ? "Banket zali" : lang === 'ru' ? "Банкетный зал" : "Banquet Hall",
     playground: lang === 'uz' ? "Bolalar maydonchasi" : lang === 'ru' ? "Детская площадка" : "Playground",
+    vipRoom: lang === 'uz' ? "VIP kabinet" : lang === 'ru' ? "VIP-кабинет" : "VIP Room",
+    kidsHaircut: lang === 'uz' ? "Bolalar soch turmagi" : lang === 'ru' ? "Детская стрижка" : "Kids Haircut",
+  };
+
+  const getFeatureTags = (item: Restaurant) => {
+    if (item.projectType === "barbershop") {
+      return [
+        item.hasVipRoom ? ui.vipRoom : null,
+        item.hasKidsHaircut ? ui.kidsHaircut : null,
+      ].filter((value): value is string => Boolean(value));
+    }
+
+    return [
+      item.hasBanquet ? ui.banquet : null,
+      item.hasPlayground ? ui.playground : null,
+    ].filter((value): value is string => Boolean(value));
   };
 
   const checkScroll = () => {
@@ -140,11 +159,13 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
           className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar"
         >
         {filteredItems.map((item) => {
+          const featureTags = getFeatureTags(item);
           const normalizedSlug = item.slug ? item.slug.replace(/^\/+|\/+$/g, "") : undefined;
+          const fallbackHref = `/${lang}/restaurants`;
           const detailHref = normalizedSlug
             ? `/${lang}/restaurants/${encodeURIComponent(normalizedSlug)}`
-            : "#";
-          const href = normalizedSlug ? detailHref : item.url || "#";
+            : fallbackHref;
+          const href = normalizedSlug ? detailHref : item.url || fallbackHref;
           const isExternal = !normalizedSlug && Boolean(item.url);
 
           return (
@@ -176,8 +197,12 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
                     {getName(item.name)}
                 </h3>
                 <div className="flex flex-wrap gap-5 text-meta text-white/50 font-light">
-                    {item.hasBanquet && <div className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-white/60"></span><span>{ui.banquet}</span></div>}
-                    {item.hasPlayground && <div className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-white/60"></span><span>{ui.playground}</span></div>}
+                    {featureTags.map((tag) => (
+                      <div key={tag} className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-white/60" />
+                        <span>{tag}</span>
+                      </div>
+                    ))}
                 </div>
             </div>
             </Link>

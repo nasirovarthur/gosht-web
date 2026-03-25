@@ -7,6 +7,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperInstance } from "swiper";
 import "swiper/css";
 import SliderButton from "@/components/SliderButton";
+import Reveal from "@/components/Reveal";
 import type { EventItem, LangCode, Localized } from "@/lib/eventsData";
 
 function pickLocalized(value: Localized, lang: LangCode): string {
@@ -86,7 +87,7 @@ export default function EventDetailPage({
     <section className="w-full bg-base text-white section-y-lg overflow-x-clip">
       <div className="pr-[var(--page-x)] pl-[calc(var(--page-x)*0.6667)]">
         <div className="mx-auto w-full max-w-[1600px]">
-          <header className="w-full max-w-[1040px]">
+          <Reveal as="header" className="w-full max-w-[1040px]" distance={42} blur={10}>
             <Link
               href={`/${lang}/events`}
               className="group mb-8 inline-flex w-fit items-center gap-3 rounded-full border border-white/10 px-6 py-3 text-ui font-light text-white/90 transition-all hover:bg-white/5 active:scale-95"
@@ -116,9 +117,9 @@ export default function EventDetailPage({
               <span className="text-white/35">•</span>
               <span className="text-white">{branch}</span>
             </p>
-          </header>
+          </Reveal>
 
-          <div className="mt-12 max-w-[1040px]">
+          <Reveal as="div" className="mt-12 max-w-[1040px]" delay={110} distance={54} blur={12}>
             <div className="relative w-full aspect-[16/10] overflow-hidden border border-white/10 bg-card">
               <Image
                 src={event.image}
@@ -128,18 +129,18 @@ export default function EventDetailPage({
                 sizes="(max-width: 1024px) 100vw, 1040px"
               />
             </div>
-          </div>
+          </Reveal>
 
-          <div className="mt-12 md:mt-14 max-w-[1040px]">
+          <Reveal as="div" className="mt-12 md:mt-14 max-w-[1040px]" delay={180} distance={34} blur={8}>
             <div className="space-y-7 text-[15px] md:text-[17px] leading-relaxed text-white/72 font-light text-right">
               {event.description.map((paragraph, index) => (
                 <p key={`${event.id}-paragraph-${index}`}>{pickLocalized(paragraph, lang)}</p>
               ))}
             </div>
-          </div>
+          </Reveal>
 
           <div className="mt-24 md:mt-28">
-            <div className="flex items-center justify-between gap-6 mb-16 md:mb-20">
+            <Reveal as="div" className="flex items-center justify-between gap-6 mb-16 md:mb-20" distance={30} blur={6}>
               <h2 className="uppercase text-[clamp(28px,2.8vw,44px)] leading-[0.98] tracking-[-0.018em] font-light font-serif text-white">
                 {pickLocalized(labels.related, lang)}
               </h2>
@@ -156,7 +157,7 @@ export default function EventDetailPage({
                   disabled={!canScrollRight}
                 />
               </div>
-            </div>
+            </Reveal>
 
             <Swiper
               key={`related-events-${relatedEvents.length}`}
@@ -178,9 +179,11 @@ export default function EventDetailPage({
               onBreakpoint={syncSwiperState}
               onSlidesLengthChange={syncSwiperState}
             >
-              {relatedEvents.map((item) => (
+              {relatedEvents.map((item, index) => (
                 <SwiperSlide key={item.id} className="h-auto">
-                  <RelatedEventCard item={item} lang={lang} />
+                  <Reveal as="div" delay={Math.min(index, 4) * 80} distance={40} blur={8}>
+                    <RelatedEventCard item={item} lang={lang} />
+                  </Reveal>
                 </SwiperSlide>
               ))}
             </Swiper>

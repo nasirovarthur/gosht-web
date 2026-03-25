@@ -2,38 +2,33 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
-
-type LocalizedString = {
-  uz: string;
-  ru: string;
-  en: string;
-};
+import { pickLocalized } from "@/types/i18n";
+import Reveal from "@/components/Reveal";
+import type { Localized } from "@/types/i18n";
 
 type Slide = {
   id: string;
-  subtitle: LocalizedString;
-  title: LocalizedString;
-  description: LocalizedString;
-  buttonText: LocalizedString;
+  subtitle: Localized;
+  title: Localized;
+  description: Localized;
+  buttonText: Localized;
   showButton: boolean;
   image: string;
+  buttonMode: "none" | "custom" | "event";
   buttonUrl?: string;
+  eventSlug?: string;
 };
 
 export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
+  const [textScale, setTextScale] = useState(1);
   
-  // Используем глобальный язык из Context
   const { lang } = useLanguage();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const rafRef = useRef<number | null>(null);
-
-  // Функция для получения текста на нужном языке
-  const getText = (textObj: LocalizedString): string => {
-    return textObj[lang] || textObj.uz || '';
-  };
 
   const resetTimer = useCallback(() => {
     if (timerRef.current) {
@@ -80,12 +75,48 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
     return () => resetTimer();
   }, [startTimer, resetTimer]);
 
+  useEffect(() => {
+    const applyScale = () => {
+      const width = window.innerWidth;
+      setTextScale(width > 1920 ? width / 1920 : 1);
+    };
+
+    applyScale();
+    window.addEventListener("resize", applyScale);
+    return () => {
+      window.removeEventListener("resize", applyScale);
+    };
+  }, []);
+
   const handleManualChange = (index: number) => {
     setCurrentIndex(index);
     startTimer();
   };
 
   const currentSlide = slides[currentIndex];
+  const heroHref =
+    currentSlide.buttonMode === "event" && currentSlide.eventSlug
+      ? `/${lang}/events/${encodeURIComponent(currentSlide.eventSlug)}`
+      : currentSlide.buttonMode === "custom"
+        ? currentSlide.buttonUrl
+        : undefined;
+  const isExternalHref = Boolean(heroHref && /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(heroHref));
+  const isInternalHref = Boolean(heroHref && heroHref.startsWith("/"));
+  const buttonClassName =
+    "group relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none";
+  const buttonInner = (
+    <>
+      <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-3xl transition-all duration-300 group-hover:backdrop-blur-3xl" />
+      <span className="text-ui text-white font-light transition-colors duration-300">
+        {pickLocalized(currentSlide.buttonText, lang)}
+      </span>
+      <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </span>
+    </>
+  );
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-base">
@@ -109,7 +140,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
             >
               <Image
                 src={slide.image}
-                alt={getText(slide.title)}
+                alt={pickLocalized(slide.title, lang)}
                 fill
                 className="object-cover object-center brightness-[0.6]"
                 priority={index === 0}
@@ -122,71 +153,62 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
       </div>
 
       {/* 2. ТЕКСТОВЫЙ КОНТЕНТ */}
-      <div id="hero-text-content" className="relative z-30 h-full flex flex-col justify-end page-x pb-24 md:pb-24 pointer-events-none">
-        <div key={currentIndex} className="max-w-4xl opacity-0 animate-fade-up pointer-events-auto">
-      
-          {/* Надзаголовок */}
-          <div className="flex items-center gap-4 mb-2 md:mb-3">
-              <span className="text-[#d1d1d1] text-label font-light">
-                {getText(currentSlide.subtitle)}
-              </span>
-          </div>
+      <div
+        id="hero-text-content"
+        className="relative z-30 h-full flex flex-col justify-end page-x pb-24 md:pb-24 pointer-events-none"
+        style={{ transform: `scale(${textScale})`, transformOrigin: "bottom left" }}
+      >
+        <div key={currentIndex} className="max-w-4xl pointer-events-auto">
+          <Reveal
+            trigger="mount"
+            delay={70}
+            className="flex items-center gap-4 mb-2 md:mb-3"
+          >
+            <span className="text-[#d1d1d1] text-label font-light">
+              {pickLocalized(currentSlide.subtitle, lang)}
+            </span>
+          </Reveal>
 
-          {/* Заголовок */}
-          <h1 className="text-white text-display mb-3 md:mb-4">
-            {getText(currentSlide.title)}
-          </h1>
+          <Reveal trigger="mount" delay={150} distance={52} blur={12} as="div">
+            <h1 className="text-white text-display mb-3 md:mb-4">
+              {pickLocalized(currentSlide.title, lang)}
+            </h1>
+          </Reveal>
 
-          {/* Описание */}
-          <div className="flex items-center gap-4 mb-8 md:mb-10">
-              <div className="h-[1px] w-8 md:w-12 bg-[#d1d1d1]/60"></div>
-              <p className="text-[#d1d1d1]/80 text-body-lg max-w-xl font-light">
-                {getText(currentSlide.description)}
-              </p>
-          </div>
+          <Reveal
+            trigger="mount"
+            delay={240}
+            className="flex items-center gap-4 mb-8 md:mb-10"
+          >
+            <div className="h-[1px] w-8 md:w-12 bg-[#d1d1d1]/60"></div>
+            <p className="text-[#d1d1d1]/80 text-body-lg max-w-xl font-light">
+              {pickLocalized(currentSlide.description, lang)}
+            </p>
+          </Reveal>
 
-          {/* Кнопка */}
-          {currentSlide.showButton && currentSlide.buttonUrl ? (
-            <div className="mt-2 flex justify-start">
-              <a
-                href={currentSlide.buttonUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none"
-              >
-                <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-3xl transition-all duration-300 group-hover:backdrop-blur-3xl" />
-                <span className="text-ui text-white font-light transition-colors duration-300">
-                  {getText(currentSlide.buttonText)}
-                </span>
-                <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </span>
-              </a>
-            </div>
-          ) : currentSlide.showButton ? (
-            <div className="mt-2 flex justify-start">
-              <button
-                className="group relative flex items-center gap-2 px-7 py-3 md:px-10 md:py-4 rounded-full border border-white/20 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-white/30 focus:outline-none"
-              >
-                <span className="absolute inset-0 rounded-full pointer-events-none -z-10 backdrop-blur-md transition-all duration-300 group-hover:backdrop-blur-xl" />
-                <span className="text-ui-wide text-white font-light transition-colors duration-300">
-                  {getText(currentSlide.buttonText)}
-                </span>
-                <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </span>
-              </button>
-            </div>
+          {currentSlide.showButton && heroHref ? (
+            <Reveal trigger="mount" delay={320} className="mt-2 flex justify-start">
+              {isInternalHref ? (
+                <Link href={heroHref} className={buttonClassName}>
+                  {buttonInner}
+                </Link>
+              ) : (
+                <a
+                  href={heroHref}
+                  target={isExternalHref ? "_blank" : undefined}
+                  rel={isExternalHref ? "noopener noreferrer" : undefined}
+                  className={buttonClassName}
+                >
+                  {buttonInner}
+                </a>
+              )}
+            </Reveal>
           ) : null}
-      </div>
+        </div>
     </div>
 
       {/* 3. НАВИГАЦИЯ */}
-      <div className="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-40 flex items-center gap-6 md:gap-10 pointer-events-auto">
+      <div className="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-20 flex items-center gap-6 md:gap-10 pointer-events-auto">
         <div className="flex items-baseline gap-2 text-white font-serif">
             <span className="text-counter">{currentIndex + 1}</span>
             <div className="h-[1px] w-6 md:w-12 bg-white/20 -translate-y-1 md:-translate-y-2 overflow-hidden relative">

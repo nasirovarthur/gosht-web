@@ -2,68 +2,38 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import SliderButton from "@/components/SliderButton";
-
-type LocalizedString = {
-  uz?: string;
-  ru?: string;
-  en?: string;
-};
+import Reveal from "@/components/Reveal";
+import { pickLocalized, translations } from "@/types/i18n";
+import type { LocalizedOptional } from "@/types/i18n";
 
 export interface GroupStorySectionData {
-  marquee?: LocalizedString;
-  titleTop?: LocalizedString;
-  titleBottom?: LocalizedString;
-  description?: LocalizedString;
-  ctaText?: LocalizedString;
+  marquee?: LocalizedOptional;
+  titleTop?: LocalizedOptional;
+  titleBottom?: LocalizedOptional;
+  description?: LocalizedOptional;
+  ctaText?: LocalizedOptional;
   ctaUrl?: string;
   previewImage?: string;
   portraitImage?: string;
 }
 
-type LangContent = {
-  marquee: string;
-  titleTop: string;
-  titleBottom: string;
-  description: string;
-  cta: string;
-};
-
-const contentByLang: Record<"uz" | "ru" | "en", LangContent> = {
-  uz: {
-    marquee: "SINCE 1991",
-    titleTop: "GOSHT",
-    titleBottom: "GROUP",
-    description:
-      "GOSHT Group hikoyasi birinchi loyihadan boshlandi. Bugun biz har bir filialda oshxona sifati, servis va atmosfera bo'yicha yagona standartni saqlaymiz.",
-    cta: "Biz haqimizda",
-  },
-  ru: {
-    marquee: "SINCE 1991",
-    titleTop: "GOSHT",
-    titleBottom: "GROUP",
-    description:
-      "История GOSHT Group началась с первого проекта. Сегодня мы сохраняем единый стандарт кухни, сервиса и атмосферы в каждом филиале.",
-    cta: "Подробнее о нас",
-  },
-  en: {
-    marquee: "SINCE 1991",
-    titleTop: "GOSHT",
-    titleBottom: "GROUP",
-    description:
-      "The story of GOSHT Group started with the first concept. Today we keep one standard of cuisine, service, and atmosphere across every branch.",
-    cta: "Learn more",
-  },
-};
-
-function pickLocalized(value: LocalizedString | undefined, lang: "uz" | "ru" | "en"): string {
-  return value?.[lang] || value?.uz || value?.ru || value?.en || "";
-}
-
-function StoryAction({ label, href = "#" }: { label: string; href?: string }) {
+function StoryAction({ label, href }: { label: string; href: string }) {
   const [isHovered, setIsHovered] = useState(false);
+  const router = useRouter();
+  const isExternalHref = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(href);
+
+  const handleAction = () => {
+    if (isExternalHref) {
+      window.location.href = href;
+      return;
+    }
+
+    router.push(href);
+  };
 
   return (
     <div
@@ -72,19 +42,31 @@ function StoryAction({ label, href = "#" }: { label: string; href?: string }) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="inline-flex items-center gap-5 md:gap-6">
-        <Link href={href} className="group">
-          <span
-            className={`text-body-lg pb-0.5 transition-colors ${
-              isHovered ? "text-white" : "text-white/85"
-            }`}
-          >
-            {label}
-          </span>
-        </Link>
+        {isExternalHref ? (
+          <a href={href} className="group">
+            <span
+              className={`text-body-lg pb-0.5 transition-colors ${
+                isHovered ? "text-white" : "text-white/85"
+              }`}
+            >
+              {label}
+            </span>
+          </a>
+        ) : (
+          <Link href={href} className="group">
+            <span
+              className={`text-body-lg pb-0.5 transition-colors ${
+                isHovered ? "text-white" : "text-white/85"
+              }`}
+            >
+              {label}
+            </span>
+          </Link>
+        )}
 
         <SliderButton
           direction="right"
-          onClick={() => {}}
+          onClick={handleAction}
           forceHover={isHovered}
           className="scale-[0.48] md:scale-[0.6] origin-left -ml-2 md:-ml-1"
         />
@@ -103,13 +85,13 @@ function StoryAction({ label, href = "#" }: { label: string; href?: string }) {
 
 export default function GroupStorySection({ data }: { data?: GroupStorySectionData | null }) {
   const { lang } = useLanguage();
-  const fallback = contentByLang[lang] || contentByLang.ru;
+  const fallback = translations.groupStory;
   const content = {
-    marquee: pickLocalized(data?.marquee, lang) || fallback.marquee,
-    titleTop: pickLocalized(data?.titleTop, lang) || fallback.titleTop,
-    titleBottom: pickLocalized(data?.titleBottom, lang) || fallback.titleBottom,
-    description: pickLocalized(data?.description, lang) || fallback.description,
-    cta: pickLocalized(data?.ctaText, lang) || fallback.cta,
+    marquee: pickLocalized(data?.marquee, lang) || pickLocalized(fallback.marquee, lang),
+    titleTop: pickLocalized(data?.titleTop, lang) || pickLocalized(fallback.titleTop, lang),
+    titleBottom: pickLocalized(data?.titleBottom, lang) || pickLocalized(fallback.titleBottom, lang),
+    description: pickLocalized(data?.description, lang) || pickLocalized(fallback.description, lang),
+    cta: pickLocalized(data?.ctaText, lang) || pickLocalized(fallback.cta, lang),
   };
   const marqueeItems = Array(8).fill(content.marquee);
   const [parallaxY, setParallaxY] = useState(0);
@@ -119,7 +101,7 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
   const portraitImage =
     data?.portraitImage ||
     "https://images.unsplash.com/photo-1592861956120-e524fc739696?w=1200&h=1700&fit=crop";
-  const ctaUrl = data?.ctaUrl || "#";
+  const ctaUrl = data?.ctaUrl || `/${lang}/projects`;
 
   useEffect(() => {
     let raf = 0;
@@ -146,7 +128,12 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
   return (
     <section className="w-full bg-base section-y-lg border-t border-white/5 overflow-hidden">
       <div className="page-x mb-10">
-        <div className="max-w-[360px] overflow-hidden select-none border-t border-white/15 pt-3">
+        <Reveal
+          as="div"
+          className="max-w-[360px] overflow-hidden select-none border-t border-white/15 pt-3"
+          distance={24}
+          blur={6}
+        >
           <div className="flex whitespace-nowrap text-white/45 text-[11px] md:text-[12px] tracking-[0.22em] uppercase animate-infinite-scroll [animation-duration:30s]">
             {marqueeItems.map((item, index) => (
               <span key={`line-1-${index}`} className="mr-8">{item} -</span>
@@ -160,7 +147,7 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
               <span key={`line-2-${index}`} className="mr-8">{item} -</span>
             ))}
           </div>
-        </div>
+        </Reveal>
       </div>
 
       <div className="page-x">
@@ -181,7 +168,7 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
           <div className="pointer-events-none absolute right-[14%] top-[6%] h-[320px] w-[320px] rounded-full bg-[#AE0E16]/20 blur-[120px]" />
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
-            <div className="lg:col-span-7 lg:col-start-5">
+            <Reveal as="div" className="lg:col-span-7 lg:col-start-5" distance={56} blur={12}>
               <h2 className="leading-[0.9] tracking-[-0.018em] font-serif uppercase">
                 <span className="text-[#AE0E16] block text-[clamp(52px,8.8vw,132px)] font-thin">
                   {content.titleTop}
@@ -190,18 +177,29 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
                   {content.titleBottom}
                 </span>
               </h2>
-            </div>
+            </Reveal>
 
-            <div className="lg:col-span-4 lg:col-start-2 self-start">
+            <Reveal
+              as="div"
+              className="lg:col-span-4 lg:col-start-2 self-start"
+              delay={110}
+              distance={38}
+            >
               <p className="text-body md:text-body-lg text-white/72 font-light leading-relaxed max-w-[420px]">
                 {content.description}
               </p>
               <div className="mt-8">
                 <StoryAction label={content.cta} href={ctaUrl} />
               </div>
-            </div>
+            </Reveal>
 
-            <div className="lg:col-span-3 lg:col-start-6">
+            <Reveal
+              as="div"
+              className="lg:col-span-3 lg:col-start-6"
+              variant="left"
+              delay={180}
+              distance={44}
+            >
               <div className="relative h-[160px] md:h-[190px] overflow-hidden border border-white/10 bg-card">
                 <Image
                   src={previewImage}
@@ -211,9 +209,15 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
                   sizes="(max-width: 1024px) 100vw, 360px"
                 />
               </div>
-            </div>
+            </Reveal>
 
-            <div className="lg:col-span-4 lg:col-start-9 lg:row-span-2">
+            <Reveal
+              as="div"
+              className="lg:col-span-4 lg:col-start-9 lg:row-span-2"
+              variant="right"
+              delay={250}
+              distance={52}
+            >
               <div className="relative h-[420px] md:h-[560px] overflow-hidden border border-white/10 bg-card">
                 <Image
                   src={portraitImage}
@@ -223,7 +227,7 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
                   sizes="(max-width: 1024px) 100vw, 520px"
                 />
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </div>

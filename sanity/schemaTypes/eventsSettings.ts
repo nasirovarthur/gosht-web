@@ -13,40 +13,6 @@ export const eventsSettings = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'home',
-      title: 'Главная: блок событий',
-      type: 'object',
-      fields: [
-        defineField({
-          name: 'featuredEvent',
-          title: 'Главное событие (большая карточка)',
-          type: 'reference',
-          to: [{ type: 'event' }],
-          options: {
-            filter: 'isActive != false',
-          },
-        }),
-        defineField({
-          name: 'sideEventFirst',
-          title: 'Маленькая карточка #1',
-          type: 'reference',
-          to: [{ type: 'event' }],
-          options: {
-            filter: 'isActive != false',
-          },
-        }),
-        defineField({
-          name: 'sideEventSecond',
-          title: 'Маленькая карточка #2',
-          type: 'reference',
-          to: [{ type: 'event' }],
-          options: {
-            filter: 'isActive != false',
-          },
-        }),
-      ],
-    }),
-    defineField({
       name: 'listing',
       title: 'Страница "Все события"',
       type: 'object',

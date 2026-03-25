@@ -3,35 +3,21 @@
 
 import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
-
-type LocalizedString = {
-  uz: string;
-  ru: string;
-  en: string;
-};
-
-type NavItem = {
-  _key: string;
-  label: LocalizedString;
-  link: string;
-};
+import type { FeedbackSettingsData } from "@/types/feedback";
+import type { NavItem } from "@/types/i18n";
 
 type ClientHeaderProps = {
   navItems: NavItem[];
-  headerText?: {
-    menu: LocalizedString;
-    close: LocalizedString;
-  };
+  feedbackSettings: FeedbackSettingsData;
 };
 
-export default function ClientHeader({ navItems, headerText }: ClientHeaderProps) {
+export default function ClientHeader({ navItems, feedbackSettings }: ClientHeaderProps) {
   const pathname = usePathname();
-  
-  // Не показываем Header внутри Sanity Studio
-  // Проверяем наличие /studio в пути (может быть /uz/studio, /ru/studio и т.д.)
+
+  // Hide Header inside Sanity Studio
   if (pathname.includes('/studio')) {
     return null;
   }
 
-  return <Header navItems={navItems} headerText={headerText} />;
+  return <Header navItems={navItems} feedbackSettings={feedbackSettings} />;
 }

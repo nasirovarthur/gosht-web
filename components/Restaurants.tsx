@@ -1,88 +1,23 @@
-import { client, urlFor } from "@/lib/sanity";
+import { getRestaurantBranchesData } from "@/lib/getRestaurantBranches";
 import RestaurantsClient from "./RestaurantsClient";
 
-type LocalizedString = {
-  uz?: string;
-  ru?: string;
-  en?: string;
-};
-
-type RestaurantRaw = {
-  _id: string;
-  name: LocalizedString;
-  slug?: string;
-  city: "tashkent" | "new_york" | string;
-  image?: unknown;
-  logo?: unknown;
-  hasBanquet?: boolean;
-  hasPlayground?: boolean;
-  url?: string;
-};
-
-function normalizeSlug(slug?: string): string | undefined {
-  if (!slug) return undefined;
-  const cleaned = slug.replace(/^\/+|\/+$/g, "");
-  return cleaned || undefined;
-}
-
-async function getRestaurants(): Promise<RestaurantRaw[]> {
-  const branchQuery = `
-    *[
-      _type == "restaurantBranch" &&
-      isActive != false &&
-      defined(project->_id) &&
-      project->isActive != false &&
-      coalesce(project->projectType, "restaurant") == "restaurant" &&
-      defined(slug.current)
-    ] | order(_createdAt desc) {
-      _id,
-      "slug": slug.current,
-      city,
-      "name": coalesce(branchName, project->name),
-      "image": cardImage,
-      "logo": project->logo,
-      hasBanquet,
-      hasPlayground,
-      "url": externalUrl
-    }
-  `;
-
-  const legacyQuery = `
-    *[_type == "restaurants"] | order(_createdAt desc) {
-      _id,
-      name,
-      "slug": slug.current,
-      city,
-      image,
-      logo,
-      hasBanquet,
-      hasPlayground,
-      url
-    }
-  `;
-
-  const branchData = await client.fetch<RestaurantRaw[]>(branchQuery);
-  if (branchData.length > 0) {
-    return branchData;
-  }
-
-  return client.fetch<RestaurantRaw[]>(legacyQuery);
-}
-
 export default async function Restaurants() {
-  const rawData = await getRestaurants();
+  const data = await getRestaurantBranchesData();
 
-  const items = rawData
+  const items = data.branches
+    .filter((item) => Boolean(item.cardImage))
     .map((item) => ({
-      ...item,
-      slug: normalizeSlug(item.slug),
-      image: item.image ? urlFor(item.image).url() : undefined,
-      logo: item.logo ? urlFor(item.logo).url() : undefined, // Обрабатываем логотип
-    }))
-    .filter((item) => Boolean(item.image))
-    .map((item) => ({
-      ...item,
-      image: item.image as string,
+      _id: item.id,
+      name: item.branchName,
+      slug: item.slug,
+      projectType: item.projectType,
+      city: item.city,
+      image: item.cardImage as string,
+      logo: item.projectLogo,
+      hasBanquet: item.hasBanquet,
+      hasPlayground: item.hasPlayground,
+      hasVipRoom: item.hasVipRoom,
+      hasKidsHaircut: item.hasKidsHaircut,
     }));
 
   return <RestaurantsClient items={items} />;

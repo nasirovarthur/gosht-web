@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/context/LanguageContext";
+import Reveal from "@/components/Reveal";
 
 type LocalizedString = {
   uz: string;
@@ -34,7 +35,12 @@ export default function RunningLine({ text }: RunningLineProps) {
   );
 
   return (
-    <div className="w-full bg-surface border-y border-white/10 section-y-sm overflow-hidden flex select-none relative z-20">
+    <Reveal
+      as="div"
+      className="w-full bg-surface border-y border-white/10 section-y-sm overflow-hidden flex select-none relative z-20"
+      distance={28}
+      blur={8}
+    >
       
       {/* Лента 1 */}
       <div className="animate-infinite-scroll flex whitespace-nowrap">
@@ -60,6 +66,6 @@ export default function RunningLine({ text }: RunningLineProps) {
         ))}
       </div>
 
-    </div>
+    </Reveal>
   );
 }

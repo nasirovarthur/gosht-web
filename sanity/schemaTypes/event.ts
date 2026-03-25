@@ -1,4 +1,11 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
+import type { ObjectRule } from 'sanity'
+
+type LocalizedStringValue = {
+  uz?: string
+  ru?: string
+  en?: string
+}
 
 const localizedStringField = (name: string, title: string, required = false) =>
   defineField({
@@ -12,8 +19,10 @@ const localizedStringField = (name: string, title: string, required = false) =>
     ],
     ...(required
       ? {
-          validation: (rule: any) =>
-            rule.custom((value: any) => (value?.uz ? true : 'Поле на узбекском обязательно')),
+          validation: (rule: ObjectRule) =>
+            rule.custom((value: LocalizedStringValue | undefined) =>
+              value?.uz ? true : 'Поле на узбекском обязательно'
+            ),
         }
       : {}),
   })
@@ -36,8 +45,8 @@ const localizedTextField = (
     ],
     ...(required
       ? {
-          validation: (rule: any) =>
-            rule.custom((value: any) => {
+          validation: (rule: ObjectRule) =>
+            rule.custom((value: LocalizedStringValue | undefined) => {
               if (!value?.uz) return 'Описание на узбекском обязательно'
               if (requireAllLanguages && !value?.ru) return 'Описание на русском обязательно'
               if (requireAllLanguages && !value?.en) return 'Описание на английском обязательно'

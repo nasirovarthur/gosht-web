@@ -1,5 +1,10 @@
 import { client, urlFor } from '@/lib/sanity'
 import { eventsData, type EventCategory, type EventItem, type Localized } from '@/lib/eventsData'
+import { singletonDocumentIds } from '@/sanity/singletons'
+import {
+  getHomeEventsBlockSettingsDocument,
+  normalizeLocalized as normalizeHomeLocalized,
+} from '@/lib/getHomePageSettings'
 
 type LocalizedInput = Partial<Localized> | null | undefined
 
@@ -20,11 +25,6 @@ type EventRaw = {
 }
 
 type EventsSettingsRaw = {
-  home?: {
-    featuredEventId?: string
-    sideEventFirstId?: string
-    sideEventSecondId?: string
-  }
   listing?: {
     initialVisibleCount?: number
   }
@@ -267,12 +267,7 @@ async function fetchEventEntries(): Promise<EventEntry[]> {
 
 async function fetchEventsSettings(): Promise<EventsSettings> {
   const query = `
-    *[_type == "eventsSettings"][0]{
-      home{
-        "featuredEventId": featuredEvent->_id,
-        "sideEventFirstId": sideEventFirst->_id,
-        "sideEventSecondId": sideEventSecond->_id
-      },
+    *[_type == "eventsSettings" && _id == $documentId][0]{
       listing{
         initialVisibleCount
       }
@@ -280,7 +275,9 @@ async function fetchEventsSettings(): Promise<EventsSettings> {
   `
 
   try {
-    const raw = await client.fetch<EventsSettingsRaw | null>(query)
+    const raw = await client.fetch<EventsSettingsRaw | null>(query, {
+      documentId: singletonDocumentIds.eventsSettings,
+    })
     if (!raw) return defaultSettings
 
     const initialVisibleCountValue = Number(raw.listing?.initialVisibleCount)
@@ -293,9 +290,9 @@ async function fetchEventsSettings(): Promise<EventsSettings> {
       home: {
         heading: defaultSettings.home.heading,
         allEventsLabel: defaultSettings.home.allEventsLabel,
-        featuredEventId: raw.home?.featuredEventId,
-        sideEventFirstId: raw.home?.sideEventFirstId,
-        sideEventSecondId: raw.home?.sideEventSecondId,
+        featuredEventId: undefined,
+        sideEventFirstId: undefined,
+        sideEventSecondId: undefined,
       },
       listing: {
         title: defaultSettings.listing.title,
@@ -317,26 +314,57 @@ async function fetchEventsSettings(): Promise<EventsSettings> {
   }
 }
 
+async function fetchHomeEventsBlockSettings(): Promise<EventsSettings['home']> {
+  const homeEventsBlockSettings = await getHomeEventsBlockSettingsDocument()
+
+  if (homeEventsBlockSettings) {
+    return {
+      heading: normalizeHomeLocalized(
+        homeEventsBlockSettings.heading,
+        defaultSettings.home.heading
+      ),
+      allEventsLabel: normalizeHomeLocalized(
+        homeEventsBlockSettings.allEventsLabel,
+        defaultSettings.home.allEventsLabel
+      ),
+      featuredEventId: homeEventsBlockSettings.featuredEventId,
+      sideEventFirstId: homeEventsBlockSettings.sideEventFirstId,
+      sideEventSecondId: homeEventsBlockSettings.sideEventSecondId,
+    }
+  }
+
+  return {
+    heading: defaultSettings.home.heading,
+    allEventsLabel: defaultSettings.home.allEventsLabel,
+    featuredEventId: undefined,
+    sideEventFirstId: undefined,
+    sideEventSecondId: undefined,
+  }
+}
+
 export async function getAllEvents(): Promise<EventItem[]> {
   const events = await fetchEventEntries()
   return [...events].sort(sortByDateDesc).map(toPublicEvent)
 }
 
 export async function getHomeEventsSectionData(): Promise<HomeEventsSectionData> {
-  const [events, settings] = await Promise.all([fetchEventEntries(), fetchEventsSettings()])
+  const [events, homeSettings] = await Promise.all([
+    fetchEventEntries(),
+    fetchHomeEventsBlockSettings(),
+  ])
 
   const homeCandidates = events.filter((event) => event.showOnHome)
   const pool = (homeCandidates.length > 0 ? homeCandidates : events).sort(sortByHomeOrder)
   const mapById = new Map(events.map((event) => [event.id, event]))
 
   const featuredEvent =
-    (settings.home.featuredEventId ? mapById.get(settings.home.featuredEventId) : null) || pool[0] || null
+    (homeSettings.featuredEventId ? mapById.get(homeSettings.featuredEventId) : null) || pool[0] || null
 
   const selectedIds = new Set<string>()
   if (featuredEvent) selectedIds.add(featuredEvent.id)
 
   const sideEvents: EventEntry[] = []
-  const selectedSideIds = [settings.home.sideEventFirstId, settings.home.sideEventSecondId].filter(Boolean) as string[]
+  const selectedSideIds = [homeSettings.sideEventFirstId, homeSettings.sideEventSecondId].filter(Boolean) as string[]
   selectedSideIds.forEach((id) => {
     const event = mapById.get(id)
     if (!event || selectedIds.has(event.id) || sideEvents.length >= 2) return
@@ -354,7 +382,7 @@ export async function getHomeEventsSectionData(): Promise<HomeEventsSectionData>
   return {
     featuredEvent: featuredEvent ? toPublicEvent(featuredEvent) : null,
     sideEvents: sideEvents.map(toPublicEvent),
-    labels: settings.home,
+    labels: homeSettings,
   }
 }
 

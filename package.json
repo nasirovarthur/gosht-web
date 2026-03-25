@@ -7,23 +7,27 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "seed:about": "node sanity/migrations/seed-about-page-content.mjs",
+    "seed:partners": "node sanity/migrations/seed-partners-page-content.mjs",
+    "seed:restaurants:page": "node sanity/migrations/seed-restaurants-page-content.mjs",
+    "seed:feedback": "node sanity/migrations/seed-feedback-settings.mjs",
     "migrate:projects:dry": "node sanity/migrations/migrate-restaurants-to-project-branch.mjs --dry-run",
     "migrate:projects:apply": "node sanity/migrations/migrate-restaurants-to-project-branch.mjs --apply",
     "reset:restaurants:dry": "node sanity/migrations/reset-restaurant-content.mjs --dry-run",
-    "reset:restaurants:apply": "node sanity/migrations/reset-restaurant-content.mjs --apply"
+    "reset:restaurants:apply": "node sanity/migrations/reset-restaurant-content.mjs --apply",
+    "seed:topor": "node sanity/migrations/seed-topor-barbershop-content.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@sanity/image-url": "^1.2.0",
-    "@sanity/vision": "^4.22.0",
-    "next": "16.1.6",
-    "next-sanity": "^11.6.12",
+    "@sanity/vision": "^5.14.1",
+    "next": "^16.2.1",
+    "next-sanity": "^12.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "sanity": "^4.22.0",
-    "styled-components": "^6.3.8",
+    "sanity": "^5.14.1",
     "swiper": "^12.1.2"
   },
   "devDependencies": {
@@ -33,7 +37,7 @@
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.24",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "^16.2.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"

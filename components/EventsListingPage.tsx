@@ -4,7 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import type { EventCategory, EventItem, Localized } from "@/lib/eventsData";
+import Reveal from "@/components/Reveal";
+import { pickLocalized } from "@/types/i18n";
+import type { Localized } from "@/types/i18n";
+import type { EventCategory, EventItem } from "@/lib/eventsData";
 
 type TabValue = "all" | EventCategory;
 type EventsListingLabels = {
@@ -15,11 +18,7 @@ type EventsListingLabels = {
   more: Localized;
 };
 
-function pickLocalized(value: Localized, lang: "uz" | "ru" | "en"): string {
-  return value[lang] || value.uz;
-}
-
-function EventsCard({ event }: { event: EventItem }) {
+function EventsCard({ event, index }: { event: EventItem; index: number }) {
   const { lang } = useLanguage();
   const [imageFailed, setImageFailed] = useState(false);
   const title = event.title[lang] || event.title.uz;
@@ -27,7 +26,7 @@ function EventsCard({ event }: { event: EventItem }) {
   const branch = event.branch[lang] || event.branch.uz;
 
   return (
-    <article className="group w-full">
+    <Reveal as="article" className="group w-full" delay={Math.min(index, 5) * 80} distance={48} blur={10}>
       <Link href={`/${lang}/events/${event.slug}`} className="block w-full">
         <div className="relative w-full aspect-[16/10] overflow-hidden bg-card border border-white/10">
           {!imageFailed && (
@@ -52,7 +51,7 @@ function EventsCard({ event }: { event: EventItem }) {
           {title}
         </h3>
       </Link>
-    </article>
+    </Reveal>
   );
 }
 
@@ -86,51 +85,72 @@ export default function EventsListingPage({
     "group flex items-center h-[40px] md:h-[60px] border border-white/10 rounded-full hover:bg-white/5 transition-all active:scale-95";
   const tabBaseClass =
     "flex items-center h-[40px] md:h-[60px] border rounded-full transition-colors duration-300 active:scale-95";
+  const headerUi = {
+    eyebrow:
+      lang === "ru"
+        ? "ЛЕНТА СОБЫТИЙ"
+        : lang === "en"
+          ? "EVENT PROGRAM"
+          : "TADBIRLAR LENTASI",
+    intro:
+      lang === "ru"
+        ? "Все события и форматы собраны в одном месте. Выбирайте нужную категорию и просматривайте афишу в едином ритме."
+        : lang === "en"
+          ? "All events and formats are collected in one place. Switch categories and browse the program in one rhythm."
+          : "Barcha tadbirlar va formatlar bir joyda jamlangan. Kategoriya tanlang va afishani yagona ritmda ko‘ring.",
+  };
 
   return (
     <section className="w-full bg-base min-h-screen section-y-lg">
       <div className="page-x mb-14 md:mb-16 lg:mb-20">
-        <div className="w-full">
-          <h1 className="text-[clamp(48px,5.4vw,102px)] leading-[0.9] tracking-[-0.02em] text-white font-light font-serif mb-12 md:mb-14">
-            {pickLocalized(labels.title, lang)}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-4 md:gap-6">
-            {([
-              { key: "all", label: pickLocalized(labels.all, lang) },
-              { key: "event", label: pickLocalized(labels.events, lang) },
-              { key: "kids", label: pickLocalized(labels.kids, lang) },
-            ] as const).map((tab) => {
-              const isActive = activeTab === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => onTabClick(tab.key)}
-                  className={`${tabBaseClass} pl-6 pr-6 md:pl-8 md:pr-8 text-ui font-light pt-0.5 ${
-                    isActive
-                      ? "bg-white border-white text-black"
-                      : "bg-transparent border-white/10 text-white/90 hover:bg-white/5"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
+        <Reveal as="div" className="w-full" distance={34} blur={8}>
+          <div className="mx-auto w-full max-w-[1600px]">
+            <span className="text-[12px] uppercase tracking-[0.22em] text-white/34">
+              {headerUi.eyebrow}
+            </span>
+            <h1 className="mt-6 max-w-[1100px] text-[clamp(48px,6vw,118px)] leading-[0.88] tracking-[-0.03em] text-white font-light font-serif">
+              {pickLocalized(labels.title, lang)}
+            </h1>
+            <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-white/58">
+              {headerUi.intro}
+            </p>
+            <div className="mt-12 md:mt-14 flex flex-wrap items-center gap-4 md:gap-6">
+              {([
+                { key: "all", label: pickLocalized(labels.all, lang) },
+                { key: "event", label: pickLocalized(labels.events, lang) },
+                { key: "kids", label: pickLocalized(labels.kids, lang) },
+              ] as const).map((tab) => {
+                const isActive = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => onTabClick(tab.key)}
+                    className={`${tabBaseClass} pl-6 pr-6 md:pl-8 md:pr-8 text-ui font-light pt-0.5 ${
+                      isActive
+                        ? "bg-white border-white text-black"
+                        : "bg-transparent border-white/10 text-white/90 hover:bg-white/5"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </Reveal>
       </div>
 
       <div className="w-full page-x">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-[18px] lg:gap-x-[22.5px] gap-y-20 lg:gap-y-24">
-          {visibleEvents.map((event) => (
-            <EventsCard key={event.id} event={event} />
+          {visibleEvents.map((event, index) => (
+            <EventsCard key={event.id} event={event} index={index} />
           ))}
         </div>
       </div>
 
       {canLoadMore && (
-        <div className="mt-14 md:mt-16 flex justify-center page-x">
+        <Reveal as="div" className="mt-14 md:mt-16 flex justify-center page-x" distance={26} blur={6}>
           <button
             type="button"
             onClick={() => setVisibleCount((prev) => prev + 6)}
@@ -138,7 +158,7 @@ export default function EventsListingPage({
           >
             {pickLocalized(labels.more, lang)}
           </button>
-        </div>
+        </Reveal>
       )}
     </section>
   );

@@ -1,84 +1,32 @@
-import { client, urlFor } from './sanity'
-
-type LocalizedString = {
-  uz: string
-  ru: string
-  en: string
-}
-
-type HeroSlideRaw = {
-  _id: string
-  title: LocalizedString | string
-  subtitle: LocalizedString | string
-  description: LocalizedString | string
-  buttonText: LocalizedString | string
-  showButton: boolean
-  image: unknown
-  buttonUrl?: string
-}
+import {
+  getHomeHeroSliderSettingsDocument,
+  normalizeHomeHeroSlide,
+} from './getHomePageSettings'
 
 type HeroSlide = {
   id: string
-  title: LocalizedString
-  subtitle: LocalizedString
-  description: LocalizedString
-  buttonText: LocalizedString
+  title: { uz: string; ru: string; en: string }
+  subtitle: { uz: string; ru: string; en: string }
+  description: { uz: string; ru: string; en: string }
+  buttonText: { uz: string; ru: string; en: string }
   showButton: boolean
   image: string
+  buttonMode: 'none' | 'custom' | 'event'
   buttonUrl?: string
+  eventSlug?: string
 }
 
 /**
- * Конвертирует строку или объект в LocalizedString
- */
-function normalizeText(text: LocalizedString | string | undefined): LocalizedString {
-  if (!text) return { uz: '', ru: '', en: '' }
-  
-  // Если это уже объект с uz/ru/en
-  if (typeof text === 'object' && 'uz' in text) {
-    return text
-  }
-  
-  // Если это строка (старый формат), копируем на все языки
-  if (typeof text === 'string') {
-    return { uz: text, ru: text, en: text }
-  }
-  
-  return { uz: '', ru: '', en: '' }
-}
-
-/**
- * Получает слайды с полной локализацией из Sanity
+ * Получает слайды главной из новых singleton-настроек
  */
 export async function getHeroSlides(): Promise<HeroSlide[]> {
   try {
-    const query = `
-      *[_type == "heroSlide"] | order(_createdAt asc) {
-        _id,
-        title,
-        subtitle,
-        description,
-        buttonText,
-        showButton,
-        image,
-        buttonUrl
-      }
-    `
+    const nextSlides = ((await getHomeHeroSliderSettingsDocument())?.slides || [])
+      .filter((slide) => slide.isActive !== false)
+      .map(normalizeHomeHeroSlide)
+      .filter((slide) => slide.image)
 
-    const rawSlides = await client.fetch<HeroSlideRaw[]>(query)
-
-    const slides = rawSlides.map((slide) => ({
-      id: slide._id,
-      title: normalizeText(slide.title),
-      subtitle: normalizeText(slide.subtitle),
-      description: normalizeText(slide.description),
-      buttonText: normalizeText(slide.buttonText),
-      showButton: slide.showButton !== false,
-      image: slide.image ? urlFor(slide.image).url() : '',
-      buttonUrl: slide.buttonUrl,
-    }))
-
-    return slides
+    return nextSlides
   } catch (error) {
     console.error('Ошибка при получении слайдов:', error)
     return []

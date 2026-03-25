@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { createContext, useContext, useEffect, ReactNode } from "react";
 
 type Language = "uz" | "ru" | "en";
 
@@ -13,43 +12,24 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children, initialLang = "uz" }: { children: ReactNode; initialLang?: Language }) {
-  const getSavedLanguage = () => {
-    if (typeof document === "undefined") return undefined;
-    const savedLang = document.cookie
-      .split("; ")
-      .find(row => row.startsWith("preferredLanguage="))
-      ?.split("=")[1] as Language | undefined;
+  const lang = initialLang;
 
-    return savedLang && ["uz", "ru", "en"].includes(savedLang) ? savedLang : undefined;
+  const persistPreferredLanguage = (value: Language) => {
+    const expiryDate = new Date();
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    document.cookie = `preferredLanguage=${value};expires=${expiryDate.toUTCString()};path=/`;
   };
 
-  const [lang, setLangState] = useState<Language>(() => getSavedLanguage() ?? initialLang);
-  const router = useRouter();
-  const pathname = usePathname();
-
   useEffect(() => {
-    const savedLang = getSavedLanguage();
-    const activeLang = savedLang ?? initialLang;
-
-    const expiryDate = new Date();
-    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-    document.cookie = `preferredLanguage=${activeLang};expires=${expiryDate.toUTCString()};path=/`;
-
-    // Если сохранённый язык не совпадает с URL, перенаправляем на правильный язык
-    if (savedLang && savedLang !== initialLang && !pathname.includes("/studio")) {
-      setTimeout(() => {
-        const newPathname = pathname.replace(/^\/(uz|ru|en)/, `/${savedLang}`);
-        router.push(newPathname || `/${savedLang}`);
-      }, 100);
+    if (typeof document !== "undefined") {
+      persistPreferredLanguage(initialLang);
     }
-  }, [initialLang, pathname, router]);
+  }, [initialLang]);
 
   const setLang = (newLang: Language) => {
-    setLangState(newLang);
-    // Сохраняем в cookies на 1 год
-    const expiryDate = new Date();
-    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-    document.cookie = `preferredLanguage=${newLang};expires=${expiryDate.toUTCString()};path=/`;
+    if (typeof document !== "undefined") {
+      persistPreferredLanguage(newLang);
+    }
   };
 
   return (

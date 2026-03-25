@@ -25,6 +25,18 @@ const localizedTextField = (name: string, title: string, rows = 5) =>
     ],
   })
 
+const localizedOptionalStringField = (name: string, title: string) =>
+  defineField({
+    name,
+    title,
+    type: 'object',
+    fields: [
+      { name: 'uz', title: 'O‘zbekcha', type: 'string' },
+      { name: 'ru', title: 'Русский', type: 'string' },
+      { name: 'en', title: 'English', type: 'string' },
+    ],
+  })
+
 export const restaurant = defineType({
   name: 'restaurant',
   title: 'Проект',
@@ -45,6 +57,10 @@ export const restaurant = defineType({
       validation: (rule) => rule.required(),
     }),
     localizedStringField('name', 'Название проекта'),
+    localizedOptionalStringField(
+      'detailPrimaryInfo',
+      'Текст под меткой «КУХНЯ/ФОРМАТ» на детальной странице'
+    ),
     defineField({
       name: 'logo',
       title: 'Логотип',

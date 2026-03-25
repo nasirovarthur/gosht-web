@@ -1,39 +1,47 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import SliderButton from './SliderButton';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { EffectCreative } from 'swiper/modules';
+import type { Swiper as SwiperInstance } from 'swiper';
+import 'swiper/css';
+import 'swiper/css/effect-creative';
 
 interface ImageSliderProps {
   images: string[];
   orientation?: 'vertical' | 'horizontal';
   overlay?: ReactNode;
+  effect?: 'slide' | 'creative' | 'projects';
 }
 
 export default function ImageSlider({
   images,
   orientation = 'vertical',
   overlay,
+  effect = 'slide',
 }: ImageSliderProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const sliderRef = useRef<HTMLDivElement>(null);
+  const [swiperInstance, setSwiperInstance] = useState<SwiperInstance | null>(null);
+  const [canGoPrevious, setCanGoPrevious] = useState(false);
+  const [canGoNext, setCanGoNext] = useState(images.length > 1);
   const isVertical = orientation === 'vertical';
   const isSingle = images.length <= 1;
 
-  const safeIndex = images.length ? Math.min(Math.max(currentIndex, 0), images.length - 1) : 0;
-  const canGoPrevious = !isSingle && safeIndex > 0;
-  const canGoNext = !isSingle && safeIndex < images.length - 1;
+  const syncButtons = (instance: SwiperInstance) => {
+    if (isSingle) {
+      setCanGoPrevious(false);
+      setCanGoNext(false);
+      return;
+    }
 
-  const goToPrevious = () => {
-    if (!canGoPrevious) return;
-    setCurrentIndex(safeIndex - 1);
+    setCanGoPrevious(!instance.isBeginning);
+    setCanGoNext(!instance.isEnd);
   };
 
-  const goToNext = () => {
-    if (!canGoNext) return;
-    setCurrentIndex(safeIndex + 1);
-  };
+  const goToPrevious = () => swiperInstance?.slidePrev();
+  const goToNext = () => swiperInstance?.slideNext();
 
   const controls = (
     <div className={`flex ${isVertical ? 'flex-col' : 'flex-row'} items-center gap-7 md:gap-9`}>
@@ -54,42 +62,82 @@ export default function ImageSlider({
 
   const slider = (
     <div
-      ref={sliderRef}
       className={`relative overflow-hidden shadow-2xl shrink-0 ${
         isVertical
-          ? 'w-[80vw] max-w-[880px] aspect-[880/794]'
-          : 'w-[80vw] max-w-[880px] aspect-[880/794]'
+          ? 'w-full max-w-none h-[clamp(430px,66vh,860px)]'
+          : 'w-full aspect-[16/10] md:aspect-[16/9]'
       }`}
-      style={isVertical ? { maxHeight: 'calc(100vh - 272px)' } : undefined}
     >
-      <div
-        className={`flex ${isVertical ? 'flex-col' : 'flex-row'} h-full w-full transition-transform duration-500`}
-        style={{
-          transform: isVertical
-            ? `translateY(-${safeIndex * 100}%)`
-            : `translateX(-${safeIndex * 100}%)`,
+      <Swiper
+        modules={effect === 'creative' || effect === 'projects' ? [EffectCreative] : []}
+        direction={isVertical ? 'vertical' : 'horizontal'}
+        slidesPerView={1}
+        speed={effect === 'projects' ? 900 : 640}
+        effect={effect === 'projects' ? 'creative' : effect}
+        creativeEffect={
+          effect === 'projects'
+            ? {
+                limitProgress: 2,
+                prev: {
+                  translate: isVertical ? [0, '-10%', -1] : ['-10%', 0, -1],
+                  opacity: 1,
+                  scale: 0.985,
+                },
+                next: {
+                  translate: isVertical ? [0, '100%', 0] : ['100%', 0, 0],
+                  opacity: 1,
+                  scale: 1,
+                },
+              }
+            : effect === 'creative'
+            ? {
+                prev: {
+                  translate: isVertical ? [0, '-100%', 0] : ['-100%', 0, 0],
+                  opacity: 1,
+                  scale: 1,
+                },
+                next: {
+                  translate: isVertical ? [0, '100%', 0] : ['100%', 0, 0],
+                  opacity: 1,
+                  scale: 1,
+                },
+              }
+            : undefined
+        }
+        onSwiper={(instance) => {
+          setSwiperInstance(instance);
+          syncButtons(instance);
         }}
+        onSlideChange={syncButtons}
+        onResize={syncButtons}
+        className="h-full w-full"
       >
         {images.map((img, idx) => (
-          <div key={idx} className="relative flex-shrink-0 w-full h-full">
+          <SwiperSlide key={idx} className="!h-full !w-full">
+            <div className="relative h-full w-full">
             <Image
               src={img}
               alt={`Slide ${idx + 1}`}
               fill
               className="object-cover"
-              priority={idx === safeIndex}
-              sizes={isVertical ? '(max-width: 1024px) 80vw, 880px' : '(max-width: 1024px) 80vw, 880px'}
+              priority={idx === 0}
+              sizes={
+                isVertical
+                  ? '(max-width: 1024px) 100vw, (max-width: 1536px) 58vw, 860px'
+                  : '(max-width: 1024px) 100vw, (max-width: 1536px) 50vw, 700px'
+              }
             />
-          </div>
+            </div>
+          </SwiperSlide>
         ))}
-      </div>
+      </Swiper>
       {overlay}
     </div>
   );
 
   if (isVertical) {
     return (
-      <div className="relative inline-flex w-fit max-w-full">
+      <div className="relative inline-flex w-full max-w-none">
         {slider}
         {!isSingle && (
           <div className="absolute left-0 bottom-0 -translate-x-[calc(100%+8px)] md:-translate-x-[calc(100%+14px)] z-20">
@@ -101,7 +149,7 @@ export default function ImageSlider({
   }
 
   return (
-    <div className="flex w-full flex-col items-center gap-4">
+    <div className="flex w-full flex-col gap-4">
       {slider}
       {!isSingle && <div className="self-start">{controls}</div>}
     </div>

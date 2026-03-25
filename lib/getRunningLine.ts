@@ -1,5 +1,7 @@
-// lib/getRunningLine.ts
-import { client } from '@/lib/sanity'
+import {
+  getHomeRunningLineSettingsDocument,
+  normalizeHomeRunningLine,
+} from '@/lib/getHomePageSettings'
 
 export interface RunningLineData {
   text: {
@@ -11,11 +13,7 @@ export interface RunningLineData {
 
 export async function getRunningLine(): Promise<RunningLineData | null> {
   try {
-    const query = `*[_type == "runningLine"][0]{
-      text
-    }`
-    const data = await client.fetch(query)
-    return data || null
+    return normalizeHomeRunningLine(await getHomeRunningLineSettingsDocument())
   } catch (error) {
     console.error('Error fetching running line:', error)
     return null

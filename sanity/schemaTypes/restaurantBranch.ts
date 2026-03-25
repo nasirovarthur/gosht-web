@@ -18,10 +18,33 @@ export const restaurantBranch = defineType({
   type: 'document',
   fields: [
     defineField({
+      name: 'projectType',
+      title: 'Тип филиала',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Restaurant', value: 'restaurant' },
+          { title: 'Barbershop', value: 'barbershop' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'restaurant',
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
       name: 'project',
       title: 'Проект',
       type: 'reference',
       to: [{ type: 'restaurant' }],
+      options: {
+        filter: ({document}) => {
+          const selectedType = document?.projectType || 'restaurant'
+          return {
+            filter: 'projectType == $projectType',
+            params: { projectType: selectedType },
+          }
+        },
+      },
       validation: (rule) => rule.required(),
     }),
     localizedStringField('branchName', 'Название филиала'),
@@ -123,15 +146,31 @@ export const restaurantBranch = defineType({
     }),
     defineField({
       name: 'hasBanquet',
-      title: 'Есть банкетный зал?',
+      title: 'Есть банкетный зал? (для ресторанов)',
       type: 'boolean',
       initialValue: false,
+      hidden: ({document}) => document?.projectType === 'barbershop',
     }),
     defineField({
       name: 'hasPlayground',
-      title: 'Есть детская площадка?',
+      title: 'Есть детская площадка? (для ресторанов)',
       type: 'boolean',
       initialValue: false,
+      hidden: ({document}) => document?.projectType === 'barbershop',
+    }),
+    defineField({
+      name: 'hasVipRoom',
+      title: 'Есть VIP-кабинет? (для барбершопов)',
+      type: 'boolean',
+      initialValue: false,
+      hidden: ({document}) => document?.projectType !== 'barbershop',
+    }),
+    defineField({
+      name: 'hasKidsHaircut',
+      title: 'Есть детская стрижка? (для барбершопов)',
+      type: 'boolean',
+      initialValue: false,
+      hidden: ({document}) => document?.projectType !== 'barbershop',
     }),
     defineField({
       name: 'menuFile',

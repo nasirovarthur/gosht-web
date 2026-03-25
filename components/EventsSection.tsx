@@ -2,10 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import SliderButton from "@/components/SliderButton";
-import type { EventItem, Localized } from "@/lib/eventsData";
+import Reveal from "@/components/Reveal";
+import { pickLocalized } from "@/types/i18n";
+import type { Localized } from "@/types/i18n";
+import type { EventItem } from "@/lib/eventsData";
 
 type EventCardData = EventItem;
 type EventsSectionLabels = {
@@ -13,12 +17,9 @@ type EventsSectionLabels = {
   allEventsLabel: Localized;
 };
 
-function pickLocalized(value: Localized, lang: "uz" | "ru" | "en"): string {
-  return value[lang] || value.uz;
-}
-
 function EventsLink({ label, href }: { label: string; href: string }) {
   const [isHovered, setIsHovered] = useState(false);
+  const router = useRouter();
 
   return (
     <div
@@ -33,6 +34,7 @@ function EventsLink({ label, href }: { label: string; href: string }) {
 
         <SliderButton
           direction="right"
+          onClick={() => router.push(href)}
           forceHover={isHovered}
           className="scale-[0.45] md:scale-[0.56] origin-left -ml-3 md:-ml-2"
         />
@@ -125,25 +127,34 @@ export default function EventsSection({
       <div className="page-x">
         <div className="mx-auto w-full max-w-[1600px]">
           <div className="grid grid-cols-1 lg:grid-cols-12 mb-10 md:mb-12 lg:mb-10">
-            <div className="lg:col-span-8">
+            <Reveal as="div" className="lg:col-span-8" distance={34} blur={8}>
               <h2 className="text-[clamp(42px,4.7vw,86px)] leading-[0.95] tracking-[-0.02em] font-light font-serif">
                 {heading}
               </h2>
               <div className="mt-8 md:mt-10">
                 <EventsLink label={allEventsLabel} href={`/${lang}/events`} />
               </div>
-            </div>
+            </Reveal>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 lg:min-h-[760px]">
-            <div className="lg:col-span-8 h-full max-w-[980px]">
+            <Reveal as="div" className="lg:col-span-8 h-full max-w-[980px]" distance={54} blur={12}>
               <EventCard item={featuredEvent} variant="featured" />
-            </div>
+            </Reveal>
 
             <div className="lg:col-span-4 h-full lg:col-start-9">
               <div className="grid grid-cols-1 gap-10 lg:gap-8 h-full lg:grid-rows-2">
-                {visibleSideEvents.map((event) => (
-                  <EventCard key={event.id} item={event} variant="small" />
+                {visibleSideEvents.map((event, index) => (
+                  <Reveal
+                    key={event.id}
+                    as="div"
+                    variant="left"
+                    delay={index * 110}
+                    distance={46}
+                    blur={10}
+                  >
+                    <EventCard item={event} variant="small" />
+                  </Reveal>
                 ))}
               </div>
             </div>
