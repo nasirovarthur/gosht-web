@@ -228,7 +228,7 @@ export default async function AboutRoute({
                 {[0, 1].map((groupIndex) => (
                   <div
                     key={`logo-group-${groupIndex}`}
-                    className="flex shrink-0 items-center gap-12 md:gap-16 min-[1920px]:gap-24"
+                    className="flex shrink-0 items-center gap-6 md:gap-8 min-[1920px]:gap-12"
                     aria-hidden={groupIndex === 1}
                   >
                     {logoProjects.map((project) => (

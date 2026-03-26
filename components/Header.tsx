@@ -76,7 +76,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
   return (
     <>
       {/* HEADER BAR */}
-      <header className="fixed top-0 left-0 w-full z-40 bg-base text-[#d1d1d1] transition-all duration-300 border-b border-white/5 animate-header-enter">
+      <header className="fixed top-0 left-0 w-full z-40 bg-base text-[#d1d1d1] transition-all duration-300 border-b border-white/5">
         <div className="flex items-center justify-between w-full h-[80px] md:h-[100px] page-x relative">
           
           {/* MENU BUTTON */}
