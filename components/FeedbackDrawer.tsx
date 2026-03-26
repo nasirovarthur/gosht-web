@@ -271,7 +271,10 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const payload = (await response
+          .json()
+          .catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error || `HTTP ${response.status}`);
       }
 
       setSubmitMessage({ type: "ok" });
@@ -287,8 +290,10 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    } catch {
-      setSubmitMessage({ type: "error", text: pickLocalized(settings.error, lang) });
+    } catch (error) {
+      const defaultError = pickLocalized(settings.error, lang);
+      const message = error instanceof Error ? error.message : defaultError;
+      setSubmitMessage({ type: "error", text: message || defaultError });
     } finally {
       setIsSubmitting(false);
     }

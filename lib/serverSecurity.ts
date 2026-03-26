@@ -71,7 +71,25 @@ function parseAllowedOrigins(runtimeOrigin: string): Set<string> {
     .map((item) => item.trim())
     .filter(Boolean);
 
-  return new Set([runtimeOrigin, ...envOrigins]);
+  const origins = new Set([runtimeOrigin, ...envOrigins]);
+
+  try {
+    const runtimeUrl = new URL(runtimeOrigin);
+    const port = runtimeUrl.port ? `:${runtimeUrl.port}` : "";
+    const protocol = runtimeUrl.protocol;
+
+    if (runtimeUrl.hostname === "localhost") {
+      origins.add(`${protocol}//127.0.0.1${port}`);
+    }
+
+    if (runtimeUrl.hostname === "127.0.0.1") {
+      origins.add(`${protocol}//localhost${port}`);
+    }
+  } catch {
+    // Ignore invalid runtime origin and keep base set.
+  }
+
+  return origins;
 }
 
 function parseUrlOrigin(value: string): string | null {

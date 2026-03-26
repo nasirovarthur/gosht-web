@@ -15,6 +15,8 @@ const MAX_NAME_LENGTH = 120;
 const MAX_PHONE_LENGTH = 40;
 const MAX_EMAIL_LENGTH = 180;
 const MAX_MESSAGE_LENGTH = 2500;
+const MONDAY_API_URL = "https://api.monday.com/v2";
+const MONDAY_API_VERSION = process.env.MONDAY_API_VERSION || "2023-10";
 
 const ALLOWED_IMAGE_MIME_TYPES = new Set([
   "image/jpeg",
@@ -35,6 +37,210 @@ function isValidEmail(value: string): boolean {
 
 function isValidPhone(value: string): boolean {
   return /^[\d+\-() ]{7,40}$/.test(value);
+}
+
+type MondayGraphqlResponse<T> = {
+  data?: T;
+  errors?: Array<{ message?: string }>;
+};
+
+type MondayCreateItemResult = {
+  create_item?: { id?: string };
+};
+
+type MondayCreateUpdateResult = {
+  create_update?: { id?: string };
+};
+
+type MondayBoardColumnsResult = {
+  boards?: Array<{
+    columns?: Array<{
+      id: string;
+      title: string;
+      type: string;
+    }>;
+  }>;
+};
+
+type MondayColumn = {
+  id: string;
+  title: string;
+  type: string;
+};
+
+function buildMondayUpdateBody(params: {
+  requestId: string;
+  restaurantId: string;
+  restaurantName: string;
+  name: string;
+  phone: string;
+  email: string;
+  message: string;
+  consent: boolean;
+  lang: string;
+  photos: Array<{ name: string; type: string; size: number }>;
+}): string {
+  const photosLine =
+    params.photos.length > 0
+      ? params.photos
+          .map((photo) => `- ${photo.name} (${photo.type || "unknown"}, ${photo.size} bytes)`)
+          .join("\n")
+      : "- no files";
+
+  return [
+    `Feedback request: ${params.requestId}`,
+    "",
+    `Restaurant: ${params.restaurantName || params.restaurantId}`,
+    `Restaurant ID: ${params.restaurantId}`,
+    `Name: ${params.name}`,
+    `Phone: ${params.phone}`,
+    `Email: ${params.email || "-"}`,
+    `Language: ${params.lang || "-"}`,
+    `Consent: ${params.consent ? "yes" : "no"}`,
+    "",
+    "Message:",
+    params.message,
+    "",
+    "Files:",
+    photosLine,
+  ].join("\n");
+}
+
+async function mondayRequest<T>(
+  token: string,
+  query: string,
+  variables: Record<string, unknown>
+): Promise<T> {
+  const response = await fetch(MONDAY_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token,
+      "API-Version": MONDAY_API_VERSION,
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Monday API request failed: ${body}`);
+  }
+
+  const payload = (await response.json()) as MondayGraphqlResponse<T>;
+
+  if (payload.errors?.length) {
+    const firstMessage = payload.errors[0]?.message || "Unknown Monday GraphQL error";
+    throw new Error(`Monday API error: ${firstMessage}`);
+  }
+
+  if (!payload.data) {
+    throw new Error("Monday API returned empty data");
+  }
+
+  return payload.data;
+}
+
+function normalizeTitle(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function findColumnByEnvId(
+  columns: MondayColumn[],
+  envValue: string | undefined
+): MondayColumn | null {
+  if (!envValue) return null;
+  return columns.find((column) => column.id === envValue) || null;
+}
+
+function findColumnByAliases(
+  columns: MondayColumn[],
+  aliases: string[],
+  preferredTypes: string[] = []
+): MondayColumn | null {
+  if (aliases.length === 0) return null;
+
+  const normalizedAliases = aliases.map(normalizeTitle);
+  const matchesByTitle = columns.filter((column) =>
+    normalizedAliases.some((alias) => normalizeTitle(column.title).includes(alias))
+  );
+
+  if (matchesByTitle.length === 0) return null;
+  if (preferredTypes.length === 0) return matchesByTitle[0];
+
+  return (
+    matchesByTitle.find((column) => preferredTypes.includes(column.type)) ||
+    matchesByTitle[0]
+  );
+}
+
+function setMondayColumnValue(
+  columnValues: Record<string, unknown>,
+  column: MondayColumn | null,
+  value: string | boolean
+) {
+  if (!column) return;
+
+  if (typeof value === "string" && !value.trim()) return;
+
+  if (column.type === "phone" && typeof value === "string") {
+    columnValues[column.id] = {
+      phone: value,
+      countryShortName: "uz",
+    };
+    return;
+  }
+
+  if (column.type === "email" && typeof value === "string") {
+    columnValues[column.id] = {
+      email: value,
+      text: value,
+    };
+    return;
+  }
+
+  if (column.type === "long_text" && typeof value === "string") {
+    columnValues[column.id] = {
+      text: value,
+    };
+    return;
+  }
+
+  if (column.type === "checkbox" && typeof value === "boolean") {
+    columnValues[column.id] = {
+      checked: value ? "true" : "false",
+    };
+    return;
+  }
+
+  if (column.type === "status") {
+    columnValues[column.id] = {
+      label: typeof value === "boolean" ? (value ? "Да" : "Нет") : value,
+    };
+    return;
+  }
+
+  if (column.type === "dropdown") {
+    columnValues[column.id] = {
+      labels: [String(value)],
+    };
+    return;
+  }
+
+  if (column.type === "date") {
+    const dateValue =
+      typeof value === "boolean"
+        ? null
+        : value.length >= 10
+          ? value.slice(0, 10)
+          : value;
+    if (!dateValue) return;
+
+    columnValues[column.id] = { date: dateValue };
+    return;
+  }
+
+  // text / numbers / default fallback
+  columnValues[column.id] = String(value);
 }
 
 export async function POST(request: NextRequest) {
@@ -156,7 +362,10 @@ export async function POST(request: NextRequest) {
     size: photo.size,
   }));
 
+  const requestId = randomUUID();
+
   const payload = {
+    requestId,
     restaurantId,
     lang,
     restaurantName,
@@ -168,12 +377,229 @@ export async function POST(request: NextRequest) {
     receivedAt: new Date().toISOString(),
   };
 
-  // Temporary sink until email/CRM integration is connected.
-  console.info("Feedback request received:", payload);
+  const mondayToken = process.env.MONDAY_API_TOKEN;
+  const mondayBoardId = process.env.MONDAY_FEEDBACK_BOARD_ID;
+  const mondayGroupId = process.env.MONDAY_FEEDBACK_GROUP_ID;
+
+  if (!mondayToken || !mondayBoardId) {
+    return NextResponse.json(
+      { error: "Monday CRM is not configured (MONDAY_API_TOKEN / MONDAY_FEEDBACK_BOARD_ID)" },
+      { status: 500 }
+    );
+  }
+
+  const itemName = `${restaurantName || restaurantId} — ${name}`.slice(0, 240);
+  const submittedDate = new Date().toISOString().slice(0, 10);
+  const updateBody = buildMondayUpdateBody({
+    requestId,
+    restaurantId,
+    restaurantName,
+    name,
+    phone,
+    email,
+    message,
+    consent,
+    lang,
+    photos: photosMeta,
+  });
+
+  try {
+    const boardMeta = await mondayRequest<MondayBoardColumnsResult>(
+      mondayToken,
+      `query GetFeedbackBoardColumns($boardIds: [ID!]) {
+        boards(ids: $boardIds) {
+          columns {
+            id
+            title
+            type
+          }
+        }
+      }`,
+      {
+        boardIds: [mondayBoardId],
+      }
+    );
+
+    const columns = boardMeta.boards?.[0]?.columns || [];
+
+    const restaurantColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_RESTAURANT) ||
+      findColumnByAliases(columns, ["ресторан", "restaurant", "филиал", "project"], [
+        "text",
+        "long_text",
+        "status",
+        "dropdown",
+      ]);
+    const nameColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_NAME) ||
+      findColumnByAliases(columns, ["имя", "name", "контакт"], [
+        "text",
+        "long_text",
+      ]);
+    const phoneColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_PHONE) ||
+      findColumnByAliases(columns, ["телефон", "номер", "phone"], [
+        "phone",
+        "text",
+      ]);
+    const emailColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_EMAIL) ||
+      findColumnByAliases(columns, ["почта", "email", "e-mail"], [
+        "email",
+        "text",
+      ]);
+    const messageColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_MESSAGE) ||
+      findColumnByAliases(columns, ["сообщение", "вопрос", "пожелание", "message"], [
+        "long_text",
+        "text",
+      ]);
+    const consentColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_CONSENT) ||
+      findColumnByAliases(columns, ["согласие", "consent"], [
+        "checkbox",
+        "status",
+      ]);
+    const languageColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_LANG) ||
+      findColumnByAliases(columns, ["язык", "language", "lang"], [
+        "status",
+        "dropdown",
+        "text",
+      ]);
+    const submittedAtColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_SUBMITTED_AT) ||
+      findColumnByAliases(columns, ["дата", "created", "submitted", "получено"], [
+        "date",
+        "text",
+      ]);
+
+    const columnValues: Record<string, unknown> = {};
+    setMondayColumnValue(
+      columnValues,
+      restaurantColumn,
+      restaurantName || restaurantId
+    );
+    setMondayColumnValue(columnValues, nameColumn, name);
+    setMondayColumnValue(columnValues, phoneColumn, phone);
+    setMondayColumnValue(columnValues, emailColumn, email);
+    setMondayColumnValue(columnValues, messageColumn, message);
+    setMondayColumnValue(columnValues, consentColumn, consent);
+    setMondayColumnValue(columnValues, languageColumn, lang.toUpperCase());
+    setMondayColumnValue(columnValues, submittedAtColumn, submittedDate);
+
+    const columnValuesJson =
+      Object.keys(columnValues).length > 0 ? JSON.stringify(columnValues) : null;
+
+    let createdItem: MondayCreateItemResult;
+
+    if (columnValuesJson) {
+      try {
+        createdItem = await mondayRequest<MondayCreateItemResult>(
+          mondayToken,
+          `mutation CreateFeedbackItem(
+            $boardId: ID!,
+            $itemName: String!,
+            $groupId: String,
+            $columnValues: JSON!,
+            $createLabelsIfMissing: Boolean!
+          ) {
+            create_item(
+              board_id: $boardId,
+              item_name: $itemName,
+              group_id: $groupId,
+              column_values: $columnValues,
+              create_labels_if_missing: $createLabelsIfMissing
+            ) {
+              id
+            }
+          }`,
+          {
+            boardId: mondayBoardId,
+            itemName,
+            groupId: mondayGroupId || null,
+            columnValues: columnValuesJson,
+            createLabelsIfMissing: true,
+          }
+        );
+      } catch {
+        createdItem = await mondayRequest<MondayCreateItemResult>(
+          mondayToken,
+          `mutation CreateFeedbackItem(
+            $boardId: ID!,
+            $itemName: String!,
+            $groupId: String
+          ) {
+            create_item(
+              board_id: $boardId,
+              item_name: $itemName,
+              group_id: $groupId
+            ) {
+              id
+            }
+          }`,
+          {
+            boardId: mondayBoardId,
+            itemName,
+            groupId: mondayGroupId || null,
+          }
+        );
+      }
+    } else {
+      createdItem = await mondayRequest<MondayCreateItemResult>(
+        mondayToken,
+        `mutation CreateFeedbackItem(
+          $boardId: ID!,
+          $itemName: String!,
+          $groupId: String
+        ) {
+          create_item(
+            board_id: $boardId,
+            item_name: $itemName,
+            group_id: $groupId
+          ) {
+            id
+          }
+        }`,
+        {
+          boardId: mondayBoardId,
+          itemName,
+          groupId: mondayGroupId || null,
+        }
+      );
+    }
+
+    const mondayItemId = createdItem.create_item?.id;
+    if (!mondayItemId) {
+      throw new Error("Monday create_item returned empty id");
+    }
+
+    await mondayRequest<MondayCreateUpdateResult>(
+      mondayToken,
+      `mutation AddFeedbackUpdate($itemId: ID!, $body: String!) {
+        create_update(item_id: $itemId, body: $body) {
+          id
+        }
+      }`,
+      {
+        itemId: mondayItemId,
+        body: updateBody,
+      }
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown Monday integration error";
+    return NextResponse.json(
+      { error: `Could not send feedback to Monday CRM: ${message}` },
+      { status: 502 }
+    );
+  }
+
+  console.info("Feedback request sent to Monday CRM:", payload);
 
   return NextResponse.json({
     ok: true,
-    requestId: randomUUID(),
+    requestId,
     remaining: rateLimit.remaining,
   });
 }
