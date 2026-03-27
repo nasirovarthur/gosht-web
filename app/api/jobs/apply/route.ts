@@ -8,37 +8,25 @@ import {
 
 export const runtime = "nodejs";
 
-const MAX_BODY_BYTES = 6 * 1024 * 1024;
-const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
-const MAX_PHOTOS_COUNT = 2;
+const MAX_BODY_BYTES = 8 * 1024 * 1024;
+const MAX_FILE_BYTES = 6 * 1024 * 1024;
+const MAX_FILES_COUNT = 2;
 const MAX_NAME_LENGTH = 120;
 const MAX_PHONE_LENGTH = 40;
 const MAX_EMAIL_LENGTH = 180;
-const MAX_MESSAGE_LENGTH = 2500;
+const MAX_ABOUT_LENGTH = 3000;
 const MONDAY_API_URL = "https://api.monday.com/v2";
 const MONDAY_FILE_API_URL = "https://api.monday.com/v2/file";
 const MONDAY_API_VERSION = process.env.MONDAY_API_VERSION || "2023-10";
 
-const ALLOWED_IMAGE_MIME_TYPES = new Set([
+const ALLOWED_FILE_TYPES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "image/jpeg",
   "image/png",
   "image/webp",
-  "image/heic",
-  "image/heif",
 ]);
-
-function valueFromFormData(formData: FormData, key: string): string {
-  const value = formData.get(key);
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function isValidPhone(value: string): boolean {
-  return /^[\d+\-() ]{7,40}$/.test(value);
-}
 
 type MondayGraphqlResponse<T> = {
   data?: T;
@@ -51,6 +39,10 @@ type MondayCreateItemResult = {
 
 type MondayCreateUpdateResult = {
   create_update?: { id?: string };
+};
+
+type MondayAddFileResult = {
+  add_file_to_column?: { id?: string };
 };
 
 type MondayBoardColumnsResult = {
@@ -69,80 +61,17 @@ type MondayColumn = {
   type: string;
 };
 
-type MondayAddFileResult = {
-  add_file_to_column?: { id?: string };
-};
-
-function buildMondayUpdateBody(params: {
-  requestId: string;
-  restaurantId: string;
-  restaurantName: string;
-  name: string;
-  phone: string;
-  email: string;
-  message: string;
-  consent: boolean;
-  lang: string;
-  photos: Array<{ name: string; type: string; size: number }>;
-}): string {
-  const photosLine =
-    params.photos.length > 0
-      ? params.photos
-          .map((photo) => `- ${photo.name} (${photo.type || "unknown"}, ${photo.size} bytes)`)
-          .join("\n")
-      : "- no files";
-
-  return [
-    `Feedback request: ${params.requestId}`,
-    "",
-    `Restaurant: ${params.restaurantName || params.restaurantId}`,
-    `Restaurant ID: ${params.restaurantId}`,
-    `Name: ${params.name}`,
-    `Phone: ${params.phone}`,
-    `Email: ${params.email || "-"}`,
-    `Language: ${params.lang || "-"}`,
-    `Consent: ${params.consent ? "yes" : "no"}`,
-    "",
-    "Message:",
-    params.message,
-    "",
-    "Files:",
-    photosLine,
-  ].join("\n");
+function valueFromFormData(formData: FormData, key: string): string {
+  const value = formData.get(key);
+  return typeof value === "string" ? value.trim() : "";
 }
 
-async function mondayRequest<T>(
-  token: string,
-  query: string,
-  variables: Record<string, unknown>
-): Promise<T> {
-  const response = await fetch(MONDAY_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token,
-      "API-Version": MONDAY_API_VERSION,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Monday API request failed: ${body}`);
-  }
-
-  const payload = (await response.json()) as MondayGraphqlResponse<T>;
-
-  if (payload.errors?.length) {
-    const firstMessage = payload.errors[0]?.message || "Unknown Monday GraphQL error";
-    throw new Error(`Monday API error: ${firstMessage}`);
-  }
-
-  if (!payload.data) {
-    throw new Error("Monday API returned empty data");
-  }
-
-  return payload.data;
+function isValidPhone(value: string): boolean {
+  return /^[\d+\-() ]{7,40}$/.test(value);
 }
 
 function normalizeTitle(value: string): string {
@@ -178,13 +107,20 @@ function findColumnByAliases(
   );
 }
 
+function parseColumnIdList(value: string | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function setMondayColumnValue(
   columnValues: Record<string, unknown>,
   column: MondayColumn | null,
   value: string | boolean
 ) {
   if (!column) return;
-
   if (typeof value === "string" && !value.trim()) return;
 
   if (column.type === "phone" && typeof value === "string") {
@@ -239,21 +175,88 @@ function setMondayColumnValue(
           ? value.slice(0, 10)
           : value;
     if (!dateValue) return;
-
     columnValues[column.id] = { date: dateValue };
     return;
   }
 
-  // text / numbers / default fallback
   columnValues[column.id] = String(value);
 }
 
-function parseColumnIdList(value: string | undefined): string[] {
-  if (!value) return [];
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+function buildMondayUpdateBody(params: {
+  requestId: string;
+  vacancyId: string;
+  vacancyTitle: string;
+  vacancyRole: string;
+  name: string;
+  phone: string;
+  email: string;
+  about: string;
+  consent: boolean;
+  lang: string;
+  files: Array<{ name: string; type: string; size: number }>;
+}) {
+  const filesLine =
+    params.files.length > 0
+      ? params.files
+          .map(
+            (file) =>
+              `- ${file.name} (${file.type || "unknown"}, ${file.size} bytes)`
+          )
+          .join("\n")
+      : "- no file";
+
+  return [
+    `Jobs apply request: ${params.requestId}`,
+    "",
+    `Company: ${params.vacancyTitle || "-"}`,
+    `Position: ${params.vacancyRole || "-"}`,
+    `Vacancy ID: ${params.vacancyId}`,
+    `Candidate: ${params.name}`,
+    `Phone: ${params.phone}`,
+    `Email: ${params.email || "-"}`,
+    `Language: ${params.lang || "-"}`,
+    `Consent: ${params.consent ? "yes" : "no"}`,
+    "",
+    "About:",
+    params.about,
+    "",
+    "Files:",
+    filesLine,
+  ].join("\n");
+}
+
+async function mondayRequest<T>(
+  token: string,
+  query: string,
+  variables: Record<string, unknown>
+): Promise<T> {
+  const response = await fetch(MONDAY_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token,
+      "API-Version": MONDAY_API_VERSION,
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Monday API request failed: ${body}`);
+  }
+
+  const payload = (await response.json()) as MondayGraphqlResponse<T>;
+
+  if (payload.errors?.length) {
+    const firstMessage = payload.errors[0]?.message || "Unknown Monday GraphQL error";
+    throw new Error(`Monday API error: ${firstMessage}`);
+  }
+
+  if (!payload.data) {
+    throw new Error("Monday API returned empty data");
+  }
+
+  return payload.data;
 }
 
 async function mondayUploadFile(
@@ -266,18 +269,10 @@ async function mondayUploadFile(
   form.append(
     "query",
     `mutation AddFileToColumn($itemId: ID!, $columnId: String!, $file: File!) {
-      add_file_to_column(item_id: $itemId, column_id: $columnId, file: $file) {
-        id
-      }
+      add_file_to_column(item_id: $itemId, column_id: $columnId, file: $file) { id }
     }`
   );
-  form.append(
-    "variables",
-    JSON.stringify({
-      itemId,
-      columnId,
-    })
-  );
+  form.append("variables", JSON.stringify({ itemId, columnId }));
   form.append("map", JSON.stringify({ file: "variables.file" }));
   form.append("file", file, file.name);
 
@@ -314,7 +309,7 @@ export async function POST(request: NextRequest) {
 
   const ip = getClientIp(request);
   const rateLimit = checkRateLimit({
-    key: `feedback:${ip}`,
+    key: `jobs-apply:${ip}`,
     limit: 8,
     windowMs: 10 * 60 * 1000,
   });
@@ -335,37 +330,31 @@ export async function POST(request: NextRequest) {
   const contentLengthHeader = request.headers.get("content-length");
   const contentLength = contentLengthHeader ? Number(contentLengthHeader) : 0;
   if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
-    return NextResponse.json(
-      { error: "Payload is too large" },
-      { status: 413 }
-    );
+    return NextResponse.json({ error: "Payload is too large" }, { status: 413 });
   }
 
   let formData: FormData;
-
   try {
     formData = await request.formData();
   } catch {
     return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
   }
 
-  const restaurantId = valueFromFormData(formData, "restaurantId");
-  const restaurantName = valueFromFormData(formData, "restaurantName");
+  const vacancyId = valueFromFormData(formData, "vacancyId");
+  const vacancyTitle = valueFromFormData(formData, "vacancyTitle");
+  const vacancyRole = valueFromFormData(formData, "vacancyRole");
   const name = valueFromFormData(formData, "name");
   const phone = valueFromFormData(formData, "phone");
   const email = valueFromFormData(formData, "email");
-  const message = valueFromFormData(formData, "message");
+  const about = valueFromFormData(formData, "about");
   const consent = valueFromFormData(formData, "consent") === "true";
   const lang = valueFromFormData(formData, "lang");
-  const photosRaw = formData.getAll("photos");
-  const fallbackSinglePhoto = formData.get("photo");
+  const resumesRaw = formData.getAll("resume");
+  const fallbackSingleResume = formData.get("resume");
 
-  if (!restaurantId || !name || !phone || !message || !consent) {
+  if (!vacancyId || !name || !phone || !about || !consent) {
     return NextResponse.json(
-      {
-        error:
-          "restaurantId, name, phone, message and consent are required",
-      },
+      { error: "vacancyId, name, phone, about and consent are required" },
       { status: 400 }
     );
   }
@@ -382,95 +371,77 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Email is invalid" }, { status: 400 });
   }
 
-  if (message.length > MAX_MESSAGE_LENGTH) {
-    return NextResponse.json(
-      { error: "Message is too long" },
-      { status: 400 }
-    );
+  if (about.length > MAX_ABOUT_LENGTH) {
+    return NextResponse.json({ error: "About text is too long" }, { status: 400 });
   }
 
-  const photos = photosRaw.filter((item): item is File => item instanceof File);
-  const normalizedPhotos =
-    photos.length > 0
-      ? photos
-      : fallbackSinglePhoto instanceof File
-        ? [fallbackSinglePhoto]
+  const resumes = resumesRaw.filter((item): item is File => item instanceof File);
+  const normalizedResumes =
+    resumes.length > 0
+      ? resumes
+      : fallbackSingleResume instanceof File
+        ? [fallbackSingleResume]
         : [];
 
-  if (normalizedPhotos.length > MAX_PHOTOS_COUNT) {
+  if (normalizedResumes.length > MAX_FILES_COUNT) {
     return NextResponse.json(
-      { error: `You can attach up to ${MAX_PHOTOS_COUNT} files` },
+      { error: `You can attach up to ${MAX_FILES_COUNT} files` },
       { status: 400 }
     );
   }
 
-  for (const photo of normalizedPhotos) {
-    if (photo.size > MAX_PHOTO_BYTES) {
-      return NextResponse.json(
-        { error: "Each image must be smaller than 4MB" },
-        { status: 413 }
-      );
+  for (const file of normalizedResumes) {
+    if (file.size > MAX_FILE_BYTES) {
+      return NextResponse.json({ error: "File must be smaller than 6MB" }, { status: 413 });
     }
 
-    if (photo.type && !ALLOWED_IMAGE_MIME_TYPES.has(photo.type)) {
-      return NextResponse.json(
-        { error: "Unsupported file type" },
-        { status: 415 }
-      );
+    if (file.type && !ALLOWED_FILE_TYPES.has(file.type)) {
+      return NextResponse.json({ error: "Unsupported file type" }, { status: 415 });
     }
   }
 
-  const photosMeta = normalizedPhotos.map((photo) => ({
-    name: photo.name,
-    type: photo.type,
-    size: photo.size,
+  const filesMeta = normalizedResumes.map((file) => ({
+    name: file.name,
+    type: file.type,
+    size: file.size,
   }));
 
-  const requestId = randomUUID();
-
-  const payload = {
-    requestId,
-    restaurantId,
-    lang,
-    restaurantName,
-    hasEmail: Boolean(email),
-    messageLength: message.length,
-    consent,
-    photosCount: photosMeta.length,
-    photos: photosMeta,
-    receivedAt: new Date().toISOString(),
-  };
-
   const mondayToken = process.env.MONDAY_API_TOKEN;
-  const mondayBoardId = process.env.MONDAY_FEEDBACK_BOARD_ID;
-  const mondayGroupId = process.env.MONDAY_FEEDBACK_GROUP_ID;
+  const mondayBoardId = process.env.MONDAY_JOBS_APPLY_BOARD_ID;
+  const mondayGroupId = process.env.MONDAY_JOBS_APPLY_GROUP_ID;
 
   if (!mondayToken || !mondayBoardId) {
     return NextResponse.json(
-      { error: "Monday CRM is not configured (MONDAY_API_TOKEN / MONDAY_FEEDBACK_BOARD_ID)" },
+      {
+        error:
+          "Monday CRM is not configured (MONDAY_API_TOKEN / MONDAY_JOBS_APPLY_BOARD_ID)",
+      },
       { status: 500 }
     );
   }
 
-  const itemName = `${restaurantName || restaurantId} — ${name}`.slice(0, 240);
+  const requestId = randomUUID();
+  const itemName = `${vacancyTitle || "Vacancy"} — ${name}`.slice(0, 240);
   const submittedDate = new Date().toISOString().slice(0, 10);
+
   const updateBody = buildMondayUpdateBody({
     requestId,
-    restaurantId,
-    restaurantName,
+    vacancyId,
+    vacancyTitle,
+    vacancyRole,
     name,
     phone,
     email,
-    message,
+    about,
     consent,
     lang,
-    photos: photosMeta,
+    files: filesMeta,
   });
 
   try {
     const boardMeta = await mondayRequest<MondayBoardColumnsResult>(
       mondayToken,
-      `query GetFeedbackBoardColumns($boardIds: [ID!]) {
+      `query GetJobsApplyBoardColumns($boardIds: [ID!]) {
         boards(ids: $boardIds) {
           columns {
             id
@@ -486,59 +457,72 @@ export async function POST(request: NextRequest) {
 
     const columns = boardMeta.boards?.[0]?.columns || [];
 
-    const restaurantColumn =
-      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_RESTAURANT) ||
-      findColumnByAliases(columns, ["ресторан", "restaurant", "филиал", "project"], [
+    const companyColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_COMPANY) ||
+      findColumnByAliases(columns, ["компания", "company", "ресторан", "филиал"], [
         "text",
         "long_text",
         "status",
         "dropdown",
       ]);
-    const nameColumn =
-      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_NAME) ||
-      findColumnByAliases(columns, ["имя", "name", "контакт"], [
+    const positionColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_POSITION) ||
+      findColumnByAliases(columns, ["должность", "позиция", "position", "role"], [
+        "text",
+        "status",
+        "dropdown",
+      ]);
+    const candidateColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_CANDIDATE_NAME) ||
+      findColumnByAliases(columns, ["имя", "кандидат", "candidate"], [
         "text",
         "long_text",
       ]);
     const phoneColumn =
-      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_PHONE) ||
-      findColumnByAliases(columns, ["телефон", "номер", "phone"], [
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_PHONE) ||
+      findColumnByAliases(columns, ["телефон", "phone", "номер"], [
         "phone",
         "text",
       ]);
     const emailColumn =
-      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_EMAIL) ||
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_EMAIL) ||
       findColumnByAliases(columns, ["почта", "email", "e-mail"], [
         "email",
         "text",
       ]);
-    const messageColumn =
-      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_MESSAGE) ||
-      findColumnByAliases(columns, ["сообщение", "вопрос", "пожелание", "message"], [
+    const aboutColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_ABOUT) ||
+      findColumnByAliases(columns, ["о себе", "about", "текст", "описание"], [
         "long_text",
         "text",
       ]);
     const consentColumn =
-      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_CONSENT) ||
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_CONSENT) ||
       findColumnByAliases(columns, ["согласие", "consent"], [
         "checkbox",
         "status",
+        "text",
       ]);
     const languageColumn =
-      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_LANG) ||
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_LANG) ||
       findColumnByAliases(columns, ["язык", "language", "lang"], [
         "status",
         "dropdown",
         "text",
       ]);
     const submittedAtColumn =
-      findColumnByEnvId(columns, process.env.MONDAY_FEEDBACK_COL_SUBMITTED_AT) ||
-      findColumnByAliases(columns, ["дата", "created", "submitted", "получено"], [
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_SUBMITTED_AT) ||
+      findColumnByAliases(columns, ["дата", "created", "submitted", "заявки"], [
         "date",
         "text",
       ]);
-    const fileColumnsFromEnv = parseColumnIdList(process.env.MONDAY_FEEDBACK_COL_FILES)
-      .map((columnId) => columns.find((column) => column.id === columnId))
+    const vacancyIdColumn =
+      findColumnByEnvId(columns, process.env.MONDAY_JOBS_COL_VACANCY_ID) ||
+      findColumnByAliases(columns, ["vacancy id", "id ваканс", "ид ваканс"], [
+        "text",
+      ]);
+    const fileColumnsFromEnv = parseColumnIdList(process.env.MONDAY_JOBS_COL_FILES)
+      .map((columnId) => columns.find((column) => column.id === columnId) || null)
       .filter((column): column is MondayColumn => Boolean(column));
     const fileColumns =
       fileColumnsFromEnv.length > 0
@@ -546,18 +530,16 @@ export async function POST(request: NextRequest) {
         : columns.filter((column) => column.type === "file");
 
     const columnValues: Record<string, unknown> = {};
-    setMondayColumnValue(
-      columnValues,
-      restaurantColumn,
-      restaurantName || restaurantId
-    );
-    setMondayColumnValue(columnValues, nameColumn, name);
+    setMondayColumnValue(columnValues, companyColumn, vacancyTitle);
+    setMondayColumnValue(columnValues, positionColumn, vacancyRole);
+    setMondayColumnValue(columnValues, candidateColumn, name);
     setMondayColumnValue(columnValues, phoneColumn, phone);
     setMondayColumnValue(columnValues, emailColumn, email);
-    setMondayColumnValue(columnValues, messageColumn, message);
+    setMondayColumnValue(columnValues, aboutColumn, about);
     setMondayColumnValue(columnValues, consentColumn, consent);
     setMondayColumnValue(columnValues, languageColumn, lang.toUpperCase());
     setMondayColumnValue(columnValues, submittedAtColumn, submittedDate);
+    setMondayColumnValue(columnValues, vacancyIdColumn, vacancyId);
 
     const columnValuesJson =
       Object.keys(columnValues).length > 0 ? JSON.stringify(columnValues) : null;
@@ -568,7 +550,7 @@ export async function POST(request: NextRequest) {
       try {
         createdItem = await mondayRequest<MondayCreateItemResult>(
           mondayToken,
-          `mutation CreateFeedbackItem(
+          `mutation CreateJobsApplyItem(
             $boardId: ID!,
             $itemName: String!,
             $groupId: String,
@@ -596,7 +578,7 @@ export async function POST(request: NextRequest) {
       } catch {
         createdItem = await mondayRequest<MondayCreateItemResult>(
           mondayToken,
-          `mutation CreateFeedbackItem(
+          `mutation CreateJobsApplyItem(
             $boardId: ID!,
             $itemName: String!,
             $groupId: String
@@ -619,7 +601,7 @@ export async function POST(request: NextRequest) {
     } else {
       createdItem = await mondayRequest<MondayCreateItemResult>(
         mondayToken,
-        `mutation CreateFeedbackItem(
+        `mutation CreateJobsApplyItem(
           $boardId: ID!,
           $itemName: String!,
           $groupId: String
@@ -647,7 +629,7 @@ export async function POST(request: NextRequest) {
 
     await mondayRequest<MondayCreateUpdateResult>(
       mondayToken,
-      `mutation AddFeedbackUpdate($itemId: ID!, $body: String!) {
+      `mutation AddJobsApplyUpdate($itemId: ID!, $body: String!) {
         create_update(item_id: $itemId, body: $body) {
           id
         }
@@ -658,23 +640,39 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    if (normalizedPhotos.length > 0 && fileColumns.length > 0) {
-      const uploads = normalizedPhotos.slice(0, fileColumns.length);
-      for (const [index, photo] of uploads.entries()) {
-        const targetColumn = fileColumns[index];
-        await mondayUploadFile(mondayToken, mondayItemId, targetColumn.id, photo);
+    if (normalizedResumes.length > 0 && fileColumns.length > 0) {
+      const filesToUpload = normalizedResumes.slice(0, fileColumns.length);
+
+      for (let index = 0; index < filesToUpload.length; index += 1) {
+        const file = filesToUpload[index];
+        const fileColumn = fileColumns[index];
+        if (!fileColumn) continue;
+
+        await mondayUploadFile(mondayToken, mondayItemId, fileColumn.id, file);
       }
     }
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown Monday integration error";
     return NextResponse.json(
-      { error: `Could not send feedback to Monday CRM: ${message}` },
+      { error: `Could not send jobs apply to Monday CRM: ${message}` },
       { status: 502 }
     );
   }
 
-  console.info("Feedback request sent to Monday CRM:", payload);
+  console.info("Job apply request sent to Monday CRM:", {
+    requestId,
+    vacancyId,
+    vacancyTitle,
+    vacancyRole,
+    lang,
+    hasEmail: Boolean(email),
+    aboutLength: about.length,
+    resumesCount: filesMeta.length,
+    files: filesMeta,
+    consent,
+    receivedAt: new Date().toISOString(),
+  });
 
   return NextResponse.json({
     ok: true,

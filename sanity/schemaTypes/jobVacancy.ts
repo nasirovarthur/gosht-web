@@ -17,23 +17,6 @@ const localizedStringField = (name: string, title: string) =>
       }),
   })
 
-const localizedTextField = (name: string, title: string, rows = 4) =>
-  defineField({
-    name,
-    title,
-    type: 'object',
-    fields: [
-      { name: 'uz', title: "O'zbekcha", type: 'text', rows },
-      { name: 'ru', title: 'Русский', type: 'text', rows },
-      { name: 'en', title: 'English', type: 'text', rows },
-    ],
-    validation: (rule) =>
-      rule.custom((fields: { uz?: string } | undefined) => {
-        if (!fields?.uz) return 'Поле на узбекском обязательно'
-        return true
-      }),
-  })
-
 const localizedListField = (name: string, title: string) =>
   defineField({
     name,
@@ -87,8 +70,17 @@ export const jobVacancy = defineType({
       initialValue: 100,
       validation: (rule) => rule.required().integer().min(1),
     }),
-    localizedStringField('restaurantName', 'Название ресторана'),
-    localizedTextField('restaurantSummary', 'Краткое описание ресторана', 3),
+    defineField({
+      name: 'restaurantRef',
+      title: 'Название ресторана',
+      description: 'Выберите проект (не филиал). Название и краткое описание подтянутся автоматически.',
+      type: 'reference',
+      to: [{ type: 'restaurant' }],
+      options: {
+        filter: 'isActive != false',
+      },
+      validation: (rule) => rule.required(),
+    }),
     localizedStringField('salary', 'Оклад'),
     localizedStringField('experience', 'Опыт'),
     localizedStringField('schedule', 'График'),
@@ -123,21 +115,23 @@ export const jobVacancy = defineType({
   ],
   preview: {
     select: {
-      title: 'restaurantName.ru',
-      titleUz: 'restaurantName.uz',
+      title: 'restaurantRef.name.ru',
+      titleUz: 'restaurantRef.name.uz',
       internalTitle: 'internalTitle',
       profession: 'professionRef.internalTitle',
+      restaurantType: 'restaurantRef.projectType',
       isActive: 'isActive',
     },
     prepare(selection) {
       const title =
         selection.title || selection.titleUz || selection.internalTitle || 'Вакансия'
       const profession = selection.profession || 'Без профессии'
+      const typeLabel = selection.restaurantType === 'barbershop' ? 'Barbershop' : 'Restaurant'
       const status = selection.isActive === false ? 'Неактивна' : 'Активна'
 
       return {
         title,
-        subtitle: `${profession} • ${status}`,
+        subtitle: `${profession} • ${typeLabel} • ${status}`,
       }
     },
   },

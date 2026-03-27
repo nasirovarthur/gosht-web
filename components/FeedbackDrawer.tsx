@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ConsentText from "@/components/ConsentText";
 import SliderButton from "@/components/SliderButton";
 import { pickLocalized } from "@/types/i18n";
 import type { LangCode, LocalizedOptional } from "@/types/i18n";
@@ -57,7 +58,6 @@ const staticUi = {
     ru: "Можно добавить максимум 2 файла",
     en: "You can attach up to 2 files",
   },
-  consentFile: { uz: "Файл согласия", ru: "Файл согласия", en: "Consent file" },
   send: { uz: "Отправить", ru: "Отправить", en: "Send" },
   sending: { uz: "Отправляем...", ru: "Отправляем...", en: "Sending..." },
   choose: { uz: "Выберите", ru: "Выберите", en: "Select" },
@@ -519,10 +519,7 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
                   required
                 />
                 <span className="text-[13px] md:text-[14px] leading-relaxed text-white/74">
-                  {pickLocalized(settings.consent, lang)}.
-                  <span className="ml-1 border-b border-white/30 pb-[1px] text-white/58">
-                    {pickLocalized(staticUi.consentFile, lang)}
-                  </span>
+                  <ConsentText lang={lang} />
                 </span>
               </label>
             </div>

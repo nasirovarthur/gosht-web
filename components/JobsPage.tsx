@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import JobsApplyDrawer from "@/components/JobsApplyDrawer";
 import { pickLocalized, type LangCode } from "@/types/i18n";
 import type { JobRole, JobsPageData } from "@/lib/jobsData";
 
@@ -32,6 +32,12 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
     [selectedProfession]
   );
   const [openVacancyId, setOpenVacancyId] = useState<string | null>(null);
+  const [isApplyDrawerOpen, setIsApplyDrawerOpen] = useState(false);
+  const [selectedVacancyMeta, setSelectedVacancyMeta] = useState<{
+    id: string;
+    title: string;
+    roleLabel: string;
+  } | null>(null);
 
   const ui = {
     inRestaurants:
@@ -51,6 +57,7 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
   };
 
   return (
+    <>
     <section className="relative min-h-screen bg-base pt-[200px] pb-24 text-white md:pt-[244px] md:pb-28">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-[-16%] top-[8%] h-[420px] w-[420px] rounded-full bg-[#AE0E16]/8 blur-[140px]" />
@@ -265,18 +272,20 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                                     </div>
                                   </div>
 
-                                  <Link
-                                    href={`mailto:${vacancy.contactEmail}?subject=${encodeURIComponent(
-                                      `${pickLocalized(data.applyLabel, lang)}: ${pickLocalized(vacancy.restaurantName, lang)} / ${formatRoleLabel(
-                                        data,
-                                        lang,
-                                        vacancy.role
-                                      )}`
-                                    )}`}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedVacancyMeta({
+                                        id: vacancy.id,
+                                        title: pickLocalized(vacancy.restaurantName, lang),
+                                        roleLabel: formatRoleLabel(data, lang, vacancy.role),
+                                      });
+                                      setIsApplyDrawerOpen(true);
+                                    }}
                                     className="inline-flex h-[44px] items-center justify-center rounded-full border border-white/10 px-6 text-ui text-white/92 transition-all duration-300 hover:border-white/30 hover:bg-white/5 hover:text-white md:h-[54px] md:px-8"
                                   >
                                     {pickLocalized(data.applyLabel, lang)}
-                                  </Link>
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -292,5 +301,14 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
         </div>
       </div>
     </section>
+    <JobsApplyDrawer
+      isOpen={isApplyDrawerOpen}
+      onClose={() => setIsApplyDrawerOpen(false)}
+      lang={lang}
+      vacancyId={selectedVacancyMeta?.id || ""}
+      vacancyTitle={selectedVacancyMeta?.title || ""}
+      vacancyRole={selectedVacancyMeta?.roleLabel || ""}
+    />
+    </>
   );
 }

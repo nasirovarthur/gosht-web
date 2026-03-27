@@ -34,6 +34,7 @@ type ProfessionRaw = {
 type VacancyRaw = {
   _id: string
   professionId?: string
+  restaurantRefId?: string
   restaurantName?: LocalizedOptional
   restaurantSummary?: LocalizedOptional
   salary?: LocalizedOptional
@@ -124,8 +125,9 @@ const getVacancies = cache(async (): Promise<VacancyRaw[]> => {
         | order(order asc, _createdAt asc){
           _id,
           "professionId": professionRef->_id,
-          restaurantName,
-          restaurantSummary,
+          "restaurantRefId": restaurantRef->_id,
+          "restaurantName": coalesce(restaurantRef->name, restaurantName),
+          "restaurantSummary": coalesce(restaurantRef->detailPrimaryInfo, restaurantSummary),
           salary,
           experience,
           schedule,
@@ -167,6 +169,8 @@ export const getJobsPageData = cache(async (): Promise<JobsPageData> => {
             (professionIndex + vacancyIndex) % jobsPageFallbackData.vacancies.length
           ]
 
+        const hasRestaurantRef = Boolean(vacancyDoc.restaurantRefId)
+
         return {
           id: vacancyDoc._id,
           role: professionDoc._id,
@@ -175,7 +179,7 @@ export const getJobsPageData = cache(async (): Promise<JobsPageData> => {
             fallbackVacancy.restaurantName
           ),
           restaurantSummary: normalizeLocalized(
-            vacancyDoc.restaurantSummary,
+            hasRestaurantRef ? vacancyDoc.restaurantSummary : undefined,
             fallbackVacancy.restaurantSummary
           ),
           location: fallbackVacancy.location,
