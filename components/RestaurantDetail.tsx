@@ -22,7 +22,7 @@ interface RestaurantDetailProps {
     descriptionExtended?: string;
     descriptionAdditional?: string;
     yearOpened?: string;
-    menu: string;
+    menuFiles: string[];
     gallery: string[];
     mapLink: string;
     mapEmbedUrl?: string;
@@ -70,7 +70,8 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
 
   const [mapLat, mapLon] = getMapCenter(restaurant.mapEmbedUrl, restaurant.mapLink);
   const hasGallery = Array.isArray(restaurant.gallery) && restaurant.gallery.length > 0;
-  const hasMenuLink = Boolean(restaurant.menu && restaurant.menu !== '#');
+  const menuFiles = Array.isArray(restaurant.menuFiles) ? restaurant.menuFiles.filter(Boolean) : [];
+  const hasMenuLink = menuFiles.length > 0;
   const primaryInfoLabel =
     restaurant.projectType === 'barbershop'
       ? lang === 'ru'
@@ -145,16 +146,25 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                         <p className="text-body font-light text-white/75">
                           {pickLocalized(t.workingHours, lang)}: {restaurant.workingHours}
                         </p>
-                        {hasMenuLink ? (
-                          <a
-                            href={restaurant.menu}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block border-b border-white/20 pb-1 text-body font-light text-white transition-colors hover:border-white/40 hover:text-white/75"
-                          >
-                            {pickLocalized(t.menu, lang)}
-                          </a>
-                        ) : null}
+                        {hasMenuLink
+                          ? menuFiles.map((menuUrl, menuIndex) => (
+                              <a
+                                key={`${restaurant.branchName}-menu-${menuIndex}`}
+                                href={menuUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block border-b border-white/20 pb-1 text-body font-light text-white transition-colors hover:border-white/40 hover:text-white/75"
+                              >
+                                {menuFiles.length === 1
+                                  ? pickLocalized(t.menu, lang)
+                                  : lang === 'ru'
+                                    ? `Меню ${menuIndex + 1}`
+                                    : lang === 'en'
+                                      ? `Menu ${menuIndex + 1}`
+                                      : `Menyu ${menuIndex + 1}`}
+                              </a>
+                            ))
+                          : null}
                       </div>
                     </div>
                   </div>

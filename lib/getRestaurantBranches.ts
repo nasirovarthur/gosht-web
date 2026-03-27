@@ -24,6 +24,7 @@ type RestaurantBranchRaw = {
   hasVipRoom?: boolean;
   hasKidsHaircut?: boolean;
   defaultMenuFile?: string;
+  menuFiles?: string[];
   menuFile?: string;
   mapCoordinates?: string;
   mapZoom?: number;
@@ -49,6 +50,7 @@ export type RestaurantBranchItem = {
   hasPlayground: boolean;
   hasVipRoom: boolean;
   hasKidsHaircut: boolean;
+  menuUrls: string[];
   menuUrl?: string;
   mapCoordinates?: [number, number];
   mapZoom?: number;
@@ -98,6 +100,7 @@ const restaurantBranchesQuery = `
     hasVipRoom,
     hasKidsHaircut,
     "defaultMenuFile": project->defaultMenuFile.asset->url,
+    "menuFiles": menuFiles[].asset->url,
     "menuFile": menuFile.asset->url,
     "mapCoordinates": map.coordinates,
     "mapZoom": map.zoom
@@ -129,6 +132,19 @@ function buildMapLink(coordinates?: [number, number], zoom = 15): string | undef
   return `https://yandex.uz/maps/?ll=${lon}%2C${lat}&z=${zoom}`;
 }
 
+function buildMenuUrls(item: Pick<RestaurantBranchRaw, "menuFiles" | "menuFile" | "defaultMenuFile">): string[] {
+  const urls = [
+    ...(Array.isArray(item.menuFiles) ? item.menuFiles : []),
+    ...(item.menuFile ? [item.menuFile] : []),
+  ];
+
+  if (urls.length === 0 && item.defaultMenuFile) {
+    urls.push(item.defaultMenuFile);
+  }
+
+  return Array.from(new Set(urls.filter(Boolean)));
+}
+
 export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryData> {
   const rawData = await client.fetch<RestaurantBranchRaw[]>(restaurantBranchesQuery);
 
@@ -140,6 +156,7 @@ export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryD
 
       const mapCoordinates = parseCoordinates(item.mapCoordinates);
       const mapZoom = typeof item.mapZoom === "number" ? item.mapZoom : 15;
+      const menuUrls = buildMenuUrls(item);
 
       return {
         id: item._id,
@@ -171,7 +188,8 @@ export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryD
         hasPlayground: item.hasPlayground === true,
         hasVipRoom: item.hasVipRoom === true,
         hasKidsHaircut: item.hasKidsHaircut === true,
-        menuUrl: item.menuFile || item.defaultMenuFile,
+        menuUrls,
+        menuUrl: menuUrls[0],
         mapCoordinates,
         mapZoom,
         mapLink: buildMapLink(mapCoordinates, mapZoom),

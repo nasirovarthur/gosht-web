@@ -359,6 +359,7 @@ export default function RestaurantsDirectoryPage({
                       const address = pickLocalized(branch.address, lang);
                       const hours = pickLocalized(branch.workingHours, lang);
                       const averageCheck = pickLocalized(branch.averageCheck, lang);
+                      const menuLinks = branch.menuUrls || [];
                       const href = branch.slug
                         ? `/${lang}/restaurants/${encodeURIComponent(branch.slug)}`
                         : `/${lang}/restaurants`;
@@ -446,16 +447,27 @@ export default function RestaurantsDirectoryPage({
                                   </p>
                                   <div className="mt-3 flex flex-col gap-2 text-[15px] leading-relaxed text-white/82">
                                     {averageCheck ? <span>{averageCheck}</span> : null}
-                                    {branch.menuUrl ? (
+                                    {menuLinks.map((menuUrl, menuIndex) => (
                                       <a
-                                        href={branch.menuUrl}
+                                        key={`${branch.id}-menu-${menuIndex}`}
+                                        href={menuUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="transition-colors hover:text-white"
                                       >
-                                        {lang === 'ru' ? 'Открыть меню' : lang === 'en' ? 'Open menu' : 'Menyuni ochish'}
+                                        {menuLinks.length === 1
+                                          ? lang === 'ru'
+                                            ? 'Открыть меню'
+                                            : lang === 'en'
+                                              ? 'Open menu'
+                                              : 'Menyuni ochish'
+                                          : lang === 'ru'
+                                            ? `Меню ${menuIndex + 1}`
+                                            : lang === 'en'
+                                              ? `Menu ${menuIndex + 1}`
+                                              : `Menyu ${menuIndex + 1}`}
                                       </a>
-                                    ) : null}
+                                    ))}
                                   </div>
                                 </div>
                               </div>

@@ -11,6 +11,7 @@ type BranchRestaurantRaw = {
   workingHours?: LocalizedOptional;
   averageCheck?: LocalizedOptional;
   yearOpened?: string;
+  menuFiles?: string[];
   menu?: string;
   gallery?: string[];
   map?: {
@@ -47,6 +48,7 @@ type LegacyRestaurantRaw = {
   descriptionExtended?: LocalizedOptional;
   descriptionAdditional?: LocalizedOptional;
   yearOpened?: string;
+  menuFiles?: string[];
   menu?: string;
   gallery?: string[];
   map?: {
@@ -125,6 +127,7 @@ async function getBranchRestaurantBySlug(slug: string): Promise<BranchRestaurant
       workingHours,
       averageCheck,
       yearOpened,
+      "menuFiles": menuFiles[].asset->url,
       "menu": menuFile.asset->url,
       "gallery": gallery[].asset->url,
       map {
@@ -168,6 +171,7 @@ async function getLegacyRestaurantBySlug(slug: string): Promise<LegacyRestaurant
       descriptionExtended,
       descriptionAdditional,
       yearOpened,
+      "menuFiles": menuFiles[].asset->url,
       "menu": menuFile.asset->url,
       "gallery": gallery[].asset->url,
       map {
@@ -186,6 +190,19 @@ async function getLegacyRestaurantBySlug(slug: string): Promise<LegacyRestaurant
   `;
 
   return client.fetch<LegacyRestaurantRaw | null>(query, { slugCandidates });
+}
+
+function buildMenuFiles(menuFiles?: string[], menu?: string, defaultMenu?: string): string[] {
+  const urls = [
+    ...(Array.isArray(menuFiles) ? menuFiles : []),
+    ...(menu ? [menu] : []),
+  ];
+
+  if (urls.length === 0 && defaultMenu) {
+    urls.push(defaultMenu);
+  }
+
+  return Array.from(new Set(urls.filter(Boolean)));
 }
 
 export default async function RestaurantPage({
@@ -220,7 +237,11 @@ export default async function RestaurantPage({
           descriptionExtended: pickLocalized(branchRestaurant.project?.descriptionExtended, language),
           descriptionAdditional: pickLocalized(branchRestaurant.project?.descriptionAdditional, language),
           yearOpened: branchRestaurant.yearOpened,
-          menu: branchRestaurant.menu || branchRestaurant.project?.defaultMenu || "#",
+          menuFiles: buildMenuFiles(
+            branchRestaurant.menuFiles,
+            branchRestaurant.menu,
+            branchRestaurant.project?.defaultMenu
+          ),
           gallery: branchRestaurant.gallery || [],
           mapLink,
           mapEmbedUrl,
@@ -257,7 +278,7 @@ export default async function RestaurantPage({
         descriptionExtended: pickLocalized(legacyRestaurant.descriptionExtended, language),
         descriptionAdditional: pickLocalized(legacyRestaurant.descriptionAdditional, language),
         yearOpened: legacyRestaurant.yearOpened,
-        menu: legacyRestaurant.menu || "#",
+        menuFiles: buildMenuFiles(legacyRestaurant.menuFiles, legacyRestaurant.menu),
         gallery: legacyRestaurant.gallery || [],
         mapLink,
         mapEmbedUrl,

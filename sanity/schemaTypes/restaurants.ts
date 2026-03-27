@@ -108,8 +108,21 @@ export const restaurants = defineType({
       type: 'string',
     }),
     defineField({
+      name: 'menuFiles',
+      title: 'Меню (PDF, несколько файлов)',
+      type: 'array',
+      of: [
+        {
+          type: 'file',
+          options: {
+            accept: 'application/pdf',
+          },
+        },
+      ],
+    }),
+    defineField({
       name: 'menuFile',
-      title: 'Меню (PDF)',
+      title: 'Меню (PDF, legacy)',
       type: 'file',
       options: {
         accept: 'application/pdf',

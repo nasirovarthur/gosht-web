@@ -173,8 +173,21 @@ export const restaurantBranch = defineType({
       hidden: ({document}) => document?.projectType !== 'barbershop',
     }),
     defineField({
+      name: 'menuFiles',
+      title: 'Меню филиала (PDF, несколько файлов)',
+      type: 'array',
+      of: [
+        {
+          type: 'file',
+          options: {
+            accept: 'application/pdf',
+          },
+        },
+      ],
+    }),
+    defineField({
       name: 'menuFile',
-      title: 'Меню филиала (PDF)',
+      title: 'Меню филиала (PDF, legacy)',
       type: 'file',
       options: {
         accept: 'application/pdf',
