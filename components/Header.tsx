@@ -49,6 +49,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
     pickLocalized(feedbackSettings.title, lang) ||
     pickLocalized(translations.footer.feedback, lang);
   const isAnyDrawerOpen = isOpen || isFeedbackOpen;
+  const headerNavItems = navItems.filter((item) => item.showInHeader);
 
   useEffect(() => {
     const handleOpenFeedbackDrawer = () => {
@@ -230,7 +231,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
                   </svg>
                 </span>
 
-                {navItems.map((item, index) => {
+                {headerNavItems.map((item, index) => {
                   const href = resolveMenuHref(item.href);
                   const itemClassName = `text-nav font-light leading-tight flex items-center gap-4 pl-8 relative transition-[transform,opacity,color] duration-500 ${
                     isOpen ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"

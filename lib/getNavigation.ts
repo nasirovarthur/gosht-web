@@ -10,6 +10,8 @@ type NavigationItemRaw = {
   externalUrl?: string
   anchorId?: string
   openInNewTab?: boolean
+  showInHeader?: boolean
+  showInFooter?: boolean
   link?: string
 }
 
@@ -57,6 +59,8 @@ function normalizeNavItem(item: NavigationItemRaw, index: number): NavItem {
     label: normalizeLocalized(item.label),
     href: normalizeNavigationHref(item),
     openInNewTab: item.openInNewTab,
+    showInHeader: item.showInHeader !== false,
+    showInFooter: item.showInFooter !== false,
   }
 }
 
@@ -74,6 +78,8 @@ export async function getNavigation(): Promise<NavItem[]> {
         externalUrl,
         anchorId,
         openInNewTab,
+        showInHeader,
+        showInFooter,
         link
       }
     }`

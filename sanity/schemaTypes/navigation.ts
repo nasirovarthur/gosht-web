@@ -108,6 +108,18 @@ export const navigation = defineType({
               hidden: ({ parent }) => parent?.linkType !== 'anchor',
             }),
             defineField({
+              name: 'showInHeader',
+              title: 'Показывать в Header',
+              type: 'boolean',
+              initialValue: true,
+            }),
+            defineField({
+              name: 'showInFooter',
+              title: 'Показывать в Footer',
+              type: 'boolean',
+              initialValue: true,
+            }),
+            defineField({
               name: 'link',
               title: 'Legacy ссылка',
               type: 'string',

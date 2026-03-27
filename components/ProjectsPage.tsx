@@ -44,12 +44,12 @@ function ProjectLogo({
 
   if (project.logo) {
     return (
-      <div className={`relative aspect-square w-full overflow-hidden ${className}`}>
+      <div className={`relative aspect-square overflow-hidden ${className}`}>
         <Image
           src={project.logo}
           alt={name}
           fill
-          className="object-contain"
+          className="object-contain p-1 md:p-0"
           sizes="140px"
         />
       </div>
@@ -57,7 +57,7 @@ function ProjectLogo({
   }
 
   return (
-    <div className={`relative aspect-square w-full overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(174,14,22,0.22),_transparent_55%),linear-gradient(180deg,_rgba(255,255,255,0.03),_rgba(255,255,255,0.01))] ${className}`}>
+    <div className={`relative aspect-square overflow-hidden border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(174,14,22,0.22),_transparent_55%),linear-gradient(180deg,_rgba(255,255,255,0.03),_rgba(255,255,255,0.01))] ${className}`}>
       <div className="absolute inset-0 bg-[linear-gradient(135deg,_rgba(174,14,22,0.08),_transparent_46%,_rgba(255,255,255,0.03))]" />
       <div className="relative z-10 flex h-full items-center justify-center p-3 md:p-4">
         <span className="text-[46px] md:text-[58px] leading-none tracking-[-0.05em] font-light font-serif text-white/88">
@@ -243,7 +243,7 @@ export default function ProjectsPage({
                         <ProjectLogo
                           project={activeProject}
                           lang={lang}
-                          className="w-[78px] flex-shrink-0 md:w-[108px]"
+                          className="w-[56px] flex-shrink-0 md:w-[108px]"
                         />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-6">

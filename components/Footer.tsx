@@ -62,7 +62,8 @@ export default function Footer({ settings, navItems }: FooterProps) {
   const pathname = usePathname();
   const { lang, setLang } = useLanguage();
   const madeByHref = resolveFooterHref(lang, settings.madeByHref);
-  const navigationColumns = splitNavItemsIntoColumns(navItems);
+  const footerNavItems = navItems.filter((item) => item.showInFooter);
+  const navigationColumns = splitNavItemsIntoColumns(footerNavItems);
   const localeLinks: LangCode[] = ["uz", "ru", "en"];
 
   const switchLanguage = (nextLang: LangCode) => {

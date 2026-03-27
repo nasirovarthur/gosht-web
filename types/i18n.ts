@@ -39,6 +39,8 @@ export type NavItem = {
   label: Localized;
   href: string | null;
   openInNewTab?: boolean;
+  showInHeader: boolean;
+  showInFooter: boolean;
 };
 
 // ========================
