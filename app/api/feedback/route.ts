@@ -5,6 +5,7 @@ import {
   getClientIp,
   isTrustedOriginRequest,
 } from "@/lib/serverSecurity";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 
@@ -357,6 +358,7 @@ export async function POST(request: NextRequest) {
   const message = valueFromFormData(formData, "message");
   const consent = valueFromFormData(formData, "consent") === "true";
   const lang = valueFromFormData(formData, "lang");
+  const turnstileToken = valueFromFormData(formData, "turnstileToken");
   const photosRaw = formData.getAll("photos");
   const fallbackSinglePhoto = formData.get("photo");
 
@@ -418,6 +420,18 @@ export async function POST(request: NextRequest) {
         { status: 415 }
       );
     }
+  }
+
+  const turnstileCheck = await verifyTurnstileToken({
+    token: turnstileToken,
+    remoteIp: ip,
+  });
+
+  if (!turnstileCheck.ok) {
+    return NextResponse.json(
+      { error: turnstileCheck.error },
+      { status: turnstileCheck.status }
+    );
   }
 
   const photosMeta = normalizedPhotos.map((photo) => ({

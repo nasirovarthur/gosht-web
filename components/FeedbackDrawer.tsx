@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ConsentText from "@/components/ConsentText";
 import SliderButton from "@/components/SliderButton";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import { pickLocalized } from "@/types/i18n";
 import type { LangCode, LocalizedOptional } from "@/types/i18n";
 import type { FeedbackSettingsData } from "@/types/feedback";
@@ -57,6 +58,11 @@ const staticUi = {
     uz: "Можно добавить максимум 2 файла",
     ru: "Можно добавить максимум 2 файла",
     en: "You can attach up to 2 files",
+  },
+  robotCheck: {
+    uz: "Подтвердите, что вы не робот",
+    ru: "Подтвердите, что вы не робот",
+    en: "Confirm that you are not a robot",
   },
   send: { uz: "Отправить", ru: "Отправить", en: "Send" },
   sending: { uz: "Отправляем...", ru: "Отправляем...", en: "Sending..." },
@@ -143,6 +149,8 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
   const [photos, setPhotos] = useState<File[]>([]);
   const [filesLimitWarning, setFilesLimitWarning] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitHovered, setIsSubmitHovered] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: "ok" | "error"; text?: string } | null>(
@@ -157,6 +165,8 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
       setIsRestaurantSelectOpen(false);
       setSubmitMessage(null);
       setIsSubmitHovered(false);
+      setTurnstileToken("");
+      setTurnstileResetKey((prev) => prev + 1);
       return;
     }
     if (restaurantOptions.length > 0) return;
@@ -248,6 +258,14 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
       return;
     }
 
+    if (!turnstileToken) {
+      setSubmitMessage({
+        type: "error",
+        text: pickLocalized(staticUi.robotCheck, lang),
+      });
+      return;
+    }
+
     const formData = new FormData();
     formData.set("restaurantId", restaurantId);
     formData.set("restaurantName", restaurantName);
@@ -257,6 +275,7 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
     formData.set("message", message.trim());
     formData.set("consent", consentChecked ? "true" : "false");
     formData.set("lang", lang);
+    formData.set("turnstileToken", turnstileToken);
 
     photos.forEach((photo) => {
       formData.append("photos", photo);
@@ -295,6 +314,8 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
       const message = error instanceof Error ? error.message : defaultError;
       setSubmitMessage({ type: "error", text: message || defaultError });
     } finally {
+      setTurnstileToken("");
+      setTurnstileResetKey((prev) => prev + 1);
       setIsSubmitting(false);
     }
   };
@@ -507,6 +528,26 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
                   {pickLocalized(staticUi.filesLimit, lang)}
                 </p>
               ) : null}
+            </div>
+
+            <div className="pt-2">
+              <p className="mb-3 text-[13px] md:text-[14px] leading-relaxed text-white/58">
+                {pickLocalized(staticUi.robotCheck, lang)}
+              </p>
+              <TurnstileWidget
+                onVerify={(token) => {
+                  setTurnstileToken(token);
+                  setSubmitMessage((current) =>
+                    current?.type === "error" &&
+                    current.text === pickLocalized(staticUi.robotCheck, lang)
+                      ? null
+                      : current
+                  );
+                }}
+                onExpire={() => setTurnstileToken("")}
+                onError={() => setTurnstileToken("")}
+                resetKey={turnstileResetKey}
+              />
             </div>
 
             <div className="pt-6">

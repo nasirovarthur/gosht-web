@@ -5,6 +5,7 @@ import {
   getClientIp,
   isTrustedOriginRequest,
 } from "@/lib/serverSecurity";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 
@@ -349,6 +350,7 @@ export async function POST(request: NextRequest) {
   const about = valueFromFormData(formData, "about");
   const consent = valueFromFormData(formData, "consent") === "true";
   const lang = valueFromFormData(formData, "lang");
+  const turnstileToken = valueFromFormData(formData, "turnstileToken");
   const resumesRaw = formData.getAll("resume");
   const fallbackSingleResume = formData.get("resume");
 
@@ -398,6 +400,18 @@ export async function POST(request: NextRequest) {
     if (file.type && !ALLOWED_FILE_TYPES.has(file.type)) {
       return NextResponse.json({ error: "Unsupported file type" }, { status: 415 });
     }
+  }
+
+  const turnstileCheck = await verifyTurnstileToken({
+    token: turnstileToken,
+    remoteIp: ip,
+  });
+
+  if (!turnstileCheck.ok) {
+    return NextResponse.json(
+      { error: turnstileCheck.error },
+      { status: turnstileCheck.status }
+    );
   }
 
   const filesMeta = normalizedResumes.map((file) => ({

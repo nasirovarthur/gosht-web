@@ -1,5 +1,6 @@
 import "./globals.css";
 import localFont from "next/font/local";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -65,6 +66,10 @@ export default function RootLayout({
     <html suppressHydrationWarning>
       <body className={`${robotoSerif.variable} bg-black text-white antialiased`}>
         {children}
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+          strategy="afterInteractive"
+        />
         <Analytics />
         <SpeedInsights />
       </body>

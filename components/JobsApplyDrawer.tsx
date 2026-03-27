@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import ConsentText from "@/components/ConsentText";
 import SliderButton from "@/components/SliderButton";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import { pickLocalized, type LangCode, type Localized } from "@/types/i18n";
 
 type JobsApplyDrawerProps = {
@@ -45,6 +46,7 @@ const ui: {
   successDescription: Localized;
   fileLabel: Localized;
   filesLimit: Localized;
+  robotCheck: Localized;
   genericError: Localized;
 } = {
   title: {
@@ -82,6 +84,11 @@ const ui: {
     uz: "Можно добавить максимум 2 файла",
     ru: "Можно добавить максимум 2 файла",
     en: "You can attach up to 2 files",
+  },
+  robotCheck: {
+    uz: "Подтвердите, что вы не робот",
+    ru: "Подтвердите, что вы не робот",
+    en: "Confirm that you are not a robot",
   },
   genericError: {
     uz: "Не удалось отправить. Проверьте поля и попробуйте снова.",
@@ -173,6 +180,8 @@ export default function JobsApplyDrawer({
   const [resumeFiles, setResumeFiles] = useState<File[]>([]);
   const [filesLimitWarning, setFilesLimitWarning] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitHovered, setIsSubmitHovered] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{
@@ -193,6 +202,8 @@ export default function JobsApplyDrawer({
     setResumeFiles([]);
     setFilesLimitWarning(false);
     setConsentChecked(false);
+    setTurnstileToken("");
+    setTurnstileResetKey((prev) => prev + 1);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -216,6 +227,14 @@ export default function JobsApplyDrawer({
       return;
     }
 
+    if (!turnstileToken) {
+      setSubmitMessage({
+        type: "error",
+        text: pickLocalized(ui.robotCheck, lang),
+      });
+      return;
+    }
+
     const formData = new FormData();
     formData.set("vacancyId", vacancyId);
     formData.set("vacancyTitle", vacancyTitle);
@@ -226,6 +245,7 @@ export default function JobsApplyDrawer({
     formData.set("about", about.trim());
     formData.set("consent", consentChecked ? "true" : "false");
     formData.set("lang", lang);
+    formData.set("turnstileToken", turnstileToken);
 
     resumeFiles.forEach((file) => {
       formData.append("resume", file);
@@ -255,6 +275,8 @@ export default function JobsApplyDrawer({
         text: error instanceof Error ? error.message : fallbackText,
       });
     } finally {
+      setTurnstileToken("");
+      setTurnstileResetKey((prev) => prev + 1);
       setIsSubmitting(false);
     }
   };
@@ -410,6 +432,26 @@ export default function JobsApplyDrawer({
                         {pickLocalized(ui.filesLimit, lang)}
                       </p>
                     ) : null}
+                  </div>
+
+                  <div className="pt-2">
+                    <p className="mb-3 text-[13px] md:text-[14px] leading-relaxed text-white/58">
+                      {pickLocalized(ui.robotCheck, lang)}
+                    </p>
+                    <TurnstileWidget
+                      onVerify={(token) => {
+                        setTurnstileToken(token);
+                        setSubmitMessage((current) =>
+                          current?.type === "error" &&
+                          current.text === pickLocalized(ui.robotCheck, lang)
+                            ? null
+                            : current
+                        );
+                      }}
+                      onExpire={() => setTurnstileToken("")}
+                      onError={() => setTurnstileToken("")}
+                      resetKey={turnstileResetKey}
+                    />
                   </div>
 
                   <div className="pt-6">
