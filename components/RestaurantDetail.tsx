@@ -174,10 +174,10 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                   {hasGallery ? (
                     <>
                       <div className="lg:hidden">
-                        <ImageSlider images={restaurant.gallery} orientation="horizontal" effect="projects" />
+                        <ImageSlider images={restaurant.gallery} orientation="horizontal" effect="projects" maskTopEdge />
                       </div>
                       <div className="hidden lg:block">
-                        <ImageSlider images={restaurant.gallery} orientation="vertical" effect="projects" />
+                        <ImageSlider images={restaurant.gallery} orientation="vertical" effect="projects" maskTopEdge />
                       </div>
                     </>
                   ) : (

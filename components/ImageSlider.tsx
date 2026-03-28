@@ -15,6 +15,8 @@ interface ImageSliderProps {
   orientation?: 'vertical' | 'horizontal';
   overlay?: ReactNode;
   effect?: 'slide' | 'creative' | 'projects';
+  maskTopEdge?: boolean;
+  smoothTransition?: boolean;
 }
 
 export default function ImageSlider({
@@ -22,6 +24,8 @@ export default function ImageSlider({
   orientation = 'vertical',
   overlay,
   effect = 'slide',
+  maskTopEdge = false,
+  smoothTransition = false,
 }: ImageSliderProps) {
   const [swiperInstance, setSwiperInstance] = useState<SwiperInstance | null>(null);
   const [canGoPrevious, setCanGoPrevious] = useState(false);
@@ -72,16 +76,17 @@ export default function ImageSlider({
         modules={effect === 'creative' || effect === 'projects' ? [EffectCreative] : []}
         direction={isVertical ? 'vertical' : 'horizontal'}
         slidesPerView={1}
-        speed={effect === 'projects' ? 900 : 640}
+        speed={effect === 'projects' ? 900 : smoothTransition ? 780 : 640}
         effect={effect === 'projects' ? 'creative' : effect}
         creativeEffect={
           effect === 'projects'
             ? {
                 limitProgress: 2,
+                perspective: false,
                 prev: {
-                  translate: isVertical ? [0, '-10%', -1] : ['-10%', 0, -1],
+                  translate: isVertical ? [0, '-100%', 0] : ['-100%', 0, 0],
                   opacity: 1,
-                  scale: 0.985,
+                  scale: 1,
                 },
                 next: {
                   translate: isVertical ? [0, '100%', 0] : ['100%', 0, 0],
@@ -110,27 +115,33 @@ export default function ImageSlider({
         }}
         onSlideChange={syncButtons}
         onResize={syncButtons}
-        className="h-full w-full"
+        className={`h-full w-full overflow-hidden ${smoothTransition ? 'image-slider-smooth' : ''}`}
       >
         {images.map((img, idx) => (
-          <SwiperSlide key={idx} className="!h-full !w-full">
+          <SwiperSlide key={idx} className="relative !h-full !w-full overflow-hidden bg-base [&.swiper-slide-active]:z-10">
             <div className="relative h-full w-full">
-            <Image
-              src={img}
-              alt={`Slide ${idx + 1}`}
-              fill
-              className="object-cover"
-              priority={idx === 0}
-              sizes={
-                isVertical
-                  ? '(max-width: 1024px) 100vw, (max-width: 1536px) 58vw, 860px'
-                  : '(max-width: 1024px) 100vw, (max-width: 1536px) 50vw, 700px'
-              }
-            />
+              <Image
+                src={img}
+                alt={`Slide ${idx + 1}`}
+                fill
+                className={effect === 'projects' ? 'object-cover scale-[1.01] transform-gpu' : 'object-cover'}
+                priority={idx === 0}
+                sizes={
+                  isVertical
+                    ? '(max-width: 1024px) 100vw, (max-width: 1536px) 58vw, 860px'
+                    : '(max-width: 1024px) 100vw, (max-width: 1536px) 50vw, 700px'
+                }
+              />
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
+      {maskTopEdge ? (
+        <>
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[2px] bg-base" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[2px] bg-base" />
+        </>
+      ) : null}
       {overlay}
     </div>
   );
