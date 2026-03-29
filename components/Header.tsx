@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import FeedbackDrawer from "@/components/FeedbackDrawer";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { useLanguage } from "@/context/LanguageContext";
 import { pickLocalized, translations } from "@/types/i18n";
 import type { FeedbackSettingsData } from "@/types/feedback";
@@ -50,6 +51,8 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
     pickLocalized(translations.footer.feedback, lang);
   const isAnyDrawerOpen = isOpen || isFeedbackOpen;
   const headerNavItems = navItems.filter((item) => item.showInHeader);
+
+  useBodyScrollLock(isAnyDrawerOpen);
 
   useEffect(() => {
     const handleOpenFeedbackDrawer = () => {

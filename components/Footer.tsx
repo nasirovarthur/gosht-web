@@ -62,6 +62,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
   const pathname = usePathname();
   const { lang, setLang } = useLanguage();
   const madeByHref = resolveFooterHref(lang, settings.madeByHref);
+  const feedbackHref = resolveFooterHref(lang, settings.feedbackHref);
   const footerNavItems = navItems.filter((item) => item.showInFooter);
   const navigationColumns = splitNavItemsIntoColumns(footerNavItems);
   const localeLinks: LangCode[] = ["uz", "ru", "en"];
@@ -152,7 +153,36 @@ export default function Footer({ settings, navItems }: FooterProps) {
               delay={110}
               distance={34}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-9">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 sm:hidden">
+                {footerNavItems.map((item) => {
+                  const href = resolveFooterHref(lang, item.href);
+
+                  if (!href) {
+                    return (
+                      <span
+                        key={item._key}
+                        className="block py-2.5 text-[15px] leading-[1.45] text-white/72"
+                      >
+                        {pickLocalized(item.label, lang)}
+                      </span>
+                    );
+                  }
+
+                  return (
+                    <a
+                      key={item._key}
+                      href={href}
+                      target={item.openInNewTab ? "_blank" : undefined}
+                      rel={item.openInNewTab ? "noopener noreferrer" : undefined}
+                      className="block py-2.5 text-[15px] leading-[1.45] text-white/72 hover:text-[#AE0E16] transition-colors"
+                    >
+                      {pickLocalized(item.label, lang)}
+                    </a>
+                  );
+                })}
+              </div>
+
+              <div className="hidden sm:grid sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-9">
                 {navigationColumns.map((column) => (
                   <div key={column._key} className="space-y-3.5">
                     {column.items.map((item) => {
@@ -162,24 +192,24 @@ export default function Footer({ settings, navItems }: FooterProps) {
                         return (
                           <span
                             key={item._key}
-                            className="block text-[15px] leading-[1.45] text-white/72"
+                            className="block py-1 text-[15px] leading-[1.45] text-white/72"
                           >
                             {pickLocalized(item.label, lang)}
                           </span>
                         );
                       }
 
-                      return (
-                        <a
-                          key={item._key}
-                          href={href}
-                          target={item.openInNewTab ? "_blank" : undefined}
-                          rel={item.openInNewTab ? "noopener noreferrer" : undefined}
-                          className="block text-[15px] leading-[1.45] text-white/72 hover:text-[#AE0E16] transition-colors"
-                        >
-                          {pickLocalized(item.label, lang)}
-                        </a>
-                      );
+                        return (
+                          <a
+                            key={item._key}
+                            href={href}
+                            target={item.openInNewTab ? "_blank" : undefined}
+                            rel={item.openInNewTab ? "noopener noreferrer" : undefined}
+                            className="block py-1 text-[15px] leading-[1.45] text-white/72 hover:text-[#AE0E16] transition-colors"
+                          >
+                            {pickLocalized(item.label, lang)}
+                          </a>
+                        );
                     })}
                   </div>
                 ))}
@@ -192,8 +222,8 @@ export default function Footer({ settings, navItems }: FooterProps) {
               delay={180}
               distance={34}
             >
-              <div className="w-full max-w-[280px]">
-                <p className="text-[12px] uppercase tracking-[0.16em] text-white/45 mb-3">
+              <div className="w-full max-w-none text-center sm:max-w-[280px] lg:text-left">
+                <p className="mb-3 text-[12px] uppercase tracking-[0.16em] text-white/45">
                   {pickLocalized(settings.languageLabel, lang)}
                 </p>
                 <div className="flex items-center justify-center lg:justify-start gap-6">
@@ -202,7 +232,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
                       key={locale}
                       type="button"
                       onClick={() => switchLanguage(locale)}
-                      className={`text-[14px] uppercase tracking-[0.16em] transition-colors ${
+                      className={`min-h-11 px-1 py-2 text-[14px] uppercase tracking-[0.16em] transition-colors ${
                         locale === lang
                           ? "text-white font-medium underline underline-offset-8"
                           : "text-white/45 hover:text-white/80"
@@ -214,13 +244,24 @@ export default function Footer({ settings, navItems }: FooterProps) {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={openFeedbackDrawer}
-                className="inline-flex w-full max-w-[280px] justify-center items-center h-[54px] rounded-full border border-white/20 px-7 text-ui font-light text-white/90 hover:bg-white hover:text-black transition-all"
-              >
-                <span>{pickLocalized(settings.feedbackLabel, lang)}</span>
-              </button>
+              {feedbackHref ? (
+                <a
+                  href={feedbackHref}
+                  target={settings.feedbackOpenInNewTab ? "_blank" : undefined}
+                  rel={settings.feedbackOpenInNewTab ? "noopener noreferrer" : undefined}
+                  className="inline-flex h-[54px] w-full max-w-none items-center justify-center rounded-full border border-white/20 px-7 text-ui font-light text-white/90 transition-all hover:bg-white hover:text-black sm:max-w-[280px]"
+                >
+                  <span>{pickLocalized(settings.feedbackLabel, lang)}</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openFeedbackDrawer}
+                  className="inline-flex h-[54px] w-full max-w-none items-center justify-center rounded-full border border-white/20 px-7 text-ui font-light text-white/90 transition-all hover:bg-white hover:text-black sm:max-w-[280px]"
+                >
+                  <span>{pickLocalized(settings.feedbackLabel, lang)}</span>
+                </button>
+              )}
             </Reveal>
           </div>
 

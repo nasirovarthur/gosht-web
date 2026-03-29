@@ -365,7 +365,7 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
 
       <div
         className={`flex-1 page-x py-8 md:py-10 relative z-10 ${
-          isSuccess ? "flex items-center justify-center" : "overflow-y-auto"
+          isSuccess ? "flex items-center justify-center" : "overflow-y-auto overscroll-contain"
         }`}
       >
         <div className={`max-w-[560px] ${isSuccess ? "w-full text-center" : ""}`}>

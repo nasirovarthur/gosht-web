@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import ConsentText from "@/components/ConsentText";
 import SliderButton from "@/components/SliderButton";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { pickLocalized, type LangCode, type Localized } from "@/types/i18n";
 
 type JobsApplyDrawerProps = {
@@ -173,6 +174,8 @@ export default function JobsApplyDrawer({
   vacancyTitle,
   vacancyRole,
 }: JobsApplyDrawerProps) {
+  useBodyScrollLock(isOpen);
+
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -312,7 +315,7 @@ export default function JobsApplyDrawer({
 
         <div
           className={`flex-1 page-x py-8 md:py-10 relative z-10 ${
-            isSuccess ? "flex items-center justify-center" : "overflow-y-auto"
+            isSuccess ? "flex items-center justify-center" : "overflow-y-auto overscroll-contain"
           }`}
         >
           <div className={`max-w-[560px] ${isSuccess ? "w-full text-center" : ""}`}>

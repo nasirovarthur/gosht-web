@@ -31,6 +31,13 @@ function normalizeContactHref(href: string): string | null {
   return value ? value : null;
 }
 
+function splitIntoParagraphs(text: string): string[] {
+  return text
+    .split(/\n\s*\n/g)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+}
+
 function ProjectLogo({
   project,
   lang,
@@ -128,6 +135,7 @@ export default function ProjectsPage({
     pickLocalized(activeProject.descriptionTitle, lang) ||
     pickLocalized(data.descriptionLabel, lang);
   const projectDescription = pickLocalized(activeProject.description, lang);
+  const projectDescriptionParagraphs = splitIntoParagraphs(projectDescription);
   const nextProject =
     data.projects.length > 1
       ? data.projects[(activeIndex + 1) % data.projects.length]
@@ -256,9 +264,13 @@ export default function ProjectsPage({
                           </div>
                         </div>
                       </div>
-                      <p className="mt-10 max-w-[860px] text-[15px] md:text-[18px] leading-relaxed text-white/66">
-                        {projectDescription}
-                      </p>
+                      <div className="mt-10 max-w-[860px] space-y-4 md:space-y-5 text-[15px] md:text-[18px] leading-relaxed text-white/66">
+                        {(projectDescriptionParagraphs.length > 0 ? projectDescriptionParagraphs : [projectDescription]).map((paragraph, index) => (
+                          <p key={`${activeProject.id}-description-${index}`} className="whitespace-pre-line">
+                            {paragraph}
+                          </p>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="min-w-0 border-t border-white/10 pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
