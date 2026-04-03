@@ -1,8 +1,12 @@
 import "./globals.css";
 import localFont from "next/font/local";
 import Script from "next/script";
+import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import SeoJsonLd from "@/components/SeoJsonLd";
+import { getOrganizationSchema, getWebsiteSchema } from "@/lib/seo/schema";
+import { getSiteUrl } from "@/lib/seo/site";
 
 // Roboto Serif font
 const robotoSerif = localFont({
@@ -52,9 +56,37 @@ const robotoSerif = localFont({
   display: 'swap',
 });
 
-export const metadata = {
-  title: "GOSHT Group",
-  description: "Premium Steakhouse & Catering",
+export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
+  applicationName: "Gōsht Group",
+  title: {
+    default: "Gōsht Group",
+    template: "%s",
+  },
+  description:
+    "Gōsht Group is a restaurant holding in Tashkent with premium restaurants, fast-food projects, barbershop, catering, and branded hospitality concepts.",
+  manifest: "/manifest.webmanifest",
+  openGraph: {
+    siteName: "Gōsht Group",
+    type: "website",
+    url: getSiteUrl(),
+    title: "Gōsht Group",
+    description:
+      "Restaurant holding in Tashkent with premium restaurants, fast-food projects, barbershop, catering, and branded hospitality concepts.",
+    images: [
+      {
+        url: "/logo.svg",
+        alt: "Gōsht Group",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Gōsht Group",
+    description:
+      "Restaurant holding in Tashkent with premium restaurants, fast-food projects, barbershop, catering, and branded hospitality concepts.",
+    images: ["/logo.svg"],
+  },
 };
 
 export default function RootLayout({
@@ -66,6 +98,7 @@ export default function RootLayout({
     <html suppressHydrationWarning>
       <body className={`${robotoSerif.variable} bg-black text-white antialiased`}>
         {children}
+        <SeoJsonLd data={[getOrganizationSchema(), getWebsiteSchema()]} />
         <Script
           src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
           strategy="afterInteractive"

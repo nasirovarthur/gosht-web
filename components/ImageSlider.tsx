@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import SliderButton from './SliderButton';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -11,12 +11,13 @@ import 'swiper/css';
 import 'swiper/css/effect-creative';
 
 interface ImageSliderProps {
-  images: string[];
+  images: Array<string | null | undefined>;
   orientation?: 'vertical' | 'horizontal';
   overlay?: ReactNode;
   effect?: 'slide' | 'creative' | 'projects';
   maskTopEdge?: boolean;
   smoothTransition?: boolean;
+  altPrefix?: string;
 }
 
 export default function ImageSlider({
@@ -26,12 +27,21 @@ export default function ImageSlider({
   effect = 'slide',
   maskTopEdge = false,
   smoothTransition = false,
+  altPrefix = 'Gallery image',
 }: ImageSliderProps) {
+  const validImages = useMemo(
+    () =>
+      images
+        .filter((image): image is string => typeof image === 'string')
+        .map((image) => image.trim())
+        .filter(Boolean),
+    [images]
+  );
   const [swiperInstance, setSwiperInstance] = useState<SwiperInstance | null>(null);
   const [canGoPrevious, setCanGoPrevious] = useState(false);
-  const [canGoNext, setCanGoNext] = useState(images.length > 1);
+  const [canGoNext, setCanGoNext] = useState(validImages.length > 1);
   const isVertical = orientation === 'vertical';
-  const isSingle = images.length <= 1;
+  const isSingle = validImages.length <= 1;
 
   const syncButtons = (instance: SwiperInstance) => {
     if (isSingle) {
@@ -117,12 +127,12 @@ export default function ImageSlider({
         onResize={syncButtons}
         className={`h-full w-full overflow-hidden ${smoothTransition ? 'image-slider-smooth' : ''}`}
       >
-        {images.map((img, idx) => (
+        {validImages.map((img, idx) => (
           <SwiperSlide key={idx} className="relative !h-full !w-full overflow-hidden bg-base [&.swiper-slide-active]:z-10">
             <div className="relative h-full w-full">
               <Image
                 src={img}
-                alt={`Slide ${idx + 1}`}
+                alt={`${altPrefix} ${idx + 1}`}
                 fill
                 className={effect === 'projects' ? 'object-cover scale-[1.01] transform-gpu' : 'object-cover'}
                 priority={idx === 0}

@@ -186,7 +186,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
                 {/* ЛОГОТИП: Убрал group-hover:scale-105 */}
                 {item.logo && (
                   <div className="absolute bottom-5 left-5 w-[70px] h-[70px] md:w-[80px] md:h-[80px] drop-shadow-lg z-20">
-                        <Image src={item.logo} alt="logo" fill className="object-contain" />
+                        <Image src={item.logo} alt={`${getName(item.name)} logo`} fill className="object-contain" />
                     </div>
                 )}
             </div>

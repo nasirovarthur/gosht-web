@@ -170,9 +170,9 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
           </Reveal>
 
           <Reveal trigger="mount" delay={150} distance={52} blur={12} as="div">
-            <h1 className="text-white text-display mb-3 md:mb-4">
+            <p className="text-white text-display mb-3 md:mb-4">
               {pickLocalized(currentSlide.title, lang)}
-            </h1>
+            </p>
           </Reveal>
 
           <Reveal
