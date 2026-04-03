@@ -14,6 +14,7 @@ type RevealTag =
   | "div"
   | "section"
   | "article"
+  | "figure"
   | "header"
   | "footer"
   | "main"
@@ -155,6 +156,8 @@ export default function Reveal({
       return <section {...sharedProps} ref={attachRef}>{children}</section>;
     case "article":
       return <article {...sharedProps} ref={attachRef}>{children}</article>;
+    case "figure":
+      return <figure {...sharedProps} ref={attachRef}>{children}</figure>;
     case "header":
       return <header {...sharedProps} ref={attachRef}>{children}</header>;
     case "footer":
