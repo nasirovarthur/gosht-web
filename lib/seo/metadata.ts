@@ -19,6 +19,8 @@ type PageMetadataInput = {
   noindex?: boolean
 }
 
+const DEFAULT_OG_IMAGE = '/og/gosht-group-og.jpg'
+
 export function buildMetaTitle(title: string): string {
   return title.includes(BRAND_NAME) ? title : `${title} | ${BRAND_NAME}`
 }
@@ -63,7 +65,7 @@ export function createPageMetadata({
   const fullTitle = buildMetaTitle(title)
   const canonical = getCanonicalUrl(lang, pathname)
   const languages = getLanguageAlternates(pathname)
-  const absoluteImage = image ? getAbsoluteUrl(image) : undefined
+  const absoluteImage = getAbsoluteUrl(image || DEFAULT_OG_IMAGE)
 
   return {
     title: fullTitle,
@@ -81,13 +83,13 @@ export function createPageMetadata({
       siteName: BRAND_NAME,
       locale: LOCALE_BY_LANG[lang],
       type,
-      ...(absoluteImage ? { images: [{ url: absoluteImage, alt: title }] } : {}),
+      images: [{ url: absoluteImage, alt: title }],
     },
     twitter: {
-      card: absoluteImage ? 'summary_large_image' : 'summary',
+      card: 'summary_large_image',
       title: fullTitle,
       description,
-      ...(absoluteImage ? { images: [absoluteImage] } : {}),
+      images: [absoluteImage],
     },
   }
 }
