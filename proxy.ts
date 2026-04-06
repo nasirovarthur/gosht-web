@@ -19,7 +19,12 @@ function safeParsePathname(url: string): string | null {
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  if (pathname === "/studio" || pathname.startsWith("/studio/")) {
+  if (
+    pathname === "/studio" ||
+    pathname.startsWith("/studio/") ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml"
+  ) {
     return NextResponse.next();
   }
 
