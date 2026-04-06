@@ -18,6 +18,27 @@ type EventsListingLabels = {
   more: Localized;
 };
 
+function EventsEmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <Reveal as="div" className="page-x pt-12 md:pt-16" distance={32} blur={8}>
+      <div className="mx-auto flex min-h-[280px] max-w-[920px] flex-col items-center justify-center text-center md:min-h-[340px]">
+        <h2 className="text-[clamp(34px,4vw,62px)] leading-[0.92] tracking-[-0.03em] font-light font-serif uppercase text-white/96">
+          {title}
+        </h2>
+        <p className="mt-6 max-w-[680px] text-[15px] leading-relaxed text-white/58 md:text-[18px]">
+          {description}
+        </p>
+      </div>
+    </Reveal>
+  );
+}
+
 function EventsCard({ event, index }: { event: EventItem; index: number }) {
   const { lang } = useLanguage();
   const [imageFailed, setImageFailed] = useState(false);
@@ -98,6 +119,24 @@ export default function EventsListingPage({
         : lang === "en"
           ? "All events and formats are collected in one place. Switch categories and browse the program in one rhythm."
           : "Barcha tadbirlar va formatlar bir joyda jamlangan. Kategoriya tanlang va afishani yagona ritmda ko‘ring.",
+    emptyTitle:
+      lang === "ru"
+        ? "ПРЕДСТОЯЩИХ СОБЫТИЙ ПОКА НЕТ"
+        : lang === "en"
+          ? "NO UPCOMING EVENTS YET"
+          : "HOZIRCHA KUTILAYOTGAN TADBIRLAR YO‘Q",
+    emptyDescription:
+      lang === "ru"
+        ? "Мы готовим новую программу. Когда ближайшие события появятся в расписании, они будут опубликованы здесь."
+        : lang === "en"
+          ? "We are preparing the next program. As soon as upcoming events are scheduled, they will appear here."
+          : "Yangi dastur tayyorlanmoqda. Eng yaqin tadbirlar jadvalga qo‘shilishi bilan ular shu yerda paydo bo‘ladi.",
+    emptyFilteredDescription:
+      lang === "ru"
+        ? "Для выбранной категории пока нет ближайших анонсов. Попробуйте переключиться на другую вкладку или зайдите позже."
+        : lang === "en"
+          ? "There are no upcoming announcements in this category yet. Try another tab or check back later."
+          : "Tanlangan kategoriya bo‘yicha hozircha yaqin anonslar yo‘q. Boshqa bo‘limni ochib ko‘ring yoki keyinroq qayting.",
   };
 
   return (
@@ -141,13 +180,20 @@ export default function EventsListingPage({
         </Reveal>
       </div>
 
-      <div className="w-full page-x">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-[18px] lg:gap-x-[22.5px] gap-y-20 lg:gap-y-24">
-          {visibleEvents.map((event, index) => (
-            <EventsCard key={event.id} event={event} index={index} />
-          ))}
+      {filteredEvents.length === 0 ? (
+        <EventsEmptyState
+          title={headerUi.emptyTitle}
+          description={activeTab === "all" ? headerUi.emptyDescription : headerUi.emptyFilteredDescription}
+        />
+      ) : (
+        <div className="w-full page-x">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-[18px] lg:gap-x-[22.5px] gap-y-20 lg:gap-y-24">
+            {visibleEvents.map((event, index) => (
+              <EventsCard key={event.id} event={event} index={index} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {canLoadMore && (
         <Reveal as="div" className="mt-14 md:mt-16 flex justify-center page-x" distance={26} blur={6}>
