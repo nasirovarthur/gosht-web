@@ -75,17 +75,17 @@ export const metadata: Metadata = {
       "Restaurant holding in Tashkent with premium restaurants, fast-food projects, barbershop, catering, and branded hospitality concepts.",
     images: [
       {
-        url: "/logo.svg",
+        url: "/og/gosht-group-og.jpg",
         alt: "Gōsht Group",
       },
     ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Gōsht Group",
     description:
       "Restaurant holding in Tashkent with premium restaurants, fast-food projects, barbershop, catering, and branded hospitality concepts.",
-    images: ["/logo.svg"],
+    images: ["/og/gosht-group-og.jpg"],
   },
 };
 
