@@ -172,11 +172,16 @@ export const structure: StructureResolver = (S) =>
           id !== 'jobProfession' &&
           id !== 'jobVacancy' &&
           id !== 'homeHeroSliderSettings' &&
+          id !== 'heroSlide' &&
           id !== 'homeRunningLineSettings' &&
+          id !== 'runningLine' &&
           id !== 'homeGroupStorySettings' &&
+          id !== 'groupStorySection' &&
           id !== 'homeEventsBlockSettings' &&
+          id !== 'homePageSettings' &&
           id !== 'restaurant' &&
           id !== 'restaurantBranch' &&
+          id !== 'restaurants' &&
           id !== 'restaurantsPageSettings' &&
           id !== 'companyProject' &&
           id !== 'event' &&
