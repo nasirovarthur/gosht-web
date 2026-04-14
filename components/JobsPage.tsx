@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Reveal from "@/components/Reveal";
 import JobsApplyDrawer from "@/components/JobsApplyDrawer";
 import { pickLocalized, type LangCode } from "@/types/i18n";
 import type { JobRole, JobsPageData } from "@/lib/jobsData";
@@ -66,18 +65,18 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
 
       <div className="page-x relative z-10">
         <div className="mx-auto w-full max-w-[1600px]">
-          <Reveal as="header" className="w-full" distance={34} blur={8}>
+          <header className="w-full">
             <h1 className="mt-6 whitespace-nowrap text-[clamp(22px,4.2vw,118px)] leading-[0.88] tracking-[-0.03em] text-white font-light font-serif">
               {pickLocalized(data.title, lang)}
             </h1>
             <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-white/58">
               {pickLocalized(data.intro, lang)}
             </p>
-          </Reveal>
+          </header>
 
           <div className="mt-16 border-t border-white/10 pt-8 md:pt-10 flex flex-col lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-14">
             <aside className="order-1 lg:sticky lg:top-[132px] lg:self-start lg:pr-10 lg:border-r lg:border-white/10">
-              <Reveal as="div" delay={80} distance={30} blur={6}>
+              <div>
                 <p className="mb-6 text-[12px] uppercase tracking-[0.2em] text-white/34">
                   {pickLocalized(data.roleLabel, lang)}
                 </p>
@@ -147,11 +146,11 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                     jobs@goshtgroup.uz
                   </a>
                 </div>
-              </Reveal>
+              </div>
             </aside>
 
             <div className="order-2 min-w-0 pt-8 lg:pt-0">
-              <Reveal as="div" delay={90} distance={26} blur={6}>
+              <div>
                 <div className="mb-6 border-b border-[#AE0E16] pb-4">
                   <h2 className="text-[clamp(34px,3.4vw,58px)] leading-[0.94] tracking-[-0.03em] font-light font-serif uppercase text-white">
                     {ui.inRestaurants}
@@ -295,7 +294,7 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                     })}
                   </div>
                 )}
-              </Reveal>
+              </div>
             </div>
           </div>
         </div>

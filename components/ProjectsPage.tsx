@@ -155,7 +155,7 @@ export default function ProjectsPage({
 
       <div className="page-x relative z-10">
         <div className="mx-auto max-w-[1600px]">
-          <Reveal as="header" className="max-w-[1100px]" distance={38} blur={8}>
+          <header className="max-w-[1100px]">
             <span className="text-[12px] uppercase tracking-[0.22em] text-white/34">
               {ui.eyebrow}
             </span>
@@ -165,11 +165,11 @@ export default function ProjectsPage({
             <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-white/58">
               {pickLocalized(data.intro, lang)}
             </p>
-          </Reveal>
+          </header>
 
           <div className="mt-16 border-t border-white/10 pt-8 md:pt-10 flex flex-col lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-14">
             <aside className="order-2 mt-auto pt-12 lg:order-1 lg:mt-0 lg:border-t-0 lg:border-b-0 lg:border-r lg:border-white/10 lg:pt-0 lg:sticky lg:top-[132px] lg:self-start lg:pr-10">
-              <Reveal as="div" delay={90} distance={30} blur={6}>
+              <div>
                 <p className="mb-6 text-[12px] uppercase tracking-[0.2em] text-white/34">
                   {ui.projectList}
                 </p>
@@ -214,13 +214,13 @@ export default function ProjectsPage({
                     );
                   })}
                 </div>
-              </Reveal>
+              </div>
             </aside>
 
             <div className="order-1 min-w-0 pt-0 lg:order-2 lg:pt-0">
               <div key={activeProject.id} className="animate-fade-up">
                 {nextProject ? (
-                  <Reveal as="div" className="mb-8 xl:hidden" delay={60} distance={24} blur={6}>
+                  <div className="mb-8 xl:hidden">
                     <button
                       type="button"
                       onClick={() => setActiveIndex((activeIndex + 1) % data.projects.length)}
@@ -238,10 +238,10 @@ export default function ProjectsPage({
                         →
                       </span>
                     </button>
-                  </Reveal>
+                  </div>
                 ) : null}
 
-                <Reveal as="section" distance={34} blur={8}>
+                <section>
                   <div className="grid gap-10 border-b border-white/10 pb-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
                     <div className="min-w-0">
                       <span className="text-[12px] uppercase tracking-[0.2em] text-white/30">
@@ -333,7 +333,7 @@ export default function ProjectsPage({
                       </div>
                     </div>
                   </div>
-                </Reveal>
+                </section>
 
                 <Reveal as="section" className="mt-10" delay={120} distance={34} blur={8}>
                   <div className="flex items-center justify-between gap-6">

@@ -136,7 +136,7 @@ export default async function AboutRoute({
     <main className="bg-base pt-[200px] text-white md:pt-[244px]">
       <section className={`page-x min-[1920px]:min-h-[956px] ${sectionPaddingClass}`}>
         <div className="w-full">
-          <Reveal as="header" className="w-full" distance={34} blur={8}>
+          <header className="w-full">
             <div className="text-[32px] leading-[1.01] tracking-[-0.03em] font-light font-serif uppercase text-white/96 md:text-[40px] xl:text-[46px] min-[1920px]:text-[50px]">
               <p className="text-center md:text-right">
                 {titleStart}
@@ -151,10 +151,10 @@ export default async function AboutRoute({
                 </p>
               ))}
             </div>
-          </Reveal>
+          </header>
 
           <div className="mt-12 grid grid-cols-1 gap-8 md:mt-[120px] lg:grid-cols-[minmax(520px,0.9fr)_minmax(0,1.15fr)_300px] xl:grid-cols-[minmax(560px,0.92fr)_minmax(0,1.18fr)_320px] min-[1920px]:grid-cols-[680px_minmax(0,1fr)_420px] lg:gap-10 xl:gap-12 min-[1920px]:gap-16">
-            <Reveal as="figure" className="order-1" delay={70} distance={42} blur={10}>
+            <figure className="order-1">
               <div className="relative aspect-[680/760] overflow-hidden border border-white/10 bg-card">
                 <Image
                   src={aboutData.heroSection.primaryImage}
@@ -167,14 +167,9 @@ export default async function AboutRoute({
               <figcaption className="mt-3 text-[16px] leading-snug text-white/78 md:text-[18px] min-[1920px]:text-[20px]">
                 {t.heroCaption}
               </figcaption>
-            </Reveal>
+            </figure>
 
-            <Reveal
-              className="order-3 lg:order-2 lg:min-h-[660px] xl:min-h-[740px] min-[1920px]:min-h-[806px]"
-              delay={140}
-              distance={40}
-              blur={10}
-            >
+            <div className="order-3 lg:order-2 lg:min-h-[660px] xl:min-h-[740px] min-[1920px]:min-h-[806px]">
               <div className="max-w-[980px]">
                 <p className="mt-1 text-[22px] leading-[1.18] font-light text-white/84 md:mt-0">
                   {t.heroBodyFirst}
@@ -189,14 +184,9 @@ export default async function AboutRoute({
                   ))}
                 </div>
               </div>
-            </Reveal>
+            </div>
 
-            <Reveal
-              className="order-2 lg:order-3 lg:pt-[4px] min-[1920px]:pt-[6px]"
-              delay={210}
-              distance={36}
-              blur={10}
-            >
+            <div className="order-2 lg:order-3 lg:pt-[4px] min-[1920px]:pt-[6px]">
               <div className="mx-auto max-w-[320px] lg:max-w-none">
                 <div className="relative aspect-square overflow-hidden border border-white/10 bg-card">
                   <Image
@@ -208,7 +198,7 @@ export default async function AboutRoute({
                   />
                 </div>
               </div>
-            </Reveal>
+            </div>
           </div>
         </div>
       </section>

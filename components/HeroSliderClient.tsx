@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { pickLocalized } from "@/types/i18n";
-import Reveal from "@/components/Reveal";
 import type { Localized } from "@/types/i18n";
 
 type Slide = {
@@ -159,35 +158,27 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
         style={{ transform: `scale(${textScale})`, transformOrigin: "bottom left" }}
       >
         <div key={currentIndex} className="max-w-4xl pointer-events-auto">
-          <Reveal
-            trigger="mount"
-            delay={70}
-            className="flex items-center gap-4 mb-2 md:mb-3"
-          >
+          <div className="flex items-center gap-4 mb-2 md:mb-3">
             <span className="text-[#d1d1d1] text-label font-light">
               {pickLocalized(currentSlide.subtitle, lang)}
             </span>
-          </Reveal>
+          </div>
 
-          <Reveal trigger="mount" delay={150} distance={52} blur={12} as="div">
+          <div>
             <p className="text-white text-display mb-3 md:mb-4">
               {pickLocalized(currentSlide.title, lang)}
             </p>
-          </Reveal>
+          </div>
 
-          <Reveal
-            trigger="mount"
-            delay={240}
-            className="flex items-center gap-4 mb-8 md:mb-10"
-          >
+          <div className="flex items-center gap-4 mb-8 md:mb-10">
             <div className="h-[1px] w-8 md:w-12 bg-[#d1d1d1]/60"></div>
             <p className="text-[#d1d1d1]/80 text-body-lg max-w-xl font-light">
               {pickLocalized(currentSlide.description, lang)}
             </p>
-          </Reveal>
+          </div>
 
           {currentSlide.showButton && heroHref ? (
-            <Reveal trigger="mount" delay={320} className="mt-2 flex justify-start">
+            <div className="mt-2 flex justify-start">
               {isInternalHref ? (
                 <Link href={heroHref} className={buttonClassName}>
                   {buttonInner}
@@ -202,7 +193,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
                   {buttonInner}
                 </a>
               )}
-            </Reveal>
+            </div>
           ) : null}
         </div>
     </div>

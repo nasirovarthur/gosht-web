@@ -239,7 +239,7 @@ export default function RestaurantsDirectoryPage({
 
       <div className="page-x relative z-10">
         <div className="mx-auto max-w-[1600px]">
-          <Reveal as="header" className="max-w-[1100px]" distance={38} blur={8}>
+          <header className="max-w-[1100px]">
             <span className="text-[12px] uppercase tracking-[0.22em] text-white/34">
               {ui.eyebrow}
             </span>
@@ -249,15 +249,11 @@ export default function RestaurantsDirectoryPage({
             <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-white/58">
               {ui.intro}
             </p>
-          </Reveal>
+          </header>
 
           <div className="mt-16 border-t border-white/10 pt-8 md:pt-10 xl:grid xl:grid-cols-[280px_minmax(0,1fr)] xl:gap-14">
-            <Reveal
-              as="aside"
+            <aside
               className="xl:sticky xl:top-[138px] xl:self-start xl:border-r xl:border-white/10 xl:pr-10"
-              delay={90}
-              distance={30}
-              blur={6}
             >
               <div>
                 <p className="mb-6 text-[12px] uppercase tracking-[0.2em] text-white/34">
@@ -301,15 +297,11 @@ export default function RestaurantsDirectoryPage({
                   })}
                 </div>
               </div>
-            </Reveal>
+            </aside>
 
             <div className="mt-10 min-w-0 xl:mt-0">
-              <Reveal
-                as="div"
+              <div
                 className="flex flex-wrap items-center justify-between gap-6 border-b border-white/10 pb-6"
-                delay={120}
-                distance={28}
-                blur={6}
               >
                 <div>
                   <h2 className="text-[clamp(28px,3.4vw,56px)] leading-[0.94] tracking-[-0.03em] font-light font-serif text-white">
@@ -345,7 +337,7 @@ export default function RestaurantsDirectoryPage({
                     );
                   })}
                 </div>
-              </Reveal>
+              </div>
 
               {!effectiveProject ? (
                 <div className="border-b border-white/10 py-20 text-[16px] leading-relaxed text-white/52">

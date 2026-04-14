@@ -97,7 +97,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
           <section className="page-x lg:w-screen lg:flex-shrink-0">
             <div className="w-full">
               <div className="grid items-start gap-10 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] 2xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] xl:gap-12">
-                <Reveal as="div" distance={42} blur={10}>
+                <div>
                   <h1 className="max-w-[16ch] text-h1 font-light leading-[1.05] break-words">
                     {restaurant.branchName}
                   </h1>
@@ -168,9 +168,9 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                       </div>
                     </div>
                   </div>
-                </Reveal>
+                </div>
 
-                <Reveal as="div" delay={120} variant="right" distance={46} blur={0}>
+                <div>
                   {hasGallery ? (
                     <>
                       <div className="lg:hidden">
@@ -189,7 +189,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                           : 'Filial galereyasiga rasmlarni Sanity orqali qo‘shing.'}
                     </div>
                   )}
-                </Reveal>
+                </div>
               </div>
             </div>
           </section>
