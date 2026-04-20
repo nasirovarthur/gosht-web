@@ -2,8 +2,29 @@
 
 import { useEffect, useRef } from 'react';
 
+function isScrollableVertically(element: HTMLElement) {
+  const style = window.getComputedStyle(element);
+  const overflowY = style.overflowY;
+  const canScroll = (overflowY === 'auto' || overflowY === 'scroll') && element.scrollHeight > element.clientHeight + 1;
+  return canScroll;
+}
+
+function hasInteractiveVerticalScrollTarget(target: EventTarget | null, container: HTMLElement) {
+  let current = target instanceof HTMLElement ? target : null;
+
+  while (current && current !== document.body) {
+    if (current === container) return false;
+    if (isScrollableVertically(current)) return true;
+    current = current.parentElement;
+  }
+
+  return false;
+}
+
 /**
  * Converts dominant vertical wheel movement into native horizontal scroll.
+ * On horizontally locked pages, wheel events can originate over fixed UI like the header,
+ * so the handler is attached globally and reroutes vertical wheel to the page container.
  */
 export function useHorizontalScroll(enabled: boolean) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -18,11 +39,14 @@ export function useHorizontalScroll(enabled: boolean) {
       }
 
       const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
-      if (maxScrollLeft <= 0) {
+      if (maxScrollLeft <= 0 || event.deltaY === 0) {
         return;
       }
 
-      if (event.deltaY === 0) return;
+      if (hasInteractiveVerticalScrollTarget(event.target, container)) {
+        return;
+      }
+
       event.preventDefault();
 
       let baseDelta = event.deltaY;
@@ -36,10 +60,10 @@ export function useHorizontalScroll(enabled: boolean) {
       container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, nextScrollLeft));
     };
 
-    container.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
-      container.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('wheel', handleWheel);
     };
   }, [enabled]);
 
