@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useEffect } from 'react';
 import ImageSlider from './ImageSlider';
 import YandexMap from './restaurant/YandexMap';
 import Reveal from './Reveal';
@@ -61,6 +62,29 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
   const { lang } = useLanguage();
   const scrollContainerRef = useHorizontalScroll(true);
   const t = translations.restaurantDetail;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const { body, documentElement } = document;
+    const previousHtmlOverflowY = documentElement.style.overflowY;
+    const previousBodyOverflowY = body.style.overflowY;
+
+    const syncVerticalLock = () => {
+      const shouldLock = window.innerWidth >= 1024;
+      documentElement.style.overflowY = shouldLock ? 'hidden' : previousHtmlOverflowY;
+      body.style.overflowY = shouldLock ? 'hidden' : previousBodyOverflowY;
+    };
+
+    syncVerticalLock();
+    window.addEventListener('resize', syncVerticalLock);
+
+    return () => {
+      window.removeEventListener('resize', syncVerticalLock);
+      documentElement.style.overflowY = previousHtmlOverflowY;
+      body.style.overflowY = previousBodyOverflowY;
+    };
+  }, []);
 
   const chefTitle = restaurant.chef?.title?.trim() || '';
   const chefName = restaurant.chef?.name?.trim() || '';
