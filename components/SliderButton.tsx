@@ -11,6 +11,7 @@ interface SliderButtonProps {
   tone?: 'light' | 'dark';
   variant?: 'arrow' | 'symbol';
   symbol?: '+' | '×';
+  ariaLabel?: string;
 }
 
 const SliderButton: React.FC<SliderButtonProps> = ({ 
@@ -22,6 +23,7 @@ const SliderButton: React.FC<SliderButtonProps> = ({
   tone = 'light',
   variant = 'arrow',
   symbol = '+',
+  ariaLabel,
 }) => {
   const rotationClass =
     direction === 'left'
@@ -33,6 +35,7 @@ const SliderButton: React.FC<SliderButtonProps> = ({
           : '';
 
   if (variant === 'symbol') {
+    const symbolAriaLabel = ariaLabel || (symbol === '+' ? 'Add' : 'Close');
     const icon =
       symbol === '+' ? (
         <svg
@@ -67,11 +70,12 @@ const SliderButton: React.FC<SliderButtonProps> = ({
         type="button"
         onClick={onClick}
         disabled={disabled}
+        aria-label={symbolAriaLabel}
         className={`group relative flex h-10 w-10 items-center justify-center rounded-full outline-none ${className} ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
-        <span className="absolute inset-0 rounded-full border border-white/28 transition-all duration-300 group-hover:border-white/52" />
+        <span className="absolute inset-0 rounded-full border border-[color:var(--border-strong)] transition-all duration-300 group-hover:border-[color:var(--text-primary)]" />
         <span
           className={`absolute inset-0 rounded-full bg-[#AE0E16] transition-transform duration-300 ${
             !disabled
@@ -83,8 +87,8 @@ const SliderButton: React.FC<SliderButtonProps> = ({
         />
         <span
           className={`inline-flex items-center justify-center transition-colors duration-300 ${
-            tone === 'dark' ? 'text-black' : 'text-white/82'
-          } ${!disabled && (forceHover ? 'text-white' : 'group-hover:text-white')}`}
+            tone === 'dark' ? 'text-inverse' : 'text-secondary'
+          } ${!disabled && (forceHover ? 'text-inverse' : 'group-hover:text-inverse')}`}
         >
           {icon}
         </span>
@@ -92,14 +96,25 @@ const SliderButton: React.FC<SliderButtonProps> = ({
     );
   }
 
+  const directionAriaLabel =
+    ariaLabel ||
+    (direction === 'left' || direction === 'up' ? 'Previous' : 'Next');
+
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-label={directionAriaLabel}
       className={`group relative flex items-center justify-center outline-none ${className} ${rotationClass} ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       }`}
+      style={
+        {
+          "--slider-ring-color": "var(--border-strong)",
+          "--slider-accent-color": "var(--accent-brand)",
+        } as React.CSSProperties
+      }
     >
       <svg
         width="101"
@@ -108,13 +123,13 @@ const SliderButton: React.FC<SliderButtonProps> = ({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className={`transition-colors duration-500 w-[60px] h-[46px] md:w-[101px] md:h-[77px] ${
-          tone === 'dark' ? 'text-black' : 'text-white'
+          tone === 'dark' ? 'text-inverse' : 'text-primary'
         }`}
       >
         {/* 1. Серый контур (смещается влево при hover) */}
         <circle 
             cx="57.5" cy="38.5" r="29" 
-            stroke="#E5E5E5" 
+            stroke="var(--slider-ring-color)" 
             className={`opacity-10 transition-transform duration-500 ${
               !disabled ? (forceHover ? '-translate-x-4' : 'group-hover:-translate-x-4') : ''
             }`} 
@@ -125,7 +140,7 @@ const SliderButton: React.FC<SliderButtonProps> = ({
             cx="57.5"
             cy="38.5"
             r="29"
-            fill="#AE0E16"
+            fill="var(--slider-accent-color)"
             className={`origin-[57.5px_38.5px] scale-0 transition-transform duration-500 ease-out ${
               !disabled
                 ? forceHover

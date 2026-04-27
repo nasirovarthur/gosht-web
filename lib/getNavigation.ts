@@ -1,4 +1,4 @@
-import { client } from './sanity'
+import { client, sanityReadOptions } from './sanity'
 import { singletonDocumentIds } from '@/sanity/singletons'
 import type { Localized, LocalizedOptional, NavItem } from '@/types/i18n'
 
@@ -84,9 +84,13 @@ export async function getNavigation(): Promise<NavItem[]> {
       }
     }`
 
-    const data = await client.fetch<{ items?: NavigationItemRaw[] }>(query, {
-      documentId: singletonDocumentIds.navigation,
-    })
+    const data = await client.fetch<{ items?: NavigationItemRaw[] }>(
+      query,
+      {
+        documentId: singletonDocumentIds.navigation,
+      },
+      sanityReadOptions
+    )
 
     return (data?.items || []).map(normalizeNavItem)
   } catch (error) {

@@ -1,4 +1,4 @@
-import { client, urlFor } from "@/lib/sanity";
+import { client, sanityReadOptions, urlFor } from "@/lib/sanity";
 import type { LocalizedOptional } from "@/types/i18n";
 
 type ImageSource = Parameters<typeof urlFor>[0];
@@ -6,6 +6,7 @@ type ImageSource = Parameters<typeof urlFor>[0];
 type RestaurantBranchRaw = {
   _id: string;
   slug?: string;
+  order?: number;
   projectType?: "restaurant" | "barbershop";
   city?: string;
   branchName?: LocalizedOptional;
@@ -13,6 +14,7 @@ type RestaurantBranchRaw = {
   projectName?: LocalizedOptional;
   projectLogo?: unknown;
   projectDescription?: LocalizedOptional;
+  projectPrimaryInfo?: LocalizedOptional;
   cardImage?: unknown;
   gallery?: unknown[];
   address?: LocalizedOptional;
@@ -40,6 +42,7 @@ export type RestaurantBranchItem = {
   projectName: LocalizedOptional;
   projectLogo?: string;
   projectDescription?: LocalizedOptional;
+  projectPrimaryInfo?: LocalizedOptional;
   cardImage?: string;
   gallery: string[];
   address?: LocalizedOptional;
@@ -62,6 +65,7 @@ export type RestaurantProjectItem = {
   name: LocalizedOptional;
   logo?: string;
   description?: LocalizedOptional;
+  primaryInfo?: LocalizedOptional;
   branches: RestaurantBranchItem[];
 };
 
@@ -79,8 +83,9 @@ const restaurantBranchesQuery = `
     project->isActive != false &&
     coalesce(project->projectType, "restaurant") in ["restaurant", "barbershop"] &&
     defined(slug.current)
-  ] | order(project->name.ru asc, branchName.ru asc) {
+  ] | order(order asc, project->name.ru asc, branchName.ru asc) {
     _id,
+    order,
     "slug": slug.current,
     "projectType": coalesce(project->projectType, "restaurant"),
     city,
@@ -89,6 +94,7 @@ const restaurantBranchesQuery = `
     "projectName": project->name,
     "projectLogo": project->logo,
     "projectDescription": project->description,
+    "projectPrimaryInfo": project->detailPrimaryInfo,
     cardImage,
     gallery,
     address,
@@ -146,7 +152,11 @@ function buildMenuUrls(item: Pick<RestaurantBranchRaw, "menuFiles" | "menuFile" 
 }
 
 export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryData> {
-  const rawData = await client.fetch<RestaurantBranchRaw[]>(restaurantBranchesQuery);
+  const rawData = await client.fetch<RestaurantBranchRaw[]>(
+    restaurantBranchesQuery,
+    {},
+    sanityReadOptions
+  );
 
   const branches = rawData
     .map<RestaurantBranchItem | null>((item) => {
@@ -168,6 +178,7 @@ export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryD
         projectName: item.projectName,
         projectLogo: item.projectLogo ? urlFor(item.projectLogo as ImageSource).url() : undefined,
         projectDescription: item.projectDescription,
+        projectPrimaryInfo: item.projectPrimaryInfo,
         cardImage: item.cardImage ? urlFor(item.cardImage as ImageSource).url() : undefined,
         gallery: Array.isArray(item.gallery)
           ? item.gallery
@@ -206,6 +217,7 @@ export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryD
         name: branch.projectName,
         logo: branch.projectLogo,
         description: branch.projectDescription,
+        primaryInfo: branch.projectPrimaryInfo,
         branches: [],
       });
     }

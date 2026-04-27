@@ -50,6 +50,7 @@ export type NavItem = {
 export const translations = {
   header: {
     menu: { uz: "MENU", ru: "МЕНЮ", en: "MENU" } as Localized,
+    delivery: { uz: "YETKAZISH", ru: "ДОСТАВКА", en: "DELIVERY" } as Localized,
     close: { uz: "YOPISH", ru: "ЗАКРЫТЬ", en: "CLOSE" } as Localized,
   },
 
@@ -94,6 +95,31 @@ export const translations = {
     menu: { uz: "Restoran menyusi", ru: "Меню ресторана", en: "Restaurant menu" } as Localized,
     openedYear: { uz: "Ochilgan yil", ru: "Год открытия", en: "Opened in" } as Localized,
     openMap: { uz: "Xaritani ochish", ru: "Открыть карту", en: "Open map" } as Localized,
+    deliveryMenu: {
+      uz: "YETKAZIB BERISH MENYUSI",
+      ru: "МЕНЮ ДОСТАВКИ",
+      en: "DELIVERY MENU",
+    } as Localized,
+    deliveryShowcaseTitle: {
+      uz: "YETKAZIB BERISH MENYUSI",
+      ru: "МЕНЮ ДОСТАВКИ",
+      en: "DELIVERY MENU",
+    } as Localized,
+    deliveryShowcaseSubtitle: {
+      uz: "Nostandart uslubdagi kartochkalar va tezkor tanlov",
+      ru: "Нестандартная сетка карточек и быстрый выбор блюд",
+      en: "Non-standard card grid and quick dish selection",
+    } as Localized,
+    openFullMenu: {
+      uz: "TO‘LIQ MENYUNI OCHISH",
+      ru: "ОТКРЫТЬ ПОЛНОЕ МЕНЮ",
+      en: "OPEN FULL MENU",
+    } as Localized,
+    bookTable: {
+      uz: "STOLNI BAND QILISH",
+      ru: "ЗАБРОНИРОВАТЬ СТОЛИК",
+      en: "BOOK A TABLE",
+    } as Localized,
     chefTitle: { uz: "OSHPAZ BOSHLIG\u2019I", ru: "ШЕФ-ПОВАР", en: "CHEF" } as Localized,
     chefName: {
       uz: "GOSHT bosh oshpazi",

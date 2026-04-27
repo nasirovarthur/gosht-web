@@ -1,5 +1,5 @@
 import { cache } from 'react'
-import { client } from '@/lib/sanity'
+import { client, sanityReadOptions } from '@/lib/sanity'
 import { singletonDocumentIds } from '@/sanity/singletons'
 import type { Localized, LocalizedOptional } from '@/types/i18n'
 
@@ -132,9 +132,13 @@ export const getHomeHeroSliderSettingsDocument = cache(
         }
       `
 
-      return await client.fetch<HomeHeroSliderSettingsRaw | null>(query, {
-        documentId: singletonDocumentIds.homeHeroSliderSettings,
-      })
+      return await client.fetch<HomeHeroSliderSettingsRaw | null>(
+        query,
+        {
+          documentId: singletonDocumentIds.homeHeroSliderSettings,
+        },
+        sanityReadOptions
+      )
     } catch (error) {
       console.error('Error fetching home hero slider settings:', error)
       return null
@@ -151,9 +155,13 @@ export const getHomeRunningLineSettingsDocument = cache(
         }
       `
 
-      return await client.fetch<HomeRunningLineSettingsRaw | null>(query, {
-        documentId: singletonDocumentIds.homeRunningLineSettings,
-      })
+      return await client.fetch<HomeRunningLineSettingsRaw | null>(
+        query,
+        {
+          documentId: singletonDocumentIds.homeRunningLineSettings,
+        },
+        sanityReadOptions
+      )
     } catch (error) {
       console.error('Error fetching home running line settings:', error)
       return null
@@ -178,9 +186,13 @@ export const getHomeGroupStorySettingsDocument = cache(
         }
       `
 
-      return await client.fetch<HomeGroupStorySettingsRaw | null>(query, {
-        documentId: singletonDocumentIds.homeGroupStorySettings,
-      })
+      return await client.fetch<HomeGroupStorySettingsRaw | null>(
+        query,
+        {
+          documentId: singletonDocumentIds.homeGroupStorySettings,
+        },
+        sanityReadOptions
+      )
     } catch (error) {
       console.error('Error fetching home group story settings:', error)
       return null
@@ -201,9 +213,13 @@ export const getHomeEventsBlockSettingsDocument = cache(
         }
       `
 
-      return await client.fetch<HomeEventsBlockSettingsRaw | null>(query, {
-        documentId: singletonDocumentIds.homeEventsBlockSettings,
-      })
+      return await client.fetch<HomeEventsBlockSettingsRaw | null>(
+        query,
+        {
+          documentId: singletonDocumentIds.homeEventsBlockSettings,
+        },
+        sanityReadOptions
+      )
     } catch (error) {
       console.error('Error fetching home events block settings:', error)
       return null

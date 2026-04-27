@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useTheme } from "@/context/ThemeContext";
 import SliderButton from "@/components/SliderButton";
 import Reveal from "@/components/Reveal";
 import { pickLocalized, translations } from "@/types/i18n";
@@ -46,7 +47,7 @@ function StoryAction({ label, href }: { label: string; href: string }) {
           <a href={href} className="group">
             <span
               className={`text-body-lg pb-0.5 transition-colors ${
-                isHovered ? "text-white" : "text-white/85"
+                isHovered ? "text-primary" : "text-secondary"
               }`}
             >
               {label}
@@ -56,7 +57,7 @@ function StoryAction({ label, href }: { label: string; href: string }) {
           <Link href={href} className="group">
             <span
               className={`text-body-lg pb-0.5 transition-colors ${
-                isHovered ? "text-white" : "text-white/85"
+                isHovered ? "text-primary" : "text-secondary"
               }`}
             >
               {label}
@@ -68,13 +69,14 @@ function StoryAction({ label, href }: { label: string; href: string }) {
           direction="right"
           onClick={handleAction}
           forceHover={isHovered}
+          ariaLabel={label}
           className="scale-[0.48] md:scale-[0.6] origin-left -ml-2 md:-ml-1"
         />
       </div>
 
-      <span className="relative mt-0.5 h-px w-full bg-white/20 overflow-hidden">
+      <span className="relative mt-0.5 h-px w-full bg-[color:var(--border-strong)] overflow-hidden">
         <span
-          className={`absolute inset-0 bg-white/60 transition-transform duration-500 ease-out ${
+          className={`absolute inset-0 bg-[color:var(--text-primary)] transition-transform duration-500 ease-out ${
             isHovered ? "translate-x-0" : "-translate-x-full"
           }`}
         />
@@ -85,6 +87,7 @@ function StoryAction({ label, href }: { label: string; href: string }) {
 
 export default function GroupStorySection({ data }: { data?: GroupStorySectionData | null }) {
   const { lang } = useLanguage();
+  const { theme } = useTheme();
   const fallback = translations.groupStory;
   const content = {
     marquee: pickLocalized(data?.marquee, lang) || pickLocalized(fallback.marquee, lang),
@@ -102,6 +105,7 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
     data?.portraitImage ||
     "https://images.unsplash.com/photo-1592861956120-e524fc739696?w=1200&h=1700&fit=crop";
   const ctaUrl = data?.ctaUrl || `/${lang}/projects`;
+  const ghostLogoSrc = theme === "light" ? "/menu-logo-ghost-dark.svg" : "/menu-logo-ghost.svg";
 
   useEffect(() => {
     let raf = 0;
@@ -126,21 +130,21 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
   }, []);
 
   return (
-    <section className="w-full bg-base section-y-lg border-t border-white/5 overflow-hidden">
+    <section className="w-full bg-base section-y-lg border-t border-subtle overflow-hidden transition-colors duration-300">
       <div className="page-x mb-10">
         <Reveal
           as="div"
-          className="max-w-[360px] overflow-hidden select-none border-t border-white/15 pt-3"
+          className="max-w-[360px] overflow-hidden select-none border-t border-strong pt-3"
           distance={24}
           blur={6}
         >
-          <div className="flex whitespace-nowrap text-white/45 text-[11px] md:text-[12px] tracking-[0.22em] uppercase animate-infinite-scroll [animation-duration:30s]">
+          <div className="flex whitespace-nowrap text-muted text-[11px] md:text-[12px] tracking-[0.22em] uppercase animate-infinite-scroll [animation-duration:30s]">
             {marqueeItems.map((item, index) => (
               <span key={`line-1-${index}`} className="mr-8">{item} -</span>
             ))}
           </div>
           <div
-            className="flex whitespace-nowrap text-white/45 text-[11px] md:text-[12px] tracking-[0.22em] uppercase animate-infinite-scroll [animation-duration:30s]"
+            className="flex whitespace-nowrap text-muted text-[11px] md:text-[12px] tracking-[0.22em] uppercase animate-infinite-scroll [animation-duration:30s]"
             aria-hidden="true"
           >
             {marqueeItems.map((item, index) => (
@@ -157,23 +161,24 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
             style={{ transform: `translate3d(0, ${parallaxY}px, 0)` }}
           >
             <Image
-              src="/menu-logo-ghost.svg"
+              src={ghostLogoSrc}
               alt=""
               fill
+              sizes="(max-width: 1024px) 72vw, 980px"
               className="object-contain"
               aria-hidden="true"
             />
           </div>
 
-          <div className="pointer-events-none absolute right-[14%] top-[6%] h-[320px] w-[320px] rounded-full bg-[#AE0E16]/20 blur-[120px]" />
+          <div className="pointer-events-none absolute right-[14%] top-[6%] h-[320px] w-[320px] rounded-full blur-[120px]" style={{ backgroundColor: "var(--ghost-glow)" }} />
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
             <Reveal as="div" className="lg:col-span-7 lg:col-start-5" distance={56} blur={12}>
               <h2 className="leading-[0.9] tracking-[-0.018em] font-serif uppercase">
-                <span className="text-[#AE0E16] block text-[clamp(52px,8.8vw,132px)] font-thin">
+                <span className="text-[#AE0E16] block text-[clamp(52px,8.8vw,132px)] font-light">
                   {content.titleTop}
                 </span>
-                <span className="text-white block text-[clamp(58px,10.4vw,156px)] font-extralight md:ml-[18%]">
+                <span className="text-primary block text-[clamp(58px,10.4vw,156px)] font-light md:ml-[18%]">
                   {content.titleBottom}
                 </span>
               </h2>
@@ -185,7 +190,7 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
               delay={110}
               distance={38}
             >
-              <p className="text-body md:text-body-lg text-white/72 font-light leading-relaxed max-w-[420px]">
+              <p className="text-body md:text-body-lg text-secondary font-light leading-relaxed max-w-[420px]">
                 {content.description}
               </p>
               <div className="mt-8">
@@ -200,7 +205,7 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
               delay={180}
               distance={44}
             >
-              <div className="relative h-[160px] md:h-[190px] overflow-hidden border border-white/10 bg-card">
+              <div className="relative h-[160px] md:h-[190px] overflow-hidden border border-subtle bg-card">
                 <Image
                   src={previewImage}
                   alt="Interior preview"
@@ -218,7 +223,7 @@ export default function GroupStorySection({ data }: { data?: GroupStorySectionDa
               delay={250}
               distance={52}
             >
-              <div className="relative h-[420px] md:h-[560px] overflow-hidden border border-white/10 bg-card">
+              <div className="relative h-[420px] md:h-[560px] overflow-hidden border border-subtle bg-card">
                 <Image
                   src={portraitImage}
                   alt="Chef portrait"

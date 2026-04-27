@@ -169,7 +169,7 @@ export default function RestaurantsMap({
 
   if (!branchesWithCoordinates.length) {
     return (
-      <div className="flex min-h-[440px] items-center justify-center border border-white/10 bg-card px-6 text-center text-[15px] leading-relaxed text-white/48 md:min-h-[620px]">
+      <div className="flex min-h-[440px] items-center justify-center border border-subtle bg-card px-6 text-center text-[15px] leading-relaxed text-muted md:min-h-[620px]">
         Координаты филиалов появятся здесь после заполнения в Sanity.
       </div>
     );
@@ -177,14 +177,14 @@ export default function RestaurantsMap({
 
   if (!mapLoadFailed) {
     return (
-      <div className="relative min-h-[440px] border border-white/10 bg-card md:min-h-[620px]">
+      <div className="relative min-h-[440px] border border-subtle bg-card md:min-h-[620px]">
         <div ref={mapContainerRef} className="h-full min-h-[440px] w-full md:min-h-[620px]" />
         {activeBranch?.mapLink ? (
           <a
             href={activeBranch.mapLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bottom-4 right-4 border border-white/20 bg-black/60 px-4 py-3 text-[12px] uppercase tracking-[0.18em] text-white/90 transition-colors hover:bg-black/80"
+            className="absolute bottom-4 right-4 border border-strong bg-panel px-4 py-3 text-[12px] uppercase tracking-[0.18em] text-primary transition-colors hover:bg-card"
           >
             {lang === 'ru' ? 'Открыть карту' : lang === 'en' ? 'Open map' : 'Xaritani ochish'}
           </a>
@@ -194,7 +194,7 @@ export default function RestaurantsMap({
   }
 
   return (
-    <div className="flex min-h-[440px] items-center justify-center border border-white/10 bg-card px-6 text-center text-[15px] leading-relaxed text-white/58 md:min-h-[620px]">
+    <div className="flex min-h-[440px] items-center justify-center border border-subtle bg-card px-6 text-center text-[15px] leading-relaxed text-secondary md:min-h-[620px]">
       <span>
         {lang === 'ru'
           ? 'Карта временно недоступна. Используйте адреса филиалов в списке.'

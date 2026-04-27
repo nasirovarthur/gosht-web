@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
+import { useTheme } from "@/context/ThemeContext";
 import Reveal from "@/components/Reveal";
 import { pickLocalized } from "@/types/i18n";
 import type { FooterSettingsData } from "@/lib/getFooterSettings";
@@ -61,11 +62,13 @@ export default function Footer({ settings, navItems }: FooterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { lang, setLang } = useLanguage();
+  const { theme } = useTheme();
   const madeByHref = resolveFooterHref(lang, settings.madeByHref);
   const feedbackHref = resolveFooterHref(lang, settings.feedbackHref);
   const footerNavItems = navItems.filter((item) => item.showInFooter);
   const navigationColumns = splitNavItemsIntoColumns(footerNavItems);
   const localeLinks: LangCode[] = ["uz", "ru", "en"];
+  const logoSrc = theme === "light" ? "/logo-dark.svg" : "/logo.svg";
 
   const switchLanguage = (nextLang: LangCode) => {
     if (nextLang === lang) return;
@@ -95,25 +98,26 @@ export default function Footer({ settings, navItems }: FooterProps) {
   };
 
   return (
-    <footer className="bg-surface text-white border-t border-white/10">
+    <footer className="bg-surface text-primary border-t border-subtle transition-colors duration-300">
       <div className="page-x">
         <div className="mx-auto w-full max-w-[1600px]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 py-20 md:py-24 lg:py-28">
             <Reveal as="div" className="lg:col-span-4 flex flex-col gap-8 md:gap-10" distance={34} blur={8}>
               <Link href={`/${lang}`} className="relative w-[148px] h-[64px] block hover:opacity-80 transition-opacity">
                 <Image
-                  src="/logo.svg"
+                  src={logoSrc}
                   alt="GOSHT Logo"
                   fill
+                  sizes="148px"
                   className="object-contain scale-95 origin-left"
                 />
               </Link>
 
-              <h2 className="uppercase text-[clamp(36px,3.8vw,74px)] leading-[0.94] tracking-[-0.02em] font-light font-serif text-white/95">
+              <h2 className="uppercase text-[clamp(36px,3.8vw,74px)] leading-[0.94] tracking-[-0.02em] font-light font-serif text-primary">
                 {pickLocalized(settings.heading, lang)}
               </h2>
 
-              <p className="max-w-[420px] text-[14px] md:text-[16px] leading-relaxed text-white/42">
+              <p className="max-w-[420px] text-[14px] md:text-[16px] leading-relaxed text-muted">
                 {pickLocalized(settings.subtitle, lang)}
               </p>
 
@@ -125,7 +129,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
                     return (
                       <span
                         key={item._key}
-                        className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-[13px] md:text-[14px] text-white/78"
+                        className="inline-flex items-center gap-2 rounded-full border border-subtle px-3 py-2 text-[13px] md:text-[14px] text-secondary"
                       >
                         {item.label}
                       </span>
@@ -138,7 +142,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
                       href={href}
                       target={item.openInNewTab ? "_blank" : undefined}
                       rel={item.openInNewTab ? "noopener noreferrer" : undefined}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-[13px] md:text-[14px] text-white/78 hover:text-white hover:border-white/35 hover:bg-white/5 transition-all"
+                      className="inline-flex items-center gap-2 rounded-full border border-subtle px-3 py-2 text-[13px] md:text-[14px] text-secondary hover:text-primary hover:bg-[color:var(--interactive-hover)] transition-all"
                     >
                       {item.label}
                     </a>
@@ -149,7 +153,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
 
             <Reveal
               as="div"
-              className="lg:col-span-5 lg:border-l lg:border-r lg:border-white/10 lg:px-10"
+              className="lg:col-span-5 lg:border-l lg:border-r lg:border-subtle lg:px-10"
               delay={110}
               distance={34}
             >
@@ -161,7 +165,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
                     return (
                       <span
                         key={item._key}
-                        className="block py-2.5 text-[15px] leading-[1.45] text-white/72"
+                        className="block py-2.5 text-[15px] leading-[1.45] text-secondary"
                       >
                         {pickLocalized(item.label, lang)}
                       </span>
@@ -174,7 +178,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
                       href={href}
                       target={item.openInNewTab ? "_blank" : undefined}
                       rel={item.openInNewTab ? "noopener noreferrer" : undefined}
-                      className="block py-2.5 text-[15px] leading-[1.45] text-white/72 hover:text-[#AE0E16] transition-colors"
+                      className="block py-2.5 text-[15px] leading-[1.45] text-secondary hover:text-[#AE0E16] transition-colors"
                     >
                       {pickLocalized(item.label, lang)}
                     </a>
@@ -192,7 +196,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
                         return (
                           <span
                             key={item._key}
-                            className="block py-1 text-[15px] leading-[1.45] text-white/72"
+                            className="block py-1 text-[15px] leading-[1.45] text-secondary"
                           >
                             {pickLocalized(item.label, lang)}
                           </span>
@@ -205,7 +209,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
                             href={href}
                             target={item.openInNewTab ? "_blank" : undefined}
                             rel={item.openInNewTab ? "noopener noreferrer" : undefined}
-                            className="block py-1 text-[15px] leading-[1.45] text-white/72 hover:text-[#AE0E16] transition-colors"
+                            className="block py-1 text-[15px] leading-[1.45] text-secondary hover:text-[#AE0E16] transition-colors"
                           >
                             {pickLocalized(item.label, lang)}
                           </a>
@@ -223,7 +227,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
               distance={34}
             >
               <div className="w-full max-w-none text-center sm:max-w-[280px] lg:text-left">
-                <p className="mb-3 text-[12px] uppercase tracking-[0.16em] text-white/45">
+                <p className="mb-3 text-[12px] uppercase tracking-[0.16em] text-muted">
                   {pickLocalized(settings.languageLabel, lang)}
                 </p>
                 <div className="flex items-center justify-center lg:justify-start gap-6">
@@ -234,8 +238,8 @@ export default function Footer({ settings, navItems }: FooterProps) {
                       onClick={() => switchLanguage(locale)}
                       className={`min-h-11 px-1 py-2 text-[14px] uppercase tracking-[0.16em] transition-colors ${
                         locale === lang
-                          ? "text-white font-medium underline underline-offset-8"
-                          : "text-white/45 hover:text-white/80"
+                          ? "text-primary font-medium underline underline-offset-8"
+                          : "text-muted hover:text-secondary"
                       }`}
                     >
                       {locale.toUpperCase()}
@@ -249,7 +253,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
                   href={feedbackHref}
                   target={settings.feedbackOpenInNewTab ? "_blank" : undefined}
                   rel={settings.feedbackOpenInNewTab ? "noopener noreferrer" : undefined}
-                  className="inline-flex h-[54px] w-full max-w-none items-center justify-center rounded-full border border-white/20 px-7 text-ui font-light text-white/90 transition-all hover:bg-white hover:text-black sm:max-w-[280px]"
+                  className="inline-flex h-[54px] w-full max-w-none items-center justify-center rounded-full border border-strong px-7 text-ui font-light text-primary transition-all hover:bg-[color:var(--interactive-strong)] hover:text-inverse sm:max-w-[280px]"
                 >
                   <span>{pickLocalized(settings.feedbackLabel, lang)}</span>
                 </a>
@@ -257,7 +261,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
                 <button
                   type="button"
                   onClick={openFeedbackDrawer}
-                  className="inline-flex h-[54px] w-full max-w-none items-center justify-center rounded-full border border-white/20 px-7 text-ui font-light text-white/90 transition-all hover:bg-white hover:text-black sm:max-w-[280px]"
+                  className="inline-flex h-[54px] w-full max-w-none items-center justify-center rounded-full border border-strong px-7 text-ui font-light text-primary transition-all hover:bg-[color:var(--interactive-strong)] hover:text-inverse sm:max-w-[280px]"
                 >
                   <span>{pickLocalized(settings.feedbackLabel, lang)}</span>
                 </button>
@@ -265,14 +269,14 @@ export default function Footer({ settings, navItems }: FooterProps) {
             </Reveal>
           </div>
 
-          <div className="border-t border-white/10 py-8 md:py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-[14px] leading-relaxed text-white/38">
+          <div className="border-t border-subtle py-8 md:py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-[14px] leading-relaxed text-muted">
             <p>{pickLocalized(settings.rightsText, lang)}</p>
             {madeByHref ? (
               <a
                 href={madeByHref}
                 target={settings.madeByOpenInNewTab ? "_blank" : undefined}
                 rel={settings.madeByOpenInNewTab ? "noopener noreferrer" : undefined}
-                className="hover:text-white/55 transition-colors w-fit"
+                className="hover:text-secondary transition-colors w-fit"
               >
                 {pickLocalized(settings.madeByLabel, lang)}
               </a>

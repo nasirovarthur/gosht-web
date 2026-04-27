@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const SUPPORTED_LANGUAGES = ["uz", "ru", "en"];
 const DEFAULT_LANGUAGE = "uz";
+const DEV_HOST = "dev.gosht.uz";
+const DEV_AUTH_LOGIN = "admin";
+const DEV_AUTH_PASSWORD = "admin111";
 
 function extractLanguageFromPathname(pathname: string): string | null {
   const match = pathname.match(/^\/(uz|ru|en)(?=\/|$)/);
@@ -17,6 +20,25 @@ function safeParsePathname(url: string): string | null {
 }
 
 export function proxy(request: NextRequest) {
+  const host = request.headers.get("host")?.toLowerCase().split(":")[0];
+
+  if (host === DEV_HOST) {
+    const authorization = request.headers.get("authorization");
+    const expectedToken = btoa(`${DEV_AUTH_LOGIN}:${DEV_AUTH_PASSWORD}`);
+    const providedToken = authorization?.startsWith("Basic ")
+      ? authorization.slice("Basic ".length).trim()
+      : "";
+
+    if (providedToken !== expectedToken) {
+      return new NextResponse("Authentication required", {
+        status: 401,
+        headers: {
+          "WWW-Authenticate": 'Basic realm="dev.gosht.uz", charset="UTF-8"',
+        },
+      });
+    }
+  }
+
   const pathname = request.nextUrl.pathname;
 
   if (
@@ -31,6 +53,10 @@ export function proxy(request: NextRequest) {
   const pathnameHasLanguage = SUPPORTED_LANGUAGES.some(
     (lang) => pathname.startsWith(`/${lang}/`) || pathname === `/${lang}`
   );
+
+  if (pathnameHasLanguage || pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
 
   const referer = request.headers.get("referer");
   const refererPathname = referer ? safeParsePathname(referer) : null;

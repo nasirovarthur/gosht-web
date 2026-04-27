@@ -1,4 +1,4 @@
-import { client } from "@/lib/sanity";
+import { client, sanityReadOptions } from "@/lib/sanity";
 import { singletonDocumentIds } from "@/sanity/singletons";
 import type { Localized, LocalizedOptional } from "@/types/i18n";
 import type { FeedbackSettingsData } from "@/types/feedback";
@@ -79,9 +79,7 @@ export async function getFeedbackSettings(): Promise<FeedbackSettingsData> {
       {
         documentId: singletonDocumentIds.feedbackSettings,
       },
-      {
-        cache: "no-store",
-      }
+      sanityReadOptions
     );
 
     if (!raw) {

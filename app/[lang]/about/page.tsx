@@ -8,7 +8,7 @@ import { pickLocalized, type LangCode } from '@/types/i18n'
 import { createPageMetadata } from '@/lib/seo/metadata'
 
 const sectionPaddingClass = 'pb-24 md:pb-32 min-[1920px]:pb-36'
-const sectionDividerClass = 'border-t border-white/20 pt-20 md:pt-24 min-[1920px]:pt-28'
+const sectionDividerClass = 'border-t border-strong pt-20 md:pt-24 min-[1920px]:pt-28'
 const brandText = 'GŌSHT GROUP'
 
 function resolveLang(lang: string): LangCode {
@@ -21,6 +21,12 @@ function splitLines(value: string): string[] {
     .map((line) => line.trim())
     .filter(Boolean)
 }
+
+const ABOUT_PAGE_TITLES = {
+  uz: "Gōsht Group haqida",
+  ru: "О компании Gōsht Group",
+  en: "About Gōsht Group",
+} as const;
 
 export async function generateMetadata({
   params,
@@ -133,11 +139,14 @@ export default async function AboutRoute({
   const [titleStart, titleEnd = ''] = firstLineWithMarker.split(`__${brandText}__`)
 
   return (
-    <main className="bg-base pt-[200px] text-white md:pt-[244px]">
+    <main className="bg-base pt-[200px] text-primary md:pt-[244px]">
+      <section className="sr-only">
+        <h1>{ABOUT_PAGE_TITLES[langCode]}</h1>
+      </section>
       <section className={`page-x min-[1920px]:min-h-[956px] ${sectionPaddingClass}`}>
         <div className="w-full">
           <Reveal as="header" className="w-full" distance={34} blur={8}>
-            <div className="text-[32px] leading-[1.01] tracking-[-0.03em] font-light font-serif uppercase text-white/96 md:text-[40px] xl:text-[46px] min-[1920px]:text-[50px]">
+            <div className="text-[32px] leading-[1.01] tracking-[-0.03em] font-light font-serif uppercase text-primary md:text-[40px] xl:text-[46px] min-[1920px]:text-[50px]">
               <p className="text-center md:text-right">
                 {titleStart}
                 {heroFirstLine.includes(brandText) ? (
@@ -155,7 +164,7 @@ export default async function AboutRoute({
 
           <div className="mt-12 grid grid-cols-1 gap-8 md:mt-[120px] lg:grid-cols-[minmax(520px,0.9fr)_minmax(0,1.15fr)_300px] xl:grid-cols-[minmax(560px,0.92fr)_minmax(0,1.18fr)_320px] min-[1920px]:grid-cols-[680px_minmax(0,1fr)_420px] lg:gap-10 xl:gap-12 min-[1920px]:gap-16">
             <Reveal as="figure" className="order-1" delay={70} distance={42} blur={10}>
-              <div className="relative aspect-[680/760] overflow-hidden border border-white/10 bg-card">
+              <div className="relative aspect-[680/760] overflow-hidden border border-subtle bg-card">
                 <Image
                   src={aboutData.heroSection.primaryImage}
                   alt={t.heroCaption}
@@ -164,7 +173,7 @@ export default async function AboutRoute({
                   sizes="(max-width: 1024px) 100vw, 680px"
                 />
               </div>
-              <figcaption className="mt-3 text-[16px] leading-snug text-white/78 md:text-[18px] min-[1920px]:text-[20px]">
+              <figcaption className="mt-3 text-[16px] leading-snug text-secondary md:text-[18px] min-[1920px]:text-[20px]">
                 {t.heroCaption}
               </figcaption>
             </Reveal>
@@ -176,14 +185,14 @@ export default async function AboutRoute({
               blur={10}
             >
               <div className="max-w-[980px]">
-                <p className="mt-1 text-[22px] leading-[1.18] font-light text-white/84 md:mt-0">
+                <p className="mt-1 text-[22px] leading-[1.18] font-light text-secondary md:mt-0">
                   {t.heroBodyFirst}
                 </p>
-                <p className="mt-4 text-[22px] leading-[1.18] font-light text-white/84 md:mt-5">
+                <p className="mt-4 text-[22px] leading-[1.18] font-light text-secondary md:mt-5">
                   {t.heroBodySecond}
                 </p>
 
-                <div className="mt-10 max-w-[980px] text-[36px] leading-[0.95] tracking-[-0.03em] font-light font-serif uppercase text-white/94 md:mt-16 md:text-[40px] xl:mt-28 xl:text-[46px] min-[1920px]:mt-36 min-[1920px]:text-[50px]">
+                <div className="mt-10 max-w-[980px] text-[36px] leading-[0.95] tracking-[-0.03em] font-light font-serif uppercase text-primary md:mt-16 md:text-[40px] xl:mt-28 xl:text-[46px] min-[1920px]:mt-36 min-[1920px]:text-[50px]">
                   {t.heroAccentLines.map((line) => (
                     <p key={line}>{line}</p>
                   ))}
@@ -198,7 +207,7 @@ export default async function AboutRoute({
               blur={10}
             >
               <div className="mx-auto max-w-[320px] lg:max-w-none">
-                <div className="relative aspect-square overflow-hidden border border-white/10 bg-card">
+                <div className="relative aspect-square overflow-hidden border border-subtle bg-card">
                   <Image
                     src={aboutData.heroSection.secondaryImage}
                     alt={t.heroBodyFirst}
@@ -220,7 +229,7 @@ export default async function AboutRoute({
             distance={34}
             blur={8}
           >
-            <p className="max-w-[320px] text-[20px] leading-[1.18] text-white/88">
+            <p className="max-w-[320px] text-[20px] leading-[1.18] text-secondary">
               {t.founderAside}
             </p>
           </Reveal>
@@ -229,26 +238,26 @@ export default async function AboutRoute({
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-[460px_500px] lg:justify-end xl:grid-cols-[500px_560px] min-[1920px]:grid-cols-[640px_760px]">
               <Reveal as="div" delay={80} distance={38} blur={10}>
                 <div className="ml-auto max-w-[640px] text-center lg:text-right">
-                  <p className="text-[22px] leading-[1.16] text-white/90">
+                  <p className="text-[22px] leading-[1.16] text-secondary">
                     {t.founderLeadOne}
                   </p>
-                  <p className="mt-5 text-[22px] leading-[1.16] text-white/90">
+                  <p className="mt-5 text-[22px] leading-[1.16] text-secondary">
                     {t.founderLeadTwo}
                   </p>
                 </div>
 
                 <div className="mt-16 ml-auto text-center md:mt-20 lg:text-right min-[1920px]:mt-[286px]">
-                  <h2 className="text-[38px] leading-[0.98] tracking-[-0.03em] font-light font-serif uppercase text-white md:text-[48px] xl:text-[52px] min-[1920px]:text-[64px]">
+                  <h2 className="text-[38px] leading-[0.98] tracking-[-0.03em] font-light font-serif uppercase text-primary md:text-[48px] xl:text-[52px] min-[1920px]:text-[64px]">
                     {t.founderName}
                   </h2>
-                  <p className="mt-5 text-[18px] tracking-[0.22em] uppercase text-white/48 md:text-[19px] min-[1920px]:text-[20px]">
+                  <p className="mt-5 text-[18px] tracking-[0.22em] uppercase text-muted md:text-[19px] min-[1920px]:text-[20px]">
                     {t.founderRole}
                   </p>
                 </div>
               </Reveal>
 
               <Reveal as="figure" className="flex flex-col items-end" delay={160} distance={42} blur={10}>
-                <div className="relative aspect-[720/560] w-full overflow-hidden border border-white/10 bg-card">
+                <div className="relative aspect-[720/560] w-full overflow-hidden border border-subtle bg-card">
                   <Image
                     src={aboutData.founderSection.image}
                     alt={t.founderCaption}
@@ -257,7 +266,7 @@ export default async function AboutRoute({
                     sizes="(max-width: 1024px) 100vw, 720px"
                   />
                 </div>
-                <figcaption className="mt-3 w-max text-right text-[16px] leading-snug text-white/80 md:text-[18px] min-[1920px]:text-[20px]">
+                <figcaption className="mt-3 w-max text-right text-[16px] leading-snug text-secondary md:text-[18px] min-[1920px]:text-[20px]">
                   {t.founderCaption}
                 </figcaption>
               </Reveal>
@@ -267,14 +276,14 @@ export default async function AboutRoute({
 
         <div className={`mt-20 grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-12 min-[1920px]:mt-24 min-[1920px]:gap-16 ${sectionDividerClass}`}>
           <Reveal as="div" distance={34} blur={8}>
-            <h3 className="max-w-[980px] text-[34px] leading-[0.96] tracking-[-0.03em] font-light font-serif uppercase text-white md:text-[46px] min-[1920px]:text-[58px]">
+            <h2 className="max-w-[980px] text-[34px] leading-[0.96] tracking-[-0.03em] font-light font-serif uppercase text-primary md:text-[46px] min-[1920px]:text-[58px]">
               {t.brandsTitleLines.map((line) => (
                 <span key={line} className="block">
                   {line}
                 </span>
               ))}
-            </h3>
-            <p className="mt-7 max-w-[680px] text-[20px] leading-[1.24] text-white/88">
+            </h2>
+            <p className="mt-7 max-w-[680px] text-[20px] leading-[1.24] text-secondary">
               {t.brandsText}
             </p>
           </Reveal>
@@ -307,8 +316,8 @@ export default async function AboutRoute({
               </div>
             ) : null}
 
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-[linear-gradient(90deg,#0D0D0D_0%,rgba(13,13,13,0)_100%)] md:w-24 min-[1920px]:w-32" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-[linear-gradient(270deg,#0D0D0D_0%,rgba(13,13,13,0)_100%)] md:w-24 min-[1920px]:w-32" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-[linear-gradient(90deg,var(--color-bg)_0%,rgba(13,13,13,0)_100%)] md:w-24 min-[1920px]:w-32" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-[linear-gradient(270deg,var(--color-bg)_0%,rgba(13,13,13,0)_100%)] md:w-24 min-[1920px]:w-32" />
           </Reveal>
         </div>
       </section>
@@ -316,7 +325,7 @@ export default async function AboutRoute({
       <section className={`page-x ${sectionPaddingClass}`}>
         <div className={`grid grid-cols-1 gap-12 lg:grid-cols-[minmax(520px,0.96fr)_minmax(0,1fr)] xl:grid-cols-[600px_minmax(0,1fr)] min-[1920px]:grid-cols-[760px_minmax(0,1fr)] lg:gap-12 xl:gap-14 min-[1920px]:gap-20 ${sectionDividerClass}`}>
           <Reveal as="figure" className="flex items-start gap-4 min-[1920px]:gap-5" distance={42} blur={10}>
-            <div className="relative aspect-[760/540] w-full overflow-hidden border border-white/10 bg-card">
+            <div className="relative aspect-[760/540] w-full overflow-hidden border border-subtle bg-card">
               <Image
                 src={aboutData.systemSection.image}
                 alt={t.systemCaption}
@@ -325,7 +334,7 @@ export default async function AboutRoute({
                 sizes="(max-width: 1024px) 100vw, 760px"
               />
             </div>
-            <figcaption className="hidden self-start pt-1 text-[18px] leading-none text-white/80 lg:block [writing-mode:vertical-rl] [text-orientation:mixed] min-[1920px]:text-[20px]">
+            <figcaption className="hidden self-start pt-1 text-[18px] leading-none text-secondary lg:block [writing-mode:vertical-rl] [text-orientation:mixed] min-[1920px]:text-[20px]">
               {t.systemCaption}
             </figcaption>
           </Reveal>
@@ -338,13 +347,13 @@ export default async function AboutRoute({
               distance={36}
               blur={8}
             >
-              <h3 className="text-[34px] leading-[0.96] tracking-[-0.03em] font-light font-serif uppercase text-white md:text-[42px] xl:text-[46px] min-[1920px]:text-[58px]">
+              <h2 className="text-[34px] leading-[0.96] tracking-[-0.03em] font-light font-serif uppercase text-primary md:text-[42px] xl:text-[46px] min-[1920px]:text-[58px]">
                 {t.systemTitle.map((line) => (
                   <span key={line} className="block">
                     {line}
                   </span>
                 ))}
-              </h3>
+              </h2>
             </Reveal>
 
             <Reveal
@@ -354,7 +363,7 @@ export default async function AboutRoute({
               distance={34}
               blur={8}
             >
-              <p className="text-[20px] leading-[1.18] text-white/88">
+              <p className="text-[20px] leading-[1.18] text-secondary">
                 {t.systemText}
               </p>
             </Reveal>

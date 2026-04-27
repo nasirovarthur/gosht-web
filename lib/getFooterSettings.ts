@@ -1,5 +1,5 @@
 import { cache } from 'react'
-import { client } from '@/lib/sanity'
+import { client, sanityReadOptions } from '@/lib/sanity'
 import { singletonDocumentIds } from '@/sanity/singletons'
 import type { Localized, LocalizedOptional } from '@/types/i18n'
 
@@ -157,9 +157,13 @@ export const getFooterSettings = cache(async (): Promise<FooterSettingsData> => 
       }
     `
 
-    const raw = await client.fetch<FooterSettingsRaw | null>(query, {
-      documentId: singletonDocumentIds.footerSettings,
-    })
+    const raw = await client.fetch<FooterSettingsRaw | null>(
+      query,
+      {
+        documentId: singletonDocumentIds.footerSettings,
+      },
+      sanityReadOptions
+    )
 
     if (!raw) {
       return fallbackSettings

@@ -152,7 +152,7 @@ export default function YandexMap({
           href={mapLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute right-4 bottom-4 px-4 py-2 text-ui text-white border border-white/20 bg-black/55 hover:bg-black/75 transition-colors"
+          className="absolute right-4 bottom-4 px-4 py-2 text-ui text-primary border border-strong bg-panel hover:bg-card transition-colors"
         >
           {openMapLabel}
         </a>
@@ -166,7 +166,7 @@ export default function YandexMap({
         href={mapLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-white hover:text-white/70 transition-colors text-base lg:text-lg font-light border-b border-white/20 hover:border-white/40 pb-1"
+        className="text-primary hover:text-secondary transition-colors text-base lg:text-lg font-light border-b border-strong hover:border-[color:var(--text-secondary)] pb-1"
       >
         {openMapLabel}
       </a>

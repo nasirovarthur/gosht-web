@@ -299,7 +299,10 @@ export default function JobsApplyDrawer({
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ maxWidth: "min(100vw, 700px)", width: "min(100vw, 700px)" }}
-        aria-hidden={!isOpen}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="jobs-apply-drawer-title"
+        inert={!isOpen}
       >
         <div className="flex items-center justify-between w-full h-[80px] md:h-[100px] page-x flex-shrink-0 border-b border-white/5 relative z-20">
           <button
@@ -321,7 +324,10 @@ export default function JobsApplyDrawer({
           <div className={`max-w-[560px] ${isSuccess ? "w-full text-center" : ""}`}>
             {isSuccess ? (
               <div>
-                <p className="text-[24px] md:text-[32px] font-light font-serif uppercase tracking-[0.02em] text-white/92">
+                <p
+                  id="jobs-apply-drawer-title"
+                  className="text-[24px] md:text-[32px] font-light font-serif uppercase tracking-[0.02em] text-white/92"
+                >
                   {pickLocalized(ui.successTitle, lang)}
                 </p>
                 <p className="mt-3 text-[14px] md:text-[16px] leading-relaxed text-white/62">
@@ -330,7 +336,10 @@ export default function JobsApplyDrawer({
               </div>
             ) : (
               <>
-                <p className="text-[22px] md:text-[26px] font-light font-serif uppercase tracking-[0.02em] text-white/92">
+                <p
+                  id="jobs-apply-drawer-title"
+                  className="text-[22px] md:text-[26px] font-light font-serif uppercase tracking-[0.02em] text-white/92"
+                >
                   {title}
                 </p>
                 {vacancyTitle ? (
@@ -424,6 +433,7 @@ export default function JobsApplyDrawer({
                         variant="symbol"
                         symbol="+"
                         className="h-7 w-7"
+                        ariaLabel={pickLocalized(ui.attach, lang)}
                         onClick={() => fileInputRef.current?.click()}
                       />
                     </div>
@@ -498,6 +508,7 @@ export default function JobsApplyDrawer({
                           forceHover={isSubmitHovered && !isSubmitting}
                           className="scale-[0.48] md:scale-[0.6] origin-left -ml-2 md:-ml-1 shrink-0"
                           disabled={isSubmitting}
+                          ariaLabel={isSubmitting ? pickLocalized(ui.sending, lang) : pickLocalized(ui.send, lang)}
                           onClick={() => formRef.current?.requestSubmit()}
                         />
                       </div>

@@ -11,6 +11,7 @@ import { pickLocalized, translations } from '@/types/i18n';
 interface RestaurantDetailProps {
   restaurant: {
     name: string;
+    slug?: string;
     projectType?: "restaurant" | "barbershop";
     primaryInfoValue?: string;
     branchName: string;
@@ -32,7 +33,27 @@ interface RestaurantDetailProps {
       description?: string;
       image?: string;
     };
+    deliveryMenuEnabled?: boolean;
   };
+}
+
+const EXCLUDED_GOSHT_MARKERS = ['mahalla', 'doner', 'blackstar', 'topor', 'catering', 'kids', 'lavka'];
+
+function normalizeProjectToken(value?: string): string {
+  return (value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '');
+}
+
+function isGoshtProject(projectName?: string, branchName?: string): boolean {
+  const projectToken = normalizeProjectToken(projectName);
+  const branchToken = normalizeProjectToken(branchName);
+  const combined = `${projectToken} ${branchToken}`.trim();
+
+  if (!combined.includes('gosht')) return false;
+  return !EXCLUDED_GOSHT_MARKERS.some((marker) => combined.includes(marker));
 }
 
 function getMapCenter(mapEmbedUrl?: string, mapLink?: string): [number, number] {
@@ -72,6 +93,9 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
   const hasGallery = Array.isArray(restaurant.gallery) && restaurant.gallery.length > 0;
   const menuFiles = Array.isArray(restaurant.menuFiles) ? restaurant.menuFiles.filter(Boolean) : [];
   const hasMenuLink = menuFiles.length > 0;
+  const showActionButtons = isGoshtProject(restaurant.name, restaurant.branchName);
+  const deliveryMenuEnabled = restaurant.deliveryMenuEnabled === true;
+  const deliveryMenuCtaHref = restaurant.slug ? `/${lang}/restaurants/${restaurant.slug}/menu` : '#';
   const primaryInfoLabel =
     restaurant.projectType === 'barbershop'
       ? lang === 'ru'
@@ -81,9 +105,12 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
           : 'FORMAT'
       : pickLocalized(t.cuisine, lang);
   const primaryInfoValue = (restaurant.primaryInfoValue || restaurant.name || '').trim();
+  const openBookingDrawer = () => {
+    window.dispatchEvent(new CustomEvent('open-feedback-drawer'));
+  };
 
   return (
-    <main className="min-h-screen bg-base pt-[104px] pb-24 text-white md:pt-[124px] md:pb-28">
+    <main className="min-h-screen bg-base pt-[104px] pb-24 text-primary md:pt-[124px] md:pb-28">
       <div
         ref={scrollContainerRef}
         className="overflow-x-hidden overflow-y-visible lg:overflow-x-auto overscroll-x-contain"
@@ -104,33 +131,33 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
 
                   <div className="mt-10 grid grid-cols-1 gap-7 md:grid-cols-2 xl:grid-cols-3 xl:gap-9">
                     <div>
-                      <p className="mb-3 text-label font-light text-white/40">
+                      <p className="mb-3 text-label font-light text-muted">
                         {primaryInfoLabel}
                       </p>
-                      <p className="text-body-lg font-light text-white break-words">
+                      <p className="text-body-lg font-light text-primary break-words">
                         {primaryInfoValue}
                       </p>
                     </div>
 
                     <div>
-                      <p className="mb-3 text-label font-light text-white/40">
+                      <p className="mb-3 text-label font-light text-muted">
                         {pickLocalized(t.averageCheck, lang)}
                       </p>
-                      <p className="text-body-lg font-light text-white break-words">
+                      <p className="text-body-lg font-light text-primary break-words">
                         {restaurant.averageCheck}
                       </p>
 
-                      <div className="mt-7 border-t border-white/10 pt-7">
-                        <p className="mb-3 text-label font-light text-white/40">
+                      <div className="mt-7 border-t border-subtle pt-7">
+                        <p className="mb-3 text-label font-light text-muted">
                           {pickLocalized(t.addressContacts, lang)}
                         </p>
-                        <p className="mb-3 text-body font-light leading-relaxed text-white break-words">
+                        <p className="mb-3 text-body font-light leading-relaxed text-primary break-words">
                           {restaurant.address}
                         </p>
                         {restaurant.phone ? (
                           <a
                             href={`tel:${restaurant.phone}`}
-                            className="inline-block border-b border-white/20 pb-1 text-body font-light text-white transition-colors hover:border-white/40 hover:text-white/75"
+                            className="inline-block border-b border-strong pb-1 text-body font-light text-primary transition-colors hover:border-[color:var(--text-secondary)] hover:text-secondary"
                           >
                             {restaurant.phone}
                           </a>
@@ -139,11 +166,11 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                     </div>
 
                     <div>
-                      <p className="mb-3 text-label font-light text-white/40">
+                      <p className="mb-3 text-label font-light text-muted">
                         {pickLocalized(t.links, lang)}
                       </p>
                       <div className="space-y-3">
-                        <p className="text-body font-light text-white/75">
+                        <p className="text-body font-light text-secondary">
                           {pickLocalized(t.workingHours, lang)}: {restaurant.workingHours}
                         </p>
                         {hasMenuLink
@@ -153,7 +180,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                                 href={menuUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-block border-b border-white/20 pb-1 text-body font-light text-white transition-colors hover:border-white/40 hover:text-white/75"
+                                className="inline-block border-b border-strong pb-1 text-body font-light text-primary transition-colors hover:border-[color:var(--text-secondary)] hover:text-secondary"
                               >
                                 {menuFiles.length === 1
                                   ? pickLocalized(t.menu, lang)
@@ -181,7 +208,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                       </div>
                     </>
                   ) : (
-                    <div className="flex aspect-[16/10] lg:aspect-[5/6] w-full items-center justify-center border border-white/10 bg-card px-6 text-center text-body text-white/48">
+                    <div className="flex aspect-[16/10] lg:aspect-[5/6] w-full items-center justify-center border border-subtle bg-card px-6 text-center text-body text-muted">
                       {lang === 'ru'
                         ? 'Добавьте изображения в галерею филиала в Sanity.'
                         : lang === 'en'
@@ -194,7 +221,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
             </div>
           </section>
 
-          <section className="page-x border-t border-white/10 pt-12 lg:w-screen lg:flex-shrink-0">
+          <section className="page-x border-t border-subtle pt-12 lg:w-screen lg:flex-shrink-0">
             <div className="w-full grid grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1.04fr)_minmax(0,0.96fr)] xl:gap-14">
               <Reveal as="div" distance={34} blur={8}>
                 <h2 className="max-w-[18ch] font-light uppercase font-serif tracking-[-0.025em] leading-[1.06] text-[clamp(34px,3.6vw,62px)]">
@@ -204,20 +231,20 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
 
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10 xl:gap-12">
                 <Reveal as="div" delay={90} distance={30} blur={8}>
-                  <p className="text-body font-light leading-relaxed text-white/72">
+                  <p className="text-body font-light leading-relaxed text-secondary">
                     {restaurant.descriptionExtended || pickLocalized(t.detailsFallback, lang)}
                   </p>
-                  <p className="mt-6 text-body font-light leading-relaxed text-white/72">
+                  <p className="mt-6 text-body font-light leading-relaxed text-secondary">
                     {pickLocalized(t.detailsSecondaryFallback, lang)}
                   </p>
                 </Reveal>
 
                 <Reveal as="div" delay={150} distance={30} blur={8}>
-                  <p className="text-body font-light leading-relaxed text-white/72">
+                  <p className="text-body font-light leading-relaxed text-secondary">
                     {restaurant.descriptionAdditional || pickLocalized(t.extraFallback, lang)}
                   </p>
                   {restaurant.yearOpened && (
-                    <p className="mt-8 pt-4 text-label font-light text-white/40 md:mt-12">
+                    <p className="mt-8 pt-4 text-label font-light text-muted md:mt-12">
                       {pickLocalized(t.openedYear, lang)}: {restaurant.yearOpened}
                     </p>
                   )}
@@ -227,11 +254,11 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
           </section>
 
           {hasChefBlock ? (
-            <section className="page-x border-t border-white/10 pt-12 lg:w-screen lg:flex-shrink-0">
+            <section className="page-x border-t border-subtle pt-12 lg:w-screen lg:flex-shrink-0">
               <div className="w-full grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(280px,400px)_minmax(0,1fr)] xl:grid-cols-[minmax(320px,460px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(360px,560px)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
                 {chefImage ? (
                   <Reveal as="div" distance={34} blur={8}>
-                    <div className="relative aspect-[3/4] w-full max-w-[400px] xl:max-w-[460px] 2xl:max-w-[560px] overflow-hidden border border-white/10 bg-card">
+                    <div className="relative aspect-[3/4] w-full max-w-[400px] xl:max-w-[460px] 2xl:max-w-[560px] overflow-hidden border border-subtle bg-card">
                       <Image
                         src={chefImage}
                         alt={chefName || (lang === 'ru' ? 'Ведущий специалист' : lang === 'en' ? 'Lead specialist' : 'Bosh mutaxassis')}
@@ -245,17 +272,17 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
 
                 <Reveal as="div" delay={110} variant="right" distance={34}>
                   {chefTitle ? (
-                    <p className="text-label font-light text-white/40">
+                    <p className="text-label font-light text-muted">
                       {chefTitle}
                     </p>
                   ) : null}
                   {chefName ? (
-                    <h3 className="mt-5 text-title-lg font-light text-white">
+                    <h3 className="mt-5 text-title-lg font-light text-primary">
                       {chefName}
                     </h3>
                   ) : null}
                   {chefDescription ? (
-                    <p className="mt-6 max-w-[54ch] text-body font-light leading-relaxed text-white/72">
+                    <p className="mt-6 max-w-[54ch] text-body font-light leading-relaxed text-secondary">
                       {chefDescription}
                     </p>
                   ) : null}
@@ -264,7 +291,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
             </section>
           ) : null}
 
-          <section className="page-x border-t border-white/10 pt-12 lg:w-screen lg:flex-shrink-0">
+          <section className="page-x border-t border-subtle pt-12 lg:w-screen lg:flex-shrink-0">
             <div className="w-full">
               <Reveal as="div" distance={26} blur={6}>
                 {restaurant.mapEmbedUrl ? (
@@ -277,12 +304,12 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                     height="min(72vh, 760px)"
                   />
                 ) : (
-                  <div className="flex min-h-[420px] items-center justify-center border border-white/10 bg-card">
+                  <div className="flex min-h-[420px] items-center justify-center border border-subtle bg-card">
                     <a
                       href={restaurant.mapLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="border-b border-white/20 pb-1 text-base font-light text-white transition-colors hover:border-white/40 hover:text-white/75 lg:text-lg"
+                      className="border-b border-strong pb-1 text-base font-light text-primary transition-colors hover:border-[color:var(--text-secondary)] hover:text-secondary lg:text-lg"
                     >
                       {pickLocalized(t.openMap, lang)}
                     </a>
@@ -293,6 +320,72 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
           </section>
         </div>
       </div>
+
+      {showActionButtons ? (
+        <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-30 px-4 sm:left-7 sm:right-auto sm:px-0 md:bottom-7">
+          <div className="pointer-events-auto flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <a
+              href={deliveryMenuEnabled ? deliveryMenuCtaHref : undefined}
+              aria-disabled={!deliveryMenuEnabled}
+              onClick={(event) => {
+                if (!deliveryMenuEnabled) {
+                  event.preventDefault();
+                }
+              }}
+              className={`group inline-flex w-full items-center justify-center gap-3 md:gap-4 pl-4 pr-5 md:pl-6 md:pr-8 h-[44px] md:h-[60px] border rounded-full sm:w-auto sm:justify-start ${
+                deliveryMenuEnabled
+                  ? 'border-[color:var(--interactive-strong)] bg-[color:var(--interactive-strong)] text-inverse transition-[transform,box-shadow,opacity,filter] duration-300 active:scale-95 hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_10px_24px_rgba(0,0,0,0.22)]'
+                  : 'pointer-events-none border-subtle bg-card text-muted opacity-60'
+              }`}
+            >
+              <svg
+                className="h-[16px] w-[16px] md:h-[24px] md:w-[24px] transition-transform duration-300 group-hover:scale-105"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 13.5H19L17.8 20H6.2L5 13.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M8.5 13.5C8.5 10.5 10.07 8 12 8C13.93 8 15.5 10.5 15.5 13.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+                <path d="M4 13.5H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <span className="text-ui font-light pt-0.5 transition-opacity duration-300 group-hover:opacity-90">
+                {pickLocalized(t.deliveryMenu, lang)}
+              </span>
+            </a>
+
+            <button
+              type="button"
+              onClick={openBookingDrawer}
+              className="group inline-flex w-full items-center justify-center gap-3 md:gap-4 pl-4 pr-5 md:pl-6 md:pr-8 h-[44px] md:h-[60px] border border-subtle rounded-full bg-base text-secondary hover:bg-[color:var(--interactive-hover)] transition-all active:scale-95 sm:w-auto sm:justify-start"
+            >
+              <svg
+                className="h-[16px] w-[16px] md:h-[24px] md:w-[24px] text-muted group-hover:text-primary transition-colors"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect x="3.5" y="4.5" width="17" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M8 2.75V6.25M16 2.75V6.25M3.5 9.5H20.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M8.5 14L11 16.5L15.5 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-ui font-light pt-0.5 text-secondary">
+                {pickLocalized(t.bookTable, lang)}
+              </span>
+            </button>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

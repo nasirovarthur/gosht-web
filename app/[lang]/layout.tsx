@@ -1,10 +1,13 @@
 import { LanguageProvider } from "@/context/LanguageContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import ClientHeader from "@/components/ClientHeader";
 import Footer from "@/components/Footer";
 import { getNavigation } from "@/lib/getNavigation";
 import { getFooterSettings } from "@/lib/getFooterSettings";
 import { getFeedbackSettings } from "@/lib/getFeedbackSettings";
 import type { LangCode } from "@/types/i18n";
+
+export const revalidate = 300;
 
 export default async function LanguageLayout({
   children,
@@ -24,10 +27,12 @@ export default async function LanguageLayout({
   ]);
 
   return (
-    <LanguageProvider initialLang={langCode}>
-      <ClientHeader navItems={navItems} feedbackSettings={feedbackSettings} />
-      {children}
-      <Footer settings={footerSettings} navItems={navItems} />
-    </LanguageProvider>
+    <ThemeProvider initialTheme="dark">
+      <LanguageProvider initialLang={langCode}>
+        <ClientHeader navItems={navItems} feedbackSettings={feedbackSettings} />
+        {children}
+        <Footer settings={footerSettings} navItems={navItems} />
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

@@ -23,12 +23,14 @@ export function LanguageProvider({ children, initialLang = "uz" }: { children: R
   useEffect(() => {
     if (typeof document !== "undefined") {
       persistPreferredLanguage(initialLang);
+      document.documentElement.lang = initialLang;
     }
   }, [initialLang]);
 
   const setLang = (newLang: Language) => {
     if (typeof document !== "undefined") {
       persistPreferredLanguage(newLang);
+      document.documentElement.lang = newLang;
     }
   };
 

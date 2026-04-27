@@ -28,10 +28,10 @@ function EventsEmptyState({
   return (
     <Reveal as="div" className="page-x pt-12 md:pt-16" distance={32} blur={8}>
       <div className="mx-auto flex min-h-[280px] max-w-[920px] flex-col items-center justify-center text-center md:min-h-[340px]">
-        <h2 className="text-[clamp(34px,4vw,62px)] leading-[0.92] tracking-[-0.03em] font-light font-serif uppercase text-white/96">
+        <h2 className="text-[clamp(34px,4vw,62px)] leading-[0.92] tracking-[-0.03em] font-light font-serif uppercase text-primary">
           {title}
         </h2>
-        <p className="mt-6 max-w-[680px] text-[15px] leading-relaxed text-white/58 md:text-[18px]">
+        <p className="mt-6 max-w-[680px] text-[15px] leading-relaxed text-secondary md:text-[18px]">
           {description}
         </p>
       </div>
@@ -45,11 +45,17 @@ function EventsCard({ event, index }: { event: EventItem; index: number }) {
   const title = event.title[lang] || event.title.uz;
   const date = event.date[lang] || event.date.uz;
   const branch = event.branch[lang] || event.branch.uz;
+  const description =
+    event.description[0]?.[lang] ||
+    event.description[0]?.uz ||
+    event.description[0]?.ru ||
+    event.description[0]?.en ||
+    "";
 
   return (
     <Reveal as="article" className="group w-full" delay={Math.min(index, 5) * 80} distance={48} blur={10}>
       <Link href={`/${lang}/events/${event.slug}`} className="block w-full">
-        <div className="relative w-full aspect-[16/10] overflow-hidden bg-card border border-white/10">
+        <div className="relative w-full aspect-[16/10] overflow-hidden bg-card border border-subtle">
           {!imageFailed && (
             <Image
               src={event.image}
@@ -62,15 +68,21 @@ function EventsCard({ event, index }: { event: EventItem; index: number }) {
           )}
         </div>
 
-        <p className="mt-4 flex items-center gap-2 text-[12px] md:text-[13px] tracking-[0.16em] uppercase text-white/45">
+        <p className="mt-4 flex items-center gap-2 text-[12px] md:text-[13px] tracking-[0.16em] uppercase text-muted">
           <span>{date}</span>
-          <span className="text-white/30">•</span>
-          <span className="text-white/55">{branch}</span>
+          <span className="text-muted">•</span>
+          <span className="text-secondary">{branch}</span>
         </p>
 
-        <h3 className="mt-2 uppercase text-[clamp(22px,1.65vw,34px)] leading-[1.05] tracking-[-0.01em] text-white/92 font-light font-serif transition-colors duration-300 group-hover:text-[#AE0E16]">
+        <h3 className="mt-2 uppercase text-[clamp(22px,1.65vw,34px)] leading-[1.05] tracking-[-0.01em] text-primary font-light font-serif transition-colors duration-300 group-hover:text-[#AE0E16]">
           {title}
         </h3>
+
+        {description ? (
+          <p className="mt-3 text-[14px] md:text-[15px] leading-relaxed text-secondary">
+            {description}
+          </p>
+        ) : null}
       </Link>
     </Reveal>
   );
@@ -103,7 +115,7 @@ export default function EventsListingPage({
   };
 
   const menuButtonLikeClass =
-    "group flex items-center h-[40px] md:h-[60px] border border-white/10 rounded-full hover:bg-white/5 transition-all active:scale-95";
+    "group flex items-center h-[40px] md:h-[60px] border border-subtle rounded-full hover:bg-[color:var(--interactive-hover)] transition-all active:scale-95";
   const tabBaseClass =
     "flex items-center h-[40px] md:h-[60px] border rounded-full transition-colors duration-300 active:scale-95";
   const headerUi = {
@@ -144,13 +156,13 @@ export default function EventsListingPage({
       <div className="page-x mb-14 md:mb-16 lg:mb-20">
         <Reveal as="div" className="w-full" distance={34} blur={8}>
           <div className="mx-auto w-full max-w-[1600px]">
-            <span className="text-[12px] uppercase tracking-[0.22em] text-white/34">
+            <span className="text-[12px] uppercase tracking-[0.22em] text-muted">
               {headerUi.eyebrow}
             </span>
-            <h1 className="mt-6 max-w-[1100px] text-[clamp(48px,6vw,118px)] leading-[0.88] tracking-[-0.03em] text-white font-light font-serif">
+            <h1 className="mt-6 max-w-[1100px] text-[clamp(48px,6vw,118px)] leading-[0.88] tracking-[-0.03em] text-primary font-light font-serif">
               {pickLocalized(labels.title, lang)}
             </h1>
-            <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-white/58">
+            <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-secondary">
               {headerUi.intro}
             </p>
             <div className="mt-12 md:mt-14 flex flex-wrap items-center gap-4 md:gap-6">
@@ -167,8 +179,8 @@ export default function EventsListingPage({
                     onClick={() => onTabClick(tab.key)}
                     className={`${tabBaseClass} pl-6 pr-6 md:pl-8 md:pr-8 text-ui font-light pt-0.5 ${
                       isActive
-                        ? "bg-white border-white text-black"
-                        : "bg-transparent border-white/10 text-white/90 hover:bg-white/5"
+                        ? "bg-[color:var(--interactive-strong)] border-[color:var(--interactive-strong)] text-inverse"
+                        : "bg-transparent border-subtle text-secondary hover:bg-[color:var(--interactive-hover)] hover:text-primary"
                     }`}
                   >
                     {tab.label}
@@ -200,7 +212,7 @@ export default function EventsListingPage({
           <button
             type="button"
             onClick={() => setVisibleCount((prev) => prev + 6)}
-            className={`${menuButtonLikeClass} pl-6 pr-6 md:pl-8 md:pr-8 text-ui font-light pt-0.5 text-white/90`}
+            className={`${menuButtonLikeClass} pl-6 pr-6 md:pl-8 md:pr-8 text-ui font-light pt-0.5 text-secondary`}
           >
             {pickLocalized(labels.more, lang)}
           </button>

@@ -24,7 +24,7 @@ export default function RunningLine({ text }: RunningLineProps) {
   const items = Array(4).fill(displayText);
   const separator = (
     <svg
-      className="w-4 h-4 md:w-6 md:h-6 text-white/30 shrink-0"
+      className="w-4 h-4 md:w-6 md:h-6 text-muted shrink-0"
       viewBox="0 0 12 12"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +37,7 @@ export default function RunningLine({ text }: RunningLineProps) {
   return (
     <Reveal
       as="div"
-      className="w-full bg-surface border-y border-white/10 section-y-sm overflow-hidden flex select-none relative z-20"
+      className="w-full min-h-[112px] md:min-h-[180px] bg-surface border-y border-subtle section-y-sm overflow-hidden flex items-center select-none relative z-20 transition-colors duration-300"
       distance={28}
       blur={8}
     >
@@ -46,7 +46,7 @@ export default function RunningLine({ text }: RunningLineProps) {
       <div className="animate-infinite-scroll flex whitespace-nowrap">
         {items.map((item, index) => (
           <div key={index} className="flex items-center mx-4 md:mx-8">
-            <span className="text-marquee text-white">
+            <span className="text-marquee text-primary">
               {item}
             </span>
             <span className="ml-4 md:ml-8 flex items-center">{separator}</span>
@@ -58,7 +58,7 @@ export default function RunningLine({ text }: RunningLineProps) {
       <div className="animate-infinite-scroll flex whitespace-nowrap" aria-hidden="true">
         {items.map((item, index) => (
           <div key={index} className="flex items-center mx-4 md:mx-8">
-            <span className="text-marquee text-white">
+            <span className="text-marquee text-primary">
               {item}
             </span>
             <span className="ml-4 md:ml-8 flex items-center">{separator}</span>

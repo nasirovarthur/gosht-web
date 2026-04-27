@@ -1,6 +1,5 @@
 import "./globals.css";
 import localFont from "next/font/local";
-import Script from "next/script";
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -12,16 +11,6 @@ import { getSiteUrl } from "@/lib/seo/site";
 const robotoSerif = localFont({
   src: [
     {
-      path: './fonts/RobotoSerif_120pt-Thin.woff',
-      weight: '100',
-      style: 'normal',
-    },
-    {
-      path: './fonts/RobotoSerif_120pt-ExtraLight.woff',
-      weight: '200',
-      style: 'normal',
-    },
-    {
       path: './fonts/RobotoSerif_120pt-Light.woff',
       weight: '300',
       style: 'normal',
@@ -31,29 +20,9 @@ const robotoSerif = localFont({
       weight: '400',
       style: 'normal',
     },
-    {
-      path: './fonts/RobotoSerif_120pt-Medium.woff',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: './fonts/RobotoSerif_120pt-SemiBold.woff',
-      weight: '600',
-      style: 'normal',
-    },
-    {
-      path: './fonts/RobotoSerif_120pt-Bold.woff',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: './fonts/RobotoSerif_120pt-Black.woff',
-      weight: '900',
-      style: 'normal',
-    },
   ],
   variable: '--font-roboto-serif',
-  display: 'swap',
+  display: 'optional',
 });
 
 export const metadata: Metadata = {
@@ -95,14 +64,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning>
-      <body className={`${robotoSerif.variable} bg-black text-white antialiased`}>
+    <html lang="uz" data-theme="dark" suppressHydrationWarning>
+      <body className={`${robotoSerif.variable} bg-base text-primary antialiased transition-colors duration-300`}>
         {children}
         <SeoJsonLd data={[getOrganizationSchema(), getWebsiteSchema()]} />
-        <Script
-          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-          strategy="afterInteractive"
-        />
         <Analytics />
         <SpeedInsights />
       </body>

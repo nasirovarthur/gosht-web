@@ -73,10 +73,10 @@ function ProjectLogo({
   }
 
   return (
-    <div className={`relative aspect-square overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(174,14,22,0.22),_transparent_55%),linear-gradient(180deg,_rgba(255,255,255,0.03),_rgba(255,255,255,0.01))] ${className}`}>
+    <div className={`relative aspect-square overflow-hidden border border-subtle bg-[radial-gradient(circle_at_top_left,_rgba(174,14,22,0.22),_transparent_55%),linear-gradient(180deg,_rgba(255,255,255,0.03),_rgba(255,255,255,0.01))] ${className}`}>
       <div className="absolute inset-0 bg-[linear-gradient(135deg,_rgba(174,14,22,0.08),_transparent_46%,_rgba(255,255,255,0.03))]" />
       <div className="relative z-10 flex h-full items-center justify-center p-3 md:p-4">
-        <span className="text-[46px] md:text-[58px] leading-none tracking-[-0.05em] font-light font-serif text-white/88">
+        <span className="text-[46px] md:text-[58px] leading-none tracking-[-0.05em] font-light font-serif text-primary">
           {projectMonogram(name)}
         </span>
       </div>
@@ -231,36 +231,36 @@ export default function RestaurantsDirectoryPage({
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-base pt-[200px] pb-24 text-white md:pt-[244px] md:pb-28">
+    <section className="relative min-h-screen overflow-hidden bg-base pt-[200px] pb-24 text-primary md:pt-[244px] md:pb-28">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-[-16%] top-[8%] h-[440px] w-[440px] rounded-full bg-[#AE0E16]/8 blur-[150px]" />
-        <div className="absolute right-[-12%] top-[20%] h-[420px] w-[420px] rounded-full bg-white/[0.03] blur-[150px]" />
+        <div className="absolute right-[-12%] top-[20%] h-[420px] w-[420px] rounded-full bg-[color:rgba(255,255,255,0.03)] blur-[150px] dark:bg-white/[0.03]" />
       </div>
 
       <div className="page-x relative z-10">
         <div className="mx-auto max-w-[1600px]">
           <Reveal as="header" className="max-w-[1100px]" distance={38} blur={8}>
-            <span className="text-[12px] uppercase tracking-[0.22em] text-white/34">
+            <span className="text-[12px] uppercase tracking-[0.22em] text-muted">
               {ui.eyebrow}
             </span>
-            <h1 className="mt-6 text-[clamp(48px,6vw,118px)] leading-[0.88] tracking-[-0.03em] font-light font-serif text-white">
+            <h1 className="mt-6 text-[clamp(48px,6vw,118px)] leading-[0.88] tracking-[-0.03em] font-light font-serif text-primary">
               {ui.title}
             </h1>
-            <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-white/58">
+            <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-secondary">
               {ui.intro}
             </p>
           </Reveal>
 
-          <div className="mt-16 border-t border-white/10 pt-8 md:pt-10 xl:grid xl:grid-cols-[280px_minmax(0,1fr)] xl:gap-14">
+          <div className="mt-16 border-t border-subtle pt-8 md:pt-10 xl:grid xl:grid-cols-[280px_minmax(0,1fr)] xl:gap-14">
             <Reveal
               as="aside"
-              className="xl:sticky xl:top-[138px] xl:self-start xl:border-r xl:border-white/10 xl:pr-10"
+              className="xl:sticky xl:top-[138px] xl:self-start xl:border-r xl:border-subtle xl:pr-10"
               delay={90}
               distance={30}
               blur={6}
             >
               <div>
-                <p className="mb-6 text-[12px] uppercase tracking-[0.2em] text-white/34">
+                <p className="mb-6 text-[12px] uppercase tracking-[0.2em] text-muted">
                   {ui.projectsLabel}
                 </p>
 
@@ -274,13 +274,13 @@ export default function RestaurantsDirectoryPage({
                         key={project.id}
                         type="button"
                         onClick={() => handleProjectChange(project.id)}
-                        className={`group relative flex w-full items-start gap-4 border-b border-white/10 py-4 pl-5 text-left transition-all duration-300 ${
-                          isActive ? 'text-white' : 'text-white/52 hover:text-white/78'
+                        className={`group relative flex w-full items-start gap-4 border-b border-subtle py-4 pl-5 text-left transition-all duration-300 ${
+                          isActive ? 'text-primary' : 'text-muted hover:text-secondary'
                         }`}
                       >
                         <span
                           className={`absolute left-0 top-4 bottom-4 w-px transition-all duration-300 ${
-                            isActive ? 'bg-[#AE0E16]' : 'bg-transparent group-hover:bg-white/18'
+                            isActive ? 'bg-[#AE0E16]' : 'bg-transparent group-hover:bg-[color:var(--border-strong)]'
                           }`}
                         />
                         <ProjectLogo
@@ -292,7 +292,7 @@ export default function RestaurantsDirectoryPage({
                           <span className="block text-[24px] leading-[1.02] tracking-[-0.02em] font-light font-serif">
                             {projectName}
                           </span>
-                          <span className="mt-3 block text-[11px] uppercase tracking-[0.18em] text-white/32">
+                          <span className="mt-3 block text-[11px] uppercase tracking-[0.18em] text-muted">
                             {formatBranchesCount(project.branches.length, lang)}
                           </span>
                         </span>
@@ -306,21 +306,21 @@ export default function RestaurantsDirectoryPage({
             <div className="mt-10 min-w-0 xl:mt-0">
               <Reveal
                 as="div"
-                className="flex flex-wrap items-center justify-between gap-6 border-b border-white/10 pb-6"
+                className="flex flex-wrap items-center justify-between gap-6 border-b border-subtle pb-6"
                 delay={120}
                 distance={28}
                 blur={6}
               >
                 <div>
-                  <h2 className="text-[clamp(28px,3.4vw,56px)] leading-[0.94] tracking-[-0.03em] font-light font-serif text-white">
+                  <h2 className="text-[clamp(28px,3.4vw,56px)] leading-[0.94] tracking-[-0.03em] font-light font-serif text-primary">
                     {activeProjectName}
                   </h2>
-                  <p className="mt-3 text-[12px] uppercase tracking-[0.2em] text-white/30">
+                  <p className="mt-3 text-[12px] uppercase tracking-[0.2em] text-muted">
                     {formatBranchesCount(activeProjectBranches.length, lang)}
                   </p>
                 </div>
 
-                <div className="inline-flex rounded-full border border-white/10 bg-white/[0.02] p-1">
+                <div className="inline-flex rounded-full border border-subtle bg-[color:var(--interactive-bg)] p-1">
                   {(['list', 'map'] as const).map((mode) => {
                     const isActive = activeView === mode;
 
@@ -331,8 +331,8 @@ export default function RestaurantsDirectoryPage({
                         onClick={() => setActiveView(mode)}
                         className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] transition-colors ${
                           isActive
-                            ? 'bg-white text-black'
-                            : 'text-white/60 hover:text-white'
+                            ? 'bg-[color:var(--interactive-strong)] text-inverse'
+                            : 'text-secondary hover:text-primary'
                         }`}
                       >
                         {mode === 'list' ? (
@@ -348,7 +348,7 @@ export default function RestaurantsDirectoryPage({
               </Reveal>
 
               {!effectiveProject ? (
-                <div className="border-b border-white/10 py-20 text-[16px] leading-relaxed text-white/52">
+                <div className="border-b border-subtle py-20 text-[16px] leading-relaxed text-secondary">
                   {ui.noBranches}
                 </div>
               ) : activeView === 'list' ? (
@@ -369,13 +369,13 @@ export default function RestaurantsDirectoryPage({
                         <Reveal
                           key={branch.id}
                           as="article"
-                          className="border-b border-white/10 py-8 md:py-10"
+                          className="border-b border-subtle py-8 md:py-10"
                           delay={Math.min(index, 4) * 80}
                           distance={34}
                           blur={8}
                         >
                           <div className="grid gap-8 lg:grid-cols-[minmax(280px,420px)_minmax(0,1fr)] lg:gap-10">
-                            <Link href={href} className="group relative block min-h-[240px] overflow-hidden border border-white/10 bg-card">
+                            <Link href={href} className="group relative block min-h-[240px] overflow-hidden border border-subtle bg-card">
                               {branch.cardImage ? (
                                 <Image
                                   src={branch.cardImage}
@@ -390,11 +390,11 @@ export default function RestaurantsDirectoryPage({
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-start justify-between gap-5">
                                 <div>
-                                  <span className="inline-flex items-center gap-2 text-[12px] tracking-[0.08em] text-white/42">
+                                  <span className="inline-flex items-center gap-2 text-[12px] tracking-[0.08em] text-muted">
                                     <IconLocation className="h-3.5 w-3.5" />
                                     {cityLabel(branch.city, lang)}
                                   </span>
-                                  <h3 className="mt-4 text-[clamp(30px,3vw,54px)] leading-[0.94] tracking-[-0.03em] font-light font-serif text-white">
+                                  <h3 className="mt-4 text-[clamp(30px,3vw,54px)] leading-[0.94] tracking-[-0.03em] font-light font-serif text-primary">
                                     {title}
                                   </h3>
                                 </div>
@@ -405,9 +405,9 @@ export default function RestaurantsDirectoryPage({
                                   {features.map((item) => (
                                     <span
                                       key={item}
-                                      className="inline-flex items-center gap-2 bg-white/[0.04] px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-white/54"
+                                      className="inline-flex items-center gap-2 bg-[color:var(--interactive-hover)] px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-secondary"
                                     >
-                                      <span className="h-1.5 w-1.5 rounded-full bg-white/35" />
+                                      <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--text-muted)]" />
                                       {item}
                                     </span>
                                   ))}
@@ -416,23 +416,23 @@ export default function RestaurantsDirectoryPage({
 
                               <div className="mt-8 grid gap-6 md:grid-cols-3 md:gap-8">
                                 <div>
-                                  <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-white/30">
+                                  <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted">
                                     <IconLocation className="h-3.5 w-3.5" />
                                     {ui.address}
                                   </p>
-                                  <p className="mt-3 text-[15px] leading-relaxed text-white/82">
+                                  <p className="mt-3 text-[15px] leading-relaxed text-secondary">
                                     {address}
                                   </p>
                                 </div>
 
                                 <div>
-                                  <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-white/30">
+                                  <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted">
                                     <IconPhone className="h-3.5 w-3.5" />
                                     {ui.contacts}
                                   </p>
-                                  <div className="mt-3 flex flex-col gap-2 text-[15px] leading-relaxed text-white/82">
+                                  <div className="mt-3 flex flex-col gap-2 text-[15px] leading-relaxed text-secondary">
                                     {branch.phone ? (
-                                      <a href={`tel:${branch.phone}`} className="transition-colors hover:text-white">
+                                      <a href={`tel:${branch.phone}`} className="transition-colors hover:text-primary">
                                         {branch.phone}
                                       </a>
                                     ) : null}
@@ -441,11 +441,11 @@ export default function RestaurantsDirectoryPage({
                                 </div>
 
                                 <div>
-                                  <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-white/30">
+                                  <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted">
                                     <IconWallet className="h-3.5 w-3.5" />
                                     {ui.averageCheck}
                                   </p>
-                                  <div className="mt-3 flex flex-col gap-2 text-[15px] leading-relaxed text-white/82">
+                                  <div className="mt-3 flex flex-col gap-2 text-[15px] leading-relaxed text-secondary">
                                     {averageCheck ? <span>{averageCheck}</span> : null}
                                     {menuLinks.map((menuUrl, menuIndex) => (
                                       <a
@@ -453,7 +453,7 @@ export default function RestaurantsDirectoryPage({
                                         href={menuUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="transition-colors hover:text-white"
+                                        className="transition-colors hover:text-primary"
                                       >
                                         {menuLinks.length === 1
                                           ? lang === 'ru'
@@ -473,7 +473,7 @@ export default function RestaurantsDirectoryPage({
                               </div>
 
                               <div className="mt-8 flex flex-wrap gap-6 text-[12px] uppercase tracking-[0.18em]">
-                                <Link href={href} className="border-b border-white/20 pb-2 text-white/90 transition-colors hover:text-white hover:border-white/40">
+                                <Link href={href} className="border-b border-strong pb-2 text-secondary transition-colors hover:text-primary hover:border-[color:var(--text-secondary)]">
                                   {ui.details}
                                 </Link>
                                 {branch.mapLink ? (
@@ -483,7 +483,7 @@ export default function RestaurantsDirectoryPage({
                                       setActiveView('map');
                                       setActiveBranchId(branch.id);
                                     }}
-                                    className="border-b border-white/20 pb-2 text-white/68 transition-colors hover:text-white hover:border-white/40"
+                                    className="border-b border-strong pb-2 text-muted transition-colors hover:text-primary hover:border-[color:var(--text-secondary)]"
                                   >
                                     {ui.openMap}
                                   </button>
@@ -501,7 +501,7 @@ export default function RestaurantsDirectoryPage({
                   <div className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)]">
                     <Reveal
                       as="div"
-                      className="overflow-hidden border border-white/10 bg-card/20"
+                      className="overflow-hidden border border-subtle bg-card/20"
                       delay={80}
                       distance={32}
                       blur={6}
@@ -516,22 +516,22 @@ export default function RestaurantsDirectoryPage({
                               key={branch.id}
                               type="button"
                               onClick={() => setActiveBranchId(branch.id)}
-                              className={`w-full border-b border-white/10 px-5 py-5 text-left transition-colors ${
-                                isActive ? 'bg-white/[0.05]' : 'hover:bg-white/[0.02]'
+                              className={`w-full border-b border-subtle px-5 py-5 text-left transition-colors ${
+                                isActive ? 'bg-[color:var(--interactive-hover)]' : 'hover:bg-[color:var(--interactive-bg)]'
                               }`}
                             >
-                              <span className="inline-flex items-center gap-2 text-[12px] tracking-[0.08em] text-white/42">
+                              <span className="inline-flex items-center gap-2 text-[12px] tracking-[0.08em] text-muted">
                                 <IconLocation className="h-3.5 w-3.5" />
                                 {cityLabel(branch.city, lang)}
                               </span>
-                              <h3 className="mt-3 text-[26px] leading-[1] tracking-[-0.02em] font-light font-serif text-white">
+                              <h3 className="mt-3 text-[26px] leading-[1] tracking-[-0.02em] font-light font-serif text-primary">
                                 {pickLocalized(branch.branchName, lang)}
                               </h3>
-                              <p className="mt-3 text-[14px] leading-relaxed text-white/62">
+                              <p className="mt-3 text-[14px] leading-relaxed text-secondary">
                                 {pickLocalized(branch.address, lang)}
                               </p>
                               {features.length > 0 ? (
-                                <p className="mt-4 text-[11px] uppercase tracking-[0.18em] text-white/36">
+                                <p className="mt-4 text-[11px] uppercase tracking-[0.18em] text-muted">
                                   {features.join(' • ')}
                                 </p>
                               ) : null}

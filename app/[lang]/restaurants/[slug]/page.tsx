@@ -10,6 +10,7 @@ import { pickLocalized } from "@/types/i18n";
 import type { LangCode, LocalizedOptional } from "@/types/i18n";
 
 type BranchRestaurantRaw = {
+  city?: "tashkent" | "new_york";
   branchName?: LocalizedOptional;
   address?: LocalizedOptional;
   phone?: string;
@@ -126,6 +127,7 @@ async function getBranchRestaurantBySlug(slug: string): Promise<BranchRestaurant
       project->isActive != false &&
       coalesce(project->projectType, "restaurant") in ["restaurant", "barbershop"]
     ][0] {
+      city,
       branchName,
       address,
       phone,
@@ -413,6 +415,7 @@ export default async function RestaurantPage({
         <RestaurantDetail
           restaurant={{
             name: projectName,
+            slug,
             projectType: branchRestaurant.project?.projectType === "barbershop" ? "barbershop" : "restaurant",
             primaryInfoValue: primaryInfo,
             branchName,
@@ -428,6 +431,7 @@ export default async function RestaurantPage({
             gallery: branchRestaurant.gallery || [],
             mapLink,
             mapEmbedUrl,
+            deliveryMenuEnabled: branchRestaurant.city === "new_york",
             chef: {
               title: pickLocalized(branchRestaurant.project?.lead?.title, language),
               name: pickLocalized(branchRestaurant.project?.lead?.name, language),
@@ -486,6 +490,7 @@ export default async function RestaurantPage({
       <RestaurantDetail
         restaurant={{
           name: projectName,
+          slug,
           projectType: "restaurant",
           primaryInfoValue: projectName,
           branchName,
@@ -501,6 +506,7 @@ export default async function RestaurantPage({
           gallery: legacyRestaurant.gallery || [],
           mapLink,
           mapEmbedUrl,
+          deliveryMenuEnabled: false,
           chef: {
             title: pickLocalized(legacyRestaurant.chef?.title, language),
             name: pickLocalized(legacyRestaurant.chef?.name, language),

@@ -47,6 +47,14 @@ export const restaurantBranch = defineType({
       },
       validation: (rule) => rule.required(),
     }),
+    defineField({
+      name: 'order',
+      title: 'Порядок в списках',
+      type: 'number',
+      initialValue: 100,
+      validation: (rule) => rule.required().integer().min(1),
+      description: 'Чем меньше число, тем выше филиал в списке на сайте.',
+    }),
     localizedStringField('branchName', 'Название филиала'),
     defineField({
       name: 'slug',

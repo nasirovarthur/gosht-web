@@ -10,6 +10,8 @@ import { getHomeEventsSectionData } from "@/lib/getEvents";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { resolveLang } from "@/lib/seo/site";
 
+export const revalidate = 300;
+
 const HOME_COPY = {
   uz: {
     title: "Gōsht Group — Toshkentdagi restoran xoldingi",

@@ -1,10 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import Reveal from "@/components/Reveal";
-import JobsApplyDrawer from "@/components/JobsApplyDrawer";
 import { pickLocalized, type LangCode } from "@/types/i18n";
 import type { JobRole, JobsPageData } from "@/lib/jobsData";
+
+const JobsApplyDrawer = dynamic(() => import("@/components/JobsApplyDrawer"), {
+  ssr: false,
+});
 
 type JobsPageProps = {
   data: JobsPageData;
@@ -58,27 +62,27 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
 
   return (
     <>
-    <section className="relative min-h-screen bg-base pt-[200px] pb-24 text-white md:pt-[244px] md:pb-28">
+    <section className="relative min-h-screen bg-base pt-[200px] pb-24 text-primary md:pt-[244px] md:pb-28">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-[-16%] top-[8%] h-[420px] w-[420px] rounded-full bg-[#AE0E16]/8 blur-[140px]" />
-        <div className="absolute right-[-10%] top-[18%] h-[380px] w-[380px] rounded-full bg-white/[0.03] blur-[140px]" />
+        <div className="absolute right-[-10%] top-[18%] h-[380px] w-[380px] rounded-full bg-[color:rgba(255,255,255,0.03)] blur-[140px] dark:bg-white/[0.03]" />
       </div>
 
       <div className="page-x relative z-10">
         <div className="mx-auto w-full max-w-[1600px]">
           <Reveal as="header" className="w-full" distance={34} blur={8}>
-            <h1 className="mt-6 whitespace-nowrap text-[clamp(22px,4.2vw,118px)] leading-[0.88] tracking-[-0.03em] text-white font-light font-serif">
+            <h1 className="mt-6 whitespace-nowrap text-[clamp(22px,4.2vw,118px)] leading-[0.88] tracking-[-0.03em] text-primary font-light font-serif">
               {pickLocalized(data.title, lang)}
             </h1>
-            <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-white/58">
+            <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-secondary">
               {pickLocalized(data.intro, lang)}
             </p>
           </Reveal>
 
-          <div className="mt-16 border-t border-white/10 pt-8 md:pt-10 flex flex-col lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-14">
-            <aside className="order-1 lg:sticky lg:top-[132px] lg:self-start lg:pr-10 lg:border-r lg:border-white/10">
+          <div className="mt-16 border-t border-subtle pt-8 md:pt-10 flex flex-col lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-14">
+            <aside className="order-1 lg:sticky lg:top-[132px] lg:self-start lg:pr-10 lg:border-r lg:border-subtle">
               <Reveal as="div" delay={80} distance={30} blur={6}>
-                <p className="mb-6 text-[12px] uppercase tracking-[0.2em] text-white/34">
+                <p className="mb-6 text-[12px] uppercase tracking-[0.2em] text-muted">
                   {pickLocalized(data.roleLabel, lang)}
                 </p>
 
@@ -90,10 +94,10 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                       setSelectedRole(role);
                       setOpenVacancyId(null);
                     }}
-                    className="h-[44px] w-full rounded-full border border-white/10 bg-transparent px-4 text-[14px] text-white outline-none transition-colors focus:border-white/35"
+                    className="h-[44px] w-full rounded-full border border-subtle bg-transparent px-4 text-[14px] text-primary outline-none transition-colors focus:border-strong"
                   >
                     {data.professions.map((profession) => (
-                      <option key={profession.id} value={profession.id} className="bg-[#111] text-white">
+                      <option key={profession.id} value={profession.id} className="bg-card text-primary">
                         {pickLocalized(profession.label, lang)}
                       </option>
                     ))}
@@ -111,17 +115,17 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                           setSelectedRole(profession.id);
                           setOpenVacancyId(null);
                         }}
-                        className={`group relative flex w-full items-start justify-between gap-5 border-b border-white/10 py-4 pl-5 text-left transition-all duration-300 ${
-                          isActive ? "text-white" : "text-white/52 hover:text-white/78"
+                        className={`group relative flex w-full items-start justify-between gap-5 border-b border-subtle py-4 pl-5 text-left transition-all duration-300 ${
+                          isActive ? "text-primary" : "text-muted hover:text-secondary"
                         }`}
                       >
                         <span
                           className={`absolute left-0 top-4 bottom-4 w-px transition-all duration-300 ${
-                            isActive ? "bg-[#AE0E16]" : "bg-transparent group-hover:bg-white/18"
+                            isActive ? "bg-[#AE0E16]" : "bg-transparent group-hover:bg-[color:var(--border-strong)]"
                           }`}
                         />
                         <span className="flex-1">
-                          <span className={`block text-[11px] tracking-[0.22em] ${isActive ? "text-white/48" : "text-white/28"}`}>
+                          <span className={`block text-[11px] tracking-[0.22em] ${isActive ? "text-muted" : "text-muted"}`}>
                             {String(index + 1).padStart(2, "0")}
                           </span>
                           <span className="mt-3 block text-[24px] leading-[1.02] tracking-[-0.02em] font-light font-serif">
@@ -133,16 +137,16 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                   })}
                 </div>
 
-                <div className="mt-10 md:mt-12 border-t border-white/10 pt-7">
-                  <p className="text-[30px] md:text-[34px] leading-[0.95] tracking-[-0.02em] font-light font-serif text-white/92">
+                <div className="mt-10 md:mt-12 border-t border-subtle pt-7">
+                  <p className="text-[30px] md:text-[34px] leading-[0.95] tracking-[-0.02em] font-light font-serif text-primary">
                     {ui.sidePromptTitle}
                   </p>
-                  <p className="mt-5 text-body text-white/58">
+                  <p className="mt-5 text-body text-secondary">
                     {ui.sidePromptText}
                   </p>
                   <a
                     href="mailto:jobs@goshtgroup.uz"
-                    className="mt-2 inline-block border-b border-white/20 pb-1 text-body text-white/85 transition-colors hover:border-white/45 hover:text-white"
+                    className="mt-2 inline-block border-b border-strong pb-1 text-body text-secondary transition-colors hover:border-[color:var(--text-secondary)] hover:text-primary"
                   >
                     jobs@goshtgroup.uz
                   </a>
@@ -153,13 +157,13 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
             <div className="order-2 min-w-0 pt-8 lg:pt-0">
               <Reveal as="div" delay={90} distance={26} blur={6}>
                 <div className="mb-6 border-b border-[#AE0E16] pb-4">
-                  <h2 className="text-[clamp(34px,3.4vw,58px)] leading-[0.94] tracking-[-0.03em] font-light font-serif uppercase text-white">
+                  <h2 className="text-[clamp(34px,3.4vw,58px)] leading-[0.94] tracking-[-0.03em] font-light font-serif uppercase text-primary">
                     {ui.inRestaurants}
                   </h2>
                 </div>
 
                 {filteredVacancies.length === 0 ? (
-                  <div className="border border-white/10 bg-card p-6 md:p-8 text-white/70">
+                  <div className="border border-subtle bg-card p-6 md:p-8 text-secondary">
                     {pickLocalized(data.emptyState, lang)}
                   </div>
                 ) : (
@@ -170,7 +174,7 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                       return (
                         <article
                           key={vacancy.id}
-                          className="border border-white/10 bg-white/[0.01]"
+                          className="border border-subtle bg-[color:var(--interactive-bg)]"
                         >
                           <button
                             type="button"
@@ -181,16 +185,16 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                           >
                             <div className="flex items-start justify-between gap-4">
                               <div>
-                                <h3 className="text-[24px] leading-[1.02] tracking-[-0.02em] font-light font-serif text-white">
+                                <h3 className="text-[24px] leading-[1.02] tracking-[-0.02em] font-light font-serif text-primary">
                                   {pickLocalized(vacancy.restaurantName, lang)}
                                 </h3>
-                                <p className="mt-3 text-[15px] leading-relaxed text-white/68">
+                                <p className="mt-3 text-[15px] leading-relaxed text-secondary">
                                   {pickLocalized(vacancy.restaurantSummary, lang)}
                                 </p>
                               </div>
                               <div className="flex items-center gap-5">
                                 <span
-                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70"
+                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-strong text-secondary"
                                   aria-hidden="true"
                                 >
                                   <svg
@@ -214,7 +218,7 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                           >
                             <div className="overflow-hidden">
                               <div className="px-5 pb-6 md:px-7 md:pb-7">
-                                <div className="grid grid-cols-1 gap-1 border-t border-white/10 pt-6 text-[15px] leading-relaxed text-white/70">
+                                <div className="grid grid-cols-1 gap-1 border-t border-subtle pt-6 text-[15px] leading-relaxed text-secondary">
                                   <p>{pickLocalized(vacancy.salary, lang)}</p>
                                   <p>{pickLocalized(vacancy.experience, lang)}</p>
                                   <p>{pickLocalized(vacancy.schedule, lang)}</p>
@@ -222,10 +226,10 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
 
                                 <div className="mt-9 space-y-8">
                                   <div className="grid grid-cols-1 gap-3 md:grid-cols-[200px_minmax(0,1fr)] md:gap-5">
-                                    <p className="text-[12px] uppercase tracking-[0.18em] text-white/45">
+                                    <p className="text-[12px] uppercase tracking-[0.18em] text-muted">
                                       {pickLocalized(data.responsibilitiesLabel, lang)}
                                     </p>
-                                    <ul className="space-y-2 text-body text-white/78">
+                                    <ul className="space-y-2 text-body text-secondary">
                                       {vacancy.responsibilities.map((item) => (
                                         <li key={`${vacancy.id}-resp-${pickLocalized(item, lang)}`} className="leading-relaxed">
                                           • {pickLocalized(item, lang)}
@@ -235,10 +239,10 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                                   </div>
 
                                   <div className="grid grid-cols-1 gap-3 md:grid-cols-[200px_minmax(0,1fr)] md:gap-5">
-                                    <p className="text-[12px] uppercase tracking-[0.18em] text-white/45">
+                                    <p className="text-[12px] uppercase tracking-[0.18em] text-muted">
                                       {pickLocalized(data.requirementsLabel, lang)}
                                     </p>
-                                    <ul className="space-y-2 text-body text-white/78">
+                                    <ul className="space-y-2 text-body text-secondary">
                                       {vacancy.requirements.map((item) => (
                                         <li key={`${vacancy.id}-req-${pickLocalized(item, lang)}`} className="leading-relaxed">
                                           • {pickLocalized(item, lang)}
@@ -248,10 +252,10 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                                   </div>
 
                                   <div className="grid grid-cols-1 gap-3 md:grid-cols-[200px_minmax(0,1fr)] md:gap-5">
-                                    <p className="text-[12px] uppercase tracking-[0.18em] text-white/45">
+                                    <p className="text-[12px] uppercase tracking-[0.18em] text-muted">
                                       {pickLocalized(data.conditionsLabel, lang)}
                                     </p>
-                                    <ul className="space-y-2 text-body text-white/78">
+                                    <ul className="space-y-2 text-body text-secondary">
                                       {vacancy.conditions.map((item) => (
                                         <li key={`${vacancy.id}-cond-${pickLocalized(item, lang)}`} className="leading-relaxed">
                                           • {pickLocalized(item, lang)}
@@ -261,12 +265,12 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                                   </div>
                                 </div>
 
-                                <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-6 md:flex-row md:items-end md:justify-between">
+                                <div className="mt-8 flex flex-col gap-4 border-t border-subtle pt-6 md:flex-row md:items-end md:justify-between">
                                   <div>
-                                    <p className="text-[12px] uppercase tracking-[0.18em] text-white/45">
+                                    <p className="text-[12px] uppercase tracking-[0.18em] text-muted">
                                       {pickLocalized(data.contactsLabel, lang)}
                                     </p>
-                                    <div className="mt-2 space-y-1 text-body text-white/82">
+                                    <div className="mt-2 space-y-1 text-body text-secondary">
                                       <p>{vacancy.contactPhone}</p>
                                       <p>{vacancy.contactEmail}</p>
                                     </div>
@@ -282,7 +286,7 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
                                       });
                                       setIsApplyDrawerOpen(true);
                                     }}
-                                    className="inline-flex h-[44px] items-center justify-center rounded-full border border-white/10 px-6 text-ui text-white/92 transition-all duration-300 hover:border-white/30 hover:bg-white/5 hover:text-white md:h-[54px] md:px-8"
+                                    className="inline-flex h-[44px] items-center justify-center rounded-full border border-strong px-6 text-ui text-primary transition-all duration-300 hover:border-[color:var(--text-secondary)] hover:bg-[color:var(--interactive-hover)] hover:text-primary md:h-[54px] md:px-8"
                                   >
                                     {pickLocalized(data.applyLabel, lang)}
                                   </button>
@@ -301,14 +305,16 @@ export default function JobsPage({ data, lang }: JobsPageProps) {
         </div>
       </div>
     </section>
-    <JobsApplyDrawer
-      isOpen={isApplyDrawerOpen}
-      onClose={() => setIsApplyDrawerOpen(false)}
-      lang={lang}
-      vacancyId={selectedVacancyMeta?.id || ""}
-      vacancyTitle={selectedVacancyMeta?.title || ""}
-      vacancyRole={selectedVacancyMeta?.roleLabel || ""}
-    />
+    {isApplyDrawerOpen && selectedVacancyMeta ? (
+      <JobsApplyDrawer
+        isOpen={isApplyDrawerOpen}
+        onClose={() => setIsApplyDrawerOpen(false)}
+        lang={lang}
+        vacancyId={selectedVacancyMeta.id}
+        vacancyTitle={selectedVacancyMeta.title}
+        vacancyRole={selectedVacancyMeta.roleLabel}
+      />
+    ) : null}
     </>
   );
 }

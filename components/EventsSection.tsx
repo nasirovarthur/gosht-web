@@ -28,7 +28,7 @@ function EventsLink({ label, href }: { label: string; href: string }) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="inline-flex items-center gap-8 md:gap-10">
-        <Link href={href} className="text-body-lg text-white/72 hover:text-white transition-colors">
+        <Link href={href} className="text-body-lg text-secondary hover:text-primary transition-colors">
           {label}
         </Link>
 
@@ -36,13 +36,14 @@ function EventsLink({ label, href }: { label: string; href: string }) {
           direction="right"
           onClick={() => router.push(href)}
           forceHover={isHovered}
+          ariaLabel={label}
           className="scale-[0.45] md:scale-[0.56] origin-left -ml-3 md:-ml-2"
         />
       </div>
 
-      <span className="relative mt-1 h-px w-full min-w-[208px] bg-white/20 overflow-hidden">
+      <span className="relative mt-1 h-px w-full min-w-[208px] bg-[color:var(--border-strong)] overflow-hidden">
         <span
-          className={`absolute inset-0 bg-white/65 transition-transform duration-500 ease-out ${
+          className={`absolute inset-0 bg-[color:var(--text-primary)] transition-transform duration-500 ease-out ${
             isHovered ? "translate-x-0" : "-translate-x-full"
           }`}
         />
@@ -76,7 +77,7 @@ function EventCard({
   return (
     <article className="w-full h-full flex flex-col">
       <Link href={`/${lang}/events/${item.slug}`} className="group block w-full h-full">
-        <div className={`relative w-full overflow-hidden bg-card border border-white/10 ${imageWrapClass}`}>
+        <div className={`relative w-full overflow-hidden bg-card border border-subtle ${imageWrapClass}`}>
           {!imageFailed && (
             <Image
               src={item.image}
@@ -90,12 +91,12 @@ function EventCard({
         </div>
 
         <div className={`mt-4 flex flex-col ${metaWrapClass}`}>
-          <p className="flex items-center gap-2 text-[12px] md:text-[13px] tracking-[0.16em] uppercase text-white/45">
+          <p className="flex items-center gap-2 text-[12px] md:text-[13px] tracking-[0.16em] uppercase text-muted">
             <span>{item.date[lang]}</span>
-            <span className="text-white/30">•</span>
-            <span className="text-white/55">{item.branch[lang]}</span>
+            <span className="text-muted">•</span>
+            <span className="text-secondary">{item.branch[lang]}</span>
           </p>
-          <h3 className={`${titleClass} mt-2 uppercase tracking-[-0.01em] text-white/92 font-light font-serif`}>
+          <h3 className={`${titleClass} mt-2 uppercase tracking-[-0.01em] text-primary font-light font-serif`}>
             {item.title[lang]}
           </h3>
         </div>
@@ -123,7 +124,7 @@ export default function EventsSection({
   }
 
   return (
-    <section className="w-full bg-base text-white section-y-lg border-t border-white/5">
+    <section className="w-full bg-base text-primary section-y-lg border-t border-subtle transition-colors duration-300">
       <div className="page-x">
         <div className="mx-auto w-full max-w-[1600px]">
           <div className="grid grid-cols-1 lg:grid-cols-12 mb-10 md:mb-12 lg:mb-10">
