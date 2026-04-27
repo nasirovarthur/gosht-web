@@ -62,8 +62,6 @@ export type ToastDeliveryMenuResult = {
 const DISH_BADGES_BY_NAME = new Map<string, DeliveryMenuDishBadge[]>([
   ["gosht salad", ["chef", "spicy"]],
   ["big green salad", ["veg"]],
-  ["greek", ["veg"]],
-  ["greek salad", ["veg"]],
   ["vegan burger", ["veg"]],
   ["buffalo chicken wings", ["spicy"]],
   ["fried pelmeni", ["chef"]],
