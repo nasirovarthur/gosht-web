@@ -112,7 +112,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
             </button>
 
             <Link
-              href={`/${lang}/restaurants-concept`}
+              href={`/${lang}/restaurants-concept?delivery=1`}
               onClick={() => {
                 setIsOpen(false);
                 setIsFeedbackOpen(false);

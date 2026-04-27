@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import RestaurantsMap from '@/components/restaurant/RestaurantsMap';
 import type {
@@ -352,14 +353,22 @@ export default function RestaurantsConceptPage({
   data: RestaurantsDirectoryData;
   lang: LangCode;
 }) {
+  const searchParams = useSearchParams();
+  const shouldOpenDeliveryFilter = searchParams.get('delivery') === '1';
   const cityOptions = data.availableCities.length ? data.availableCities : ['tashkent'];
-  const [activeCity, setActiveCity] = useState(cityOptions[0]);
+  const initialCity =
+    shouldOpenDeliveryFilter
+      ? cityOptions.find((city) =>
+          data.branches.some((branch) => branch.city === city && hasDelivery(branch))
+        ) || cityOptions[0]
+      : cityOptions[0];
+  const [activeCity, setActiveCity] = useState(initialCity);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [cuisineFilter, setCuisineFilter] = useState('all');
   const [isCuisineOpen, setIsCuisineOpen] = useState(false);
   const [banquetOnly, setBanquetOnly] = useState(false);
-  const [deliveryOnly, setDeliveryOnly] = useState(false);
+  const [deliveryOnly, setDeliveryOnly] = useState(shouldOpenDeliveryFilter);
   const regionRef = useRef<HTMLDivElement | null>(null);
   const cuisineRef = useRef<HTMLDivElement | null>(null);
   const cityBranches = data.branches.filter((branch) => branch.city === activeCity);
