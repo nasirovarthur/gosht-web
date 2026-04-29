@@ -33,7 +33,7 @@ type Restaurant = {
 };
 
 export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
-  const [activeCity, setActiveCity] = useState<"tashkent" | "new_york">("tashkent");
+  const [activeCity, setActiveCity] = useState<"tashkent" | "new_york">("new_york");
   const { lang } = useLanguage();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -131,18 +131,18 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
         
         {/* ТАБЫ */}
         <div className="flex justify-start items-center gap-8 md:gap-12 relative z-10">
-          <button onClick={() => setActiveCity("tashkent")} className="group relative pb-2 md:pb-3">
-            <span className={`text-title transition-colors duration-300 ${activeCity === "tashkent" ? "text-primary" : "text-muted group-hover:text-secondary"}`}>
-              {ui.tashkent}
-            </span>
-            <span className={`absolute bottom-0 left-0 w-full h-[1px] bg-[color:var(--text-primary)] transition-all duration-500 ease-out ${activeCity === "tashkent" ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-50 group-hover:opacity-30"}`} />
-          </button>
-
           <button onClick={() => setActiveCity("new_york")} className="group relative pb-2 md:pb-3">
             <span className={`text-title transition-colors duration-300 ${activeCity === "new_york" ? "text-primary" : "text-muted group-hover:text-secondary"}`}>
               New York
             </span>
             <span className={`absolute bottom-0 left-0 w-full h-[1px] bg-[color:var(--text-primary)] transition-all duration-500 ease-out ${activeCity === "new_york" ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-50 group-hover:opacity-30"}`} />
+          </button>
+
+          <button onClick={() => setActiveCity("tashkent")} className="group relative pb-2 md:pb-3">
+            <span className={`text-title transition-colors duration-300 ${activeCity === "tashkent" ? "text-primary" : "text-muted group-hover:text-secondary"}`}>
+              {ui.tashkent}
+            </span>
+            <span className={`absolute bottom-0 left-0 w-full h-[1px] bg-[color:var(--text-primary)] transition-all duration-500 ease-out ${activeCity === "tashkent" ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-50 group-hover:opacity-30"}`} />
           </button>
         </div>
 

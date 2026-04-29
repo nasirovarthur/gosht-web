@@ -214,6 +214,153 @@ function localized(uz: string, ru: string, en: string): Localized {
   return { uz, ru, en }
 }
 
+function goshtKidsEventEntries(): EventEntry[] {
+  const branchBrooklyn = localized('GŌSHT KIDS PLAYGROUND', 'GŌSHT KIDS PLAYGROUND', 'GŌSHT KIDS PLAYGROUND')
+
+  return [
+    {
+      id: 'gosht-brooklyn-kids-safari-masks',
+      slug: 'kids-safari-animal-face-masks-diy',
+      category: 'kids',
+      title: localized(
+        'November 2nd | Safari Animal Face Masks DIY',
+        '2 ноября | Safari Animal Face Masks DIY',
+        'November 2nd | Safari Animal Face Masks DIY'
+      ),
+      date: localized('2-noyabr, 2025', '2 ноября 2025', 'November 2, 2025'),
+      time: localized('16:00', '16:00', '4:00 PM'),
+      branch: branchBrooklyn,
+      image:
+        'https://images.getbento.com/accounts/0bd39952ea651c87f612ffb25b0d896c/media/images/420621200x628_safari.png?w=1800&fit=max&auto=compress,format&cs=origin&h=1800',
+      description: [
+        localized(
+          'Gōsht Kids Playground’da ijodiy Safari Animal Face Mask ustaxonasi va shirin bazm.',
+          'Творческий мастер-класс Safari Animal Face Mask и сладкая вечеринка в Gōsht Kids Playground.',
+          'Step into the wild and sweet world at Gōsht Kids Playground with a Safari Animal Face Mask workshop and a sweet party.'
+        ),
+        localized(
+          'Bolalar o‘z safari niqoblarini yasaydi, ijodkorligini ochadi va kulgi, shirinliklar hamda yorqin taassurotlarga boy dasturda qatnashadi.',
+          'Дети создадут собственные safari-маски, раскроют творческую сторону и проведут день с угощениями, смехом и яркими впечатлениями.',
+          'Kids will craft their own Safari Animal Face Mask, explore their artistic side, and enjoy fun treats, laughter, and a joyful family atmosphere.'
+        ),
+        localized(
+          'Workshop bepul. Savollar va bron uchun: +1 718 504-8880.',
+          'Мастер-класс бесплатный. Вопросы и бронь: +1 718 504-8880.',
+          'Workshop is free. For reservations or further inquiries, please call: +1 718 504-8880.'
+        ),
+      ],
+      showOnHome: true,
+      homePriority: 10,
+      sortDate: '2025-11-02T16:00:00-05:00',
+    },
+    {
+      id: 'gosht-brooklyn-kids-witches-pumpkin',
+      slug: 'kids-witches-pumpkin-decoration-diy',
+      category: 'kids',
+      title: localized(
+        'October 26th | Witches & Pumpkin Decoration DIY Workshop',
+        '26 октября | Witches & Pumpkin Decoration DIY Workshop',
+        'October 26th | Witches & Pumpkin Decoration DIY Workshop'
+      ),
+      date: localized('26-oktabr, 2025', '26 октября 2025', 'October 26, 2025'),
+      time: localized('16:00', '16:00', '4:00 PM'),
+      branch: branchBrooklyn,
+      image:
+        'https://images.getbento.com/accounts/0bd39952ea651c87f612ffb25b0d896c/media/images/86031Witches.png?w=1800&fit=max&auto=compress,format&cs=origin&h=1800',
+      description: [
+        localized(
+          'Gōsht Kids Playground’da Halloween kayfiyatidagi Witches & Pumpkin Decoration DIY Workshop.',
+          'Halloween-мастерская Witches & Pumpkin Decoration DIY Workshop в Gōsht Kids Playground.',
+          'A spooktacular Witches & Pumpkin Decoration DIY Workshop at Gōsht Kids Playground.'
+        ),
+        localized(
+          'Bolalar mini-qovoqlarni bezaydi, sehrli aksessuarlar yasaydi va ijod, kulgi hamda bayram ruhiga to‘la mashg‘ulotda qatnashadi.',
+          'Дети украсят мини-тыквы, создадут ведьминские аксессуары и проведут творческую встречу с атмосферой Halloween.',
+          'Kids will decorate their own mini pumpkins, craft witchy accessories, and enjoy a fun-filled session surrounded by laughter, art, and festive spirit.'
+        ),
+        localized(
+          'Workshop bepul. Savollar va bron uchun: +1 718 504-8880.',
+          'Мастер-класс бесплатный. Вопросы и бронь: +1 718 504-8880.',
+          'Workshop is free. For reservations or further inquiries, please call: +1 718 504-8880.'
+        ),
+      ],
+      showOnHome: true,
+      homePriority: 11,
+      sortDate: '2025-10-26T16:00:00-04:00',
+    },
+    {
+      id: 'gosht-brooklyn-kids-mickey-minnie',
+      slug: 'kids-mickey-minnie-bracelet-diy',
+      category: 'kids',
+      title: localized(
+        'October 19th | Mickey & Minnie Mouse Bracelet DIY Workshop',
+        '19 октября | Mickey & Minnie Mouse Bracelet DIY Workshop',
+        'October 19th | Mickey & Minnie Mouse Bracelet DIY Workshop'
+      ),
+      date: localized('19-oktabr, 2025', '19 октября 2025', 'October 19, 2025'),
+      time: localized('16:00', '16:00', '4:00 PM'),
+      branch: branchBrooklyn,
+      image:
+        'https://images.getbento.com/accounts/0bd39952ea651c87f612ffb25b0d896c/media/images/992621200x628__mickey.png?w=1800&fit=max&auto=compress,format&cs=origin&h=1800',
+      description: [
+        localized(
+          'Mickey va Minnie uslubidagi ijodiy DIY workshop Gōsht Kids Playground’da.',
+          'Творческий DIY-мастер-класс в стиле Mickey & Minnie Mouse в Gōsht Kids Playground.',
+          'Step into a magical world of creativity with a Mickey & Minnie Mouse themed DIY workshop at Gōsht Kids Playground.'
+        ),
+        localized(
+          'Bolalar Disney qahramonlaridan ilhomlangan bilaguzuklarni bezaydi va o‘z ijodini uyga olib ketadi.',
+          'Дети украсят собственные браслеты по мотивам Mickey и Minnie, а готовую работу смогут забрать с собой.',
+          'Kids will design and decorate their own bracelets inspired by Mickey and Minnie, bringing home a little piece of Disney magic.'
+        ),
+        localized(
+          'Workshop bepul. Savollar va bron uchun: +1 718 504-8880.',
+          'Мастер-класс бесплатный. Вопросы и бронь: +1 718 504-8880.',
+          'Workshop is free. For reservations or further inquiries, please call: +1 718 504-8880.'
+        ),
+      ],
+      showOnHome: true,
+      homePriority: 12,
+      sortDate: '2025-10-19T16:00:00-04:00',
+    },
+    {
+      id: 'gosht-brooklyn-kids-hot-dog-masha-bear',
+      slug: 'kids-hot-dog-workshop-masha-bear',
+      category: 'kids',
+      title: localized(
+        'September 7th | HOT-DOG WORKSHOP WITH Masha & Bear',
+        '7 сентября | HOT-DOG WORKSHOP WITH Masha & Bear',
+        'September 7th | HOT-DOG WORKSHOP WITH Masha & Bear'
+      ),
+      date: localized('7-sentabr, 2025', '7 сентября 2025', 'September 7, 2025'),
+      time: localized('16:00', '16:00', '4:00 PM'),
+      branch: branchBrooklyn,
+      image:
+        'https://images.getbento.com/accounts/0bd39952ea651c87f612ffb25b0d896c/media/images/140921200x628_masha.png?w=1800&fit=max&auto=compress,format&cs=origin&h=1800',
+      description: [
+        localized(
+          'Masha & Bear bilan hot-dog workshop va bolalar uchun sarguzashtli dastur.',
+          'Hot-dog workshop с Masha & Bear и развлекательная программа для детей.',
+          'A hot-dog workshop with Masha & Bear and a playful kids adventure at Gōsht Kids Playground.'
+        ),
+        localized(
+          'Bolalar hot-dog tayyorlashda qatnashadi, figurka bo‘yashadi va animatorlar bilan unutilmas tajriba oladi.',
+          'Дети попробуют себя в приготовлении hot-dog, раскрасят фигурки и встретятся с Masha & Bear в интерактивной программе.',
+          'Kids will try making hot dogs, enjoy figure painting, and meet Masha & Bear during an unforgettable interactive experience.'
+        ),
+        localized(
+          'Joylar soni cheklangan. Narxi: bola uchun $20. Savollar va bron uchun: +1 718 504-8880.',
+          'Количество мест ограничено. Стоимость: $20 за ребенка. Вопросы и бронь: +1 718 504-8880.',
+          'Spots are limited. Workshop cost: $20 per child. For reservations or further inquiries, please call: +1 718 504-8880.'
+        ),
+      ],
+      showOnHome: true,
+      homePriority: 13,
+      sortDate: '2025-09-07T16:00:00-04:00',
+    },
+  ]
+}
+
 function devSeedEntries(): EventEntry[] {
   if (process.env.NODE_ENV !== 'development') {
     return []
@@ -450,7 +597,7 @@ function withDevSeedEntries(entries: EventEntry[]): EventEntry[] {
   return [...entries, ...extras]
 }
 
-async function fetchEventEntries(): Promise<EventEntry[]> {
+async function fetchCmsEventEntries(): Promise<EventEntry[]> {
   const query = `
     *[_type == "event" && isActive != false && defined(slug.current)] | order(coalesce(eventDate, _createdAt) desc) {
       _id,
@@ -504,6 +651,14 @@ async function fetchEventEntries(): Promise<EventEntry[]> {
   }
 
   return withDevSeedEntries(fallbackEntries())
+}
+
+async function fetchEventEntries(): Promise<EventEntry[]> {
+  if (process.env.NEXT_PUBLIC_EVENTS_SOURCE === 'cms') {
+    return fetchCmsEventEntries()
+  }
+
+  return goshtKidsEventEntries()
 }
 
 async function fetchEventsSettings(): Promise<EventsSettings> {

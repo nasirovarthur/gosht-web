@@ -4,40 +4,13 @@ import EventDetailPage from "@/components/EventDetailPage";
 import SeoJsonLd from "@/components/SeoJsonLd";
 import { getEventDetailPageData } from "@/lib/getEvents";
 import { createPageMetadata } from "@/lib/seo/metadata";
-import { getBreadcrumbSchema, getEventSchema } from "@/lib/seo/schema";
+import { getBreadcrumbSchema } from "@/lib/seo/schema";
 import { resolveLang } from "@/lib/seo/site";
-import { client } from "@/lib/sanity";
 import { pickLocalized } from "@/types/i18n";
-import type { LocalizedOptional } from "@/types/i18n";
 import type { LangCode } from "@/lib/eventsData";
-
-type EventSeoRecord = {
-  title?: LocalizedOptional;
-  branch?: LocalizedOptional;
-  description?: Array<{ text?: LocalizedOptional }>;
-  image?: string;
-  eventDate?: string;
-};
 
 function normalizeLang(lang: string): LangCode {
   return resolveLang(lang) as LangCode;
-}
-
-async function getEventSeoRecord(slug: string): Promise<EventSeoRecord | null> {
-  return client.fetch<EventSeoRecord | null>(
-    `
-      *[_type == "event" && isActive != false && slug.current == $slug][0]{
-        title,
-        "branch": coalesce(branchRef->branchName, branch),
-        description[]{
-          text
-        },
-        "image": image.asset->url,
-        eventDate
-      }
-    `,
-    { slug }
-  );
 }
 
 function buildEventDescription(
@@ -66,7 +39,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang, slug } = await params;
   const language = normalizeLang(lang);
-  const event = await getEventSeoRecord(slug);
+  const detailPageData = await getEventDetailPageData(slug);
+  const event = detailPageData.event;
 
   if (!event) {
     return createPageMetadata({
@@ -85,10 +59,9 @@ export async function generateMetadata({
 
   const title = pickLocalized(event.title, language);
   const branch = pickLocalized(event.branch, language);
-  const descriptionParagraphs =
-    event.description
-      ?.map((item) => pickLocalized(item.text, language))
-      .filter(Boolean) || [];
+  const descriptionParagraphs = event.description
+    .map((item) => pickLocalized(item, language))
+    .filter(Boolean);
 
   return createPageMetadata({
     lang: language,
@@ -110,7 +83,6 @@ export default async function EventPage({
   const language = normalizeLang(lang);
   const detailPageData = await getEventDetailPageData(slug);
   const event = detailPageData.event;
-  const eventSeoRecord = await getEventSeoRecord(slug);
 
   if (!event) {
     notFound();
@@ -123,26 +95,10 @@ export default async function EventPage({
     },
     { name: pickLocalized(event.title, language), path: `/${language}/events/${slug}` },
   ]);
-  const eventSchema = eventSeoRecord?.eventDate
-    ? getEventSchema({
-        lang: language,
-        path: `events/${slug}`,
-        name: pickLocalized(event.title, language),
-        description: buildEventDescription(
-          language,
-          pickLocalized(event.title, language),
-          pickLocalized(event.branch, language),
-          event.description.map((paragraph) => pickLocalized(paragraph, language)).filter(Boolean)
-        ),
-        image: event.image,
-        startDate: eventSeoRecord.eventDate,
-        locationName: pickLocalized(event.branch, language),
-      })
-    : null;
 
   return (
     <main className="min-h-screen bg-base pt-[104px] md:pt-[124px]">
-      <SeoJsonLd data={eventSchema ? [eventSchema, breadcrumbSchema] : [breadcrumbSchema]} />
+      <SeoJsonLd data={[breadcrumbSchema]} />
       <EventDetailPage
         event={event}
         relatedEvents={detailPageData.relatedEvents}

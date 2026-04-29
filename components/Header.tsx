@@ -24,6 +24,7 @@ type HeaderProps = {
 export default function Header({ navItems = [], feedbackSettings }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isReservationOpen, setIsReservationOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   
@@ -34,6 +35,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
   const [hoveredIndex, setHoveredIndex] = useState<number|null>(null);
   const [arrowTop, setArrowTop] = useState<number>(0);
   const menuRefs = useRef<(HTMLElement | null)[]>([]);
+  const reservationWidgetRef = useRef<HTMLDivElement | null>(null);
 
   const languages: LangCode[] = ["uz", "ru", "en"];
 
@@ -50,13 +52,13 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
     }, 0);
   };
 
-  const menuButtonText = translations.header.menu;
   const deliveryButtonText = translations.header.delivery;
   const closeButtonText = translations.header.close;
+  const reservationButtonText = { uz: "BRON", ru: "БРОНЬ", en: "BOOK" };
   const feedbackButtonText =
     pickLocalized(feedbackSettings.title, lang) ||
     pickLocalized(translations.footer.feedback, lang);
-  const isAnyDrawerOpen = isOpen || isFeedbackOpen;
+  const isAnyDrawerOpen = isOpen || isFeedbackOpen || isReservationOpen;
   const headerNavItems = navItems.filter((item) => item.showInHeader);
   const logoSrc = theme === "light" ? "/logo-dark.svg" : "/logo.svg";
   const menuLogoSrc = theme === "light" ? "/menu-logo-dark.svg" : "/menu-logo.svg";
@@ -66,6 +68,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
   useEffect(() => {
     const handleOpenFeedbackDrawer = () => {
       setIsOpen(false);
+      setIsReservationOpen(false);
       setIsFeedbackOpen(true);
     };
 
@@ -75,6 +78,23 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
       window.removeEventListener("open-feedback-drawer", handleOpenFeedbackDrawer);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isReservationOpen || !reservationWidgetRef.current) return;
+
+    const container = reservationWidgetRef.current;
+    container.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src =
+      "https://www.opentable.com/widget/reservation/loader?rid=1272238&type=standard&theme=standard&color=1&dark=false&iframe=true&domain=com&lang=en-US&newtab=false&ot_source=Restaurant%20website&cfe=true";
+    container.appendChild(script);
+
+    return () => {
+      container.innerHTML = "";
+    };
+  }, [isReservationOpen]);
 
   const resolveMenuHref = (href: string | null) => {
     if (!href) return null;
@@ -97,18 +117,17 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
             <button 
               onClick={() => {
                 setIsFeedbackOpen(false);
+                setIsReservationOpen(false);
                 setIsOpen(true);
               }}
-              className="group flex items-center justify-center gap-3 md:gap-4 h-[40px] w-[40px] sm:w-auto sm:pl-4 sm:pr-4 md:h-[60px] md:pl-6 md:pr-8 border border-subtle rounded-full hover:bg-[color:var(--interactive-hover)] transition-all active:scale-95"
+              className="group flex h-[40px] w-[40px] items-center justify-center rounded-full border border-subtle transition-all hover:bg-[color:var(--interactive-hover)] active:scale-95 md:h-[60px] md:w-[60px]"
+              aria-label={pickLocalized(translations.header.menu, lang)}
             >
               <svg className="w-[14px] h-[10px] md:w-[24px] md:h-[16px] fill-[color:var(--text-muted)] group-hover:fill-[color:var(--text-primary)] transition-colors" viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="18" height="1.5" />
                 <rect y="5.25" width="18" height="1.5" />
                 <rect y="10.5" width="18" height="1.5" />
               </svg>
-              <span className="hidden sm:inline text-ui font-light pt-0.5 text-secondary">
-                {pickLocalized(menuButtonText, lang)}
-              </span>
             </button>
 
             <Link
@@ -116,6 +135,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
               onClick={() => {
                 setIsOpen(false);
                 setIsFeedbackOpen(false);
+                setIsReservationOpen(false);
               }}
               className="group flex items-center justify-center gap-3 md:gap-4 h-[40px] w-[40px] md:h-[60px] md:w-[60px] lg:w-auto lg:pl-5 lg:pr-7 border border-subtle rounded-full hover:bg-[color:var(--interactive-hover)] transition-all active:scale-95"
               aria-label={pickLocalized(deliveryButtonText, lang)}
@@ -145,6 +165,36 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
                 {pickLocalized(deliveryButtonText, lang)}
               </span>
             </Link>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                setIsFeedbackOpen(false);
+                setIsReservationOpen(true);
+              }}
+              className="group flex items-center justify-center gap-3 md:gap-4 h-[40px] w-[40px] md:h-[60px] md:w-[60px] lg:w-auto lg:pl-5 lg:pr-7 border border-subtle rounded-full hover:bg-[color:var(--interactive-hover)] transition-all active:scale-95"
+              aria-label={reservationButtonText[lang]}
+            >
+              <svg
+                className="h-[16px] w-[16px] md:h-[22px] md:w-[22px] text-muted group-hover:text-primary transition-colors"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M7 4.5V2.75M17 4.5V2.75M4.5 9H19.5M6.5 21H17.5C18.6 21 19.5 20.1 19.5 19V6.5C19.5 5.4 18.6 4.5 17.5 4.5H6.5C5.4 4.5 4.5 5.4 4.5 6.5V19C4.5 20.1 5.4 21 6.5 21Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M8.5 13.2H15.5M8.5 16.5H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <span className="hidden lg:inline text-ui font-light pt-0.5 text-secondary">
+                {reservationButtonText[lang]}
+              </span>
+            </button>
           </div>
 
           {/* LOGO */}
@@ -166,6 +216,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
               type="button"
               onClick={() => {
                 setIsOpen(false);
+                setIsReservationOpen(false);
                 setIsFeedbackOpen(true);
               }}
               className="group flex items-center justify-center h-[40px] w-[40px] rounded-full border border-subtle hover:bg-[color:var(--interactive-hover)] transition-all"
@@ -183,6 +234,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
               type="button"
               onClick={() => {
                 setIsOpen(false);
+                setIsReservationOpen(false);
                 setIsFeedbackOpen(true);
               }}
               className="group flex items-center gap-3 pl-5 pr-6 h-[60px] border border-subtle rounded-full hover:bg-[color:var(--interactive-hover)] transition-all"
@@ -219,12 +271,60 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
         onClick={() => {
           setIsOpen(false);
           setIsFeedbackOpen(false);
+          setIsReservationOpen(false);
         }}
         className={`fixed inset-0 z-[49] bg-[color:var(--overlay-backdrop)] ${
           isAnyDrawerOpen ? "opacity-100 backdrop-blur-[4px] visible" : "opacity-0 backdrop-blur-none invisible"
         }`}
         style={{ transition: 'all 0.7s ease' }}
       ></div>
+
+      {isReservationOpen ? (
+        <div className="fixed inset-x-4 top-[96px] z-[70] mx-auto max-w-[760px] md:top-[118px]">
+          <div className="overflow-hidden rounded-[28px] border border-subtle bg-panel shadow-[0_24px_90px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center justify-between gap-4 border-b border-subtle px-6 py-5 md:px-8">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted">OpenTable</p>
+                <h2 className="mt-1 text-[24px] font-light uppercase tracking-[-0.02em] text-primary md:text-[34px]">
+                  {lang === "ru" ? "Бронирование" : lang === "en" ? "Reservation" : "Bron qilish"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsReservationOpen(false)}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-subtle text-muted transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
+                aria-label={pickLocalized(closeButtonText, lang)}
+              >
+                <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13 1L1 13M1 1L13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+            <div className="max-h-[calc(100vh-190px)] overflow-y-auto px-4 py-5 md:px-7">
+              <div className="reservation-widget-shell overflow-hidden rounded-[22px] bg-white text-black">
+                <style jsx>{`
+                  .reservation-widget-shell :global(iframe),
+                  .reservation-widget-shell :global(.ot-dtp-picker),
+                  .reservation-widget-shell :global(.ot-dtp-picker-form),
+                  .reservation-widget-shell :global(.ot-dtp-picker-selector) {
+                    width: 100% !important;
+                    max-width: none !important;
+                  }
+
+                  .reservation-widget-shell :global(iframe) {
+                    min-height: 520px !important;
+                  }
+
+                  .reservation-widget-shell :global(.ot-dtp-picker) {
+                    padding: 28px !important;
+                  }
+                `}</style>
+                <div ref={reservationWidgetRef} className="min-h-[520px] w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div 
         className={`fixed top-0 left-0 h-full z-[60] bg-panel text-secondary transform transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] w-full flex flex-col justify-between overflow-hidden ${

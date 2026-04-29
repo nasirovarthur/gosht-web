@@ -8,6 +8,7 @@ import type { Swiper as SwiperInstance } from "swiper";
 import "swiper/css";
 import SliderButton from "@/components/SliderButton";
 import Reveal from "@/components/Reveal";
+import KidsWorkshopSignupModal from "@/components/KidsWorkshopSignupModal";
 import type { EventItem, LangCode, Localized } from "@/lib/eventsData";
 
 function pickLocalized(value: Localized, lang: LangCode): string {
@@ -72,6 +73,7 @@ export default function EventDetailPage({
   const [swiperInstance, setSwiperInstance] = useState<SwiperInstance | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(relatedEvents.length > 1);
+  const [isSignupOpen, setIsSignupOpen] = useState(false);
 
   const syncSwiperState = (swiper: SwiperInstance) => {
     setCanScrollLeft(!swiper.isBeginning);
@@ -82,6 +84,9 @@ export default function EventDetailPage({
   const date = pickLocalized(event.date, lang);
   const time = pickLocalized(event.time, lang);
   const branch = pickLocalized(event.branch, lang);
+  const isKidsEvent = event.category === "kids";
+  const signupLabel =
+    lang === "ru" ? "Записаться сейчас" : lang === "en" ? "Sign Up Now" : "Hozir yozilish";
 
   return (
     <section className="w-full bg-base text-primary section-y-lg overflow-x-clip">
@@ -117,6 +122,16 @@ export default function EventDetailPage({
               <span className="text-muted">•</span>
               <span className="text-primary">{branch}</span>
             </p>
+
+            {isKidsEvent ? (
+              <button
+                type="button"
+                onClick={() => setIsSignupOpen(true)}
+                className="mt-6 inline-flex h-[54px] items-center justify-center rounded-full bg-[#AE0E16] px-8 text-ui font-light uppercase tracking-[0.12em] text-white transition-transform hover:scale-[1.02] active:scale-95"
+              >
+                {signupLabel}
+              </button>
+            ) : null}
           </Reveal>
 
           <Reveal as="div" className="mt-12 max-w-[1040px]" delay={110} distance={54} blur={12}>
@@ -205,6 +220,15 @@ export default function EventDetailPage({
           </div>
         </div>
       </div>
+
+      {isKidsEvent ? (
+        <KidsWorkshopSignupModal
+          isOpen={isSignupOpen}
+          onClose={() => setIsSignupOpen(false)}
+          lang={lang}
+          eventTitle={title}
+        />
+      ) : null}
     </section>
   );
 }

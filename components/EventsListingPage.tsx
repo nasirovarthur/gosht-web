@@ -45,6 +45,8 @@ function EventsCard({ event, index }: { event: EventItem; index: number }) {
   const title = event.title[lang] || event.title.uz;
   const date = event.date[lang] || event.date.uz;
   const branch = event.branch[lang] || event.branch.uz;
+  const signupLabel =
+    lang === "ru" ? "Записаться сейчас" : lang === "en" ? "Sign Up Now" : "Hozir yozilish";
   const description =
     event.description[0]?.[lang] ||
     event.description[0]?.uz ||
@@ -82,6 +84,15 @@ function EventsCard({ event, index }: { event: EventItem; index: number }) {
           <p className="mt-3 text-[14px] md:text-[15px] leading-relaxed text-secondary">
             {description}
           </p>
+        ) : null}
+
+        {event.category === "kids" ? (
+          <span className="mt-6 inline-flex h-[48px] w-fit items-center gap-3 rounded-full bg-[#AE0E16] px-6 text-[11px] uppercase tracking-[0.16em] text-white shadow-[0_14px_34px_rgba(174,14,22,0.24)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-[#c91720] group-hover:shadow-[0_18px_44px_rgba(174,14,22,0.34)] md:h-[52px] md:px-7">
+            {signupLabel}
+            <svg className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
         ) : null}
       </Link>
     </Reveal>

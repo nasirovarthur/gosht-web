@@ -151,6 +151,20 @@ function buildMenuUrls(item: Pick<RestaurantBranchRaw, "menuFiles" | "menuFile" 
   return Array.from(new Set(urls.filter(Boolean)));
 }
 
+function sortCities(cities: string[]): string[] {
+  const preferredOrder = ["new_york", "tashkent"];
+  return [...cities].sort((a, b) => {
+    const indexA = preferredOrder.indexOf(a);
+    const indexB = preferredOrder.indexOf(b);
+
+    if (indexA !== -1 || indexB !== -1) {
+      return (indexA === -1 ? preferredOrder.length : indexA) - (indexB === -1 ? preferredOrder.length : indexB);
+    }
+
+    return a.localeCompare(b);
+  });
+}
+
 export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryData> {
   const rawData = await client.fetch<RestaurantBranchRaw[]>(
     restaurantBranchesQuery,
@@ -228,6 +242,6 @@ export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryD
   return {
     projects: Array.from(projectsMap.values()),
     branches,
-    availableCities: Array.from(new Set(branches.map((branch) => branch.city))).filter(Boolean),
+    availableCities: sortCities(Array.from(new Set(branches.map((branch) => branch.city))).filter(Boolean)),
   };
 }

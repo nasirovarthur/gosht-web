@@ -15,6 +15,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "s3.amazonaws.com",
       },
+      {
+        protocol: "https",
+        hostname: "images.getbento.com",
+      },
+      {
+        protocol: "https",
+        hostname: "media-cdn.getbento.com",
+      },
     ],
   },
 };
