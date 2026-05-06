@@ -21,8 +21,6 @@ type HeaderProps = {
   feedbackSettings: FeedbackSettingsData;
 };
 
-const isSiteMenuEnabled = false;
-
 export default function Header({ navItems = [], feedbackSettings }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -57,11 +55,21 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
   const deliveryButtonText = translations.header.delivery;
   const closeButtonText = translations.header.close;
   const reservationButtonText = { uz: "BRON", ru: "БРОНЬ", en: "BOOK" };
+  const deliveryMenuButtonText = { uz: "YETKAZISH MENYUSI", ru: "МЕНЮ ДОСТАВКИ", en: "DELIVERY MENU" };
   const feedbackButtonText =
     pickLocalized(feedbackSettings.title, lang) ||
     pickLocalized(translations.footer.feedback, lang);
-  const isAnyDrawerOpen = (isSiteMenuEnabled && isOpen) || isFeedbackOpen || isReservationOpen;
-  const headerNavItems = navItems.filter((item) => item.showInHeader);
+  const isAnyDrawerOpen = isOpen || isFeedbackOpen || isReservationOpen;
+  const headerNavItems = [
+    ...navItems.filter((item) => item.showInHeader),
+    {
+      _key: "delivery-menu",
+      label: deliveryMenuButtonText,
+      href: "https://order.gosht.com",
+      showInHeader: true,
+      openInNewTab: false,
+    },
+  ];
   const logoSrc = theme === "light" ? "/logo-dark.svg" : "/logo.svg";
   const menuLogoSrc = theme === "light" ? "/menu-logo-dark.svg" : "/menu-logo.svg";
 
@@ -115,23 +123,21 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
         <div className="flex items-center justify-between w-full h-[80px] md:h-[100px] page-x relative">
           
           <div className="flex items-center gap-2 md:gap-3">
-            {isSiteMenuEnabled ? (
-              <button
-                onClick={() => {
-                  setIsFeedbackOpen(false);
-                  setIsReservationOpen(false);
-                  setIsOpen(true);
-                }}
-                className="group flex h-[40px] w-[40px] items-center justify-center rounded-full border border-subtle transition-all hover:bg-[color:var(--interactive-hover)] active:scale-95 md:h-[60px] md:w-[60px]"
-                aria-label={pickLocalized(translations.header.menu, lang)}
-              >
-                <svg className="w-[14px] h-[10px] md:w-[24px] md:h-[16px] fill-[color:var(--text-muted)] group-hover:fill-[color:var(--text-primary)] transition-colors" viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="18" height="1.5" />
-                  <rect y="5.25" width="18" height="1.5" />
-                  <rect y="10.5" width="18" height="1.5" />
-                </svg>
-              </button>
-            ) : null}
+            <button
+              onClick={() => {
+                setIsFeedbackOpen(false);
+                setIsReservationOpen(false);
+                setIsOpen(true);
+              }}
+              className="group flex h-[40px] w-[40px] items-center justify-center rounded-full border border-subtle transition-all hover:bg-[color:var(--interactive-hover)] active:scale-95 md:h-[60px] md:w-[60px]"
+              aria-label={pickLocalized(translations.header.menu, lang)}
+            >
+              <svg className="w-[14px] h-[10px] md:w-[24px] md:h-[16px] fill-[color:var(--text-muted)] group-hover:fill-[color:var(--text-primary)] transition-colors" viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="18" height="1.5" />
+                <rect y="5.25" width="18" height="1.5" />
+                <rect y="10.5" width="18" height="1.5" />
+              </svg>
+            </button>
 
             <a
               href="https://order.gosht.com"
@@ -283,28 +289,20 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
       ></div>
 
       {isReservationOpen ? (
-        <div className="fixed inset-x-4 top-[96px] z-[70] mx-auto max-w-[760px] md:top-[118px]">
-          <div className="overflow-hidden rounded-[28px] border border-subtle bg-panel shadow-[0_24px_90px_rgba(0,0,0,0.45)]">
-            <div className="flex items-center justify-between gap-4 border-b border-subtle px-6 py-5 md:px-8">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.22em] text-muted">OpenTable</p>
-                <h2 className="mt-1 text-[24px] font-light uppercase tracking-[-0.02em] text-primary md:text-[34px]">
-                  {lang === "ru" ? "Бронирование" : lang === "en" ? "Reservation" : "Bron qilish"}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsReservationOpen(false)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-subtle text-muted transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
-                aria-label={pickLocalized(closeButtonText, lang)}
-              >
-                <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13 1L1 13M1 1L13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-            <div className="max-h-[calc(100vh-190px)] overflow-y-auto px-4 py-5 md:px-7">
-              <div className="reservation-widget-shell overflow-hidden rounded-[22px] border border-subtle bg-[#0b0b0b] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center px-4 py-6">
+          <div className="relative w-full max-w-[300px] overflow-visible rounded-[22px] border border-subtle bg-[#0b0b0b] p-3 text-primary shadow-[0_24px_90px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <button
+              type="button"
+              onClick={() => setIsReservationOpen(false)}
+              className="absolute -right-3 -top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-subtle bg-panel text-muted shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
+              aria-label={pickLocalized(closeButtonText, lang)}
+            >
+              <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 1L1 13M1 1L13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+            </button>
+
+            <div className="reservation-widget-shell overflow-hidden rounded-[18px] bg-[#0b0b0b] text-primary">
                 <style jsx>{`
                   .reservation-widget-shell :global(iframe),
                   .reservation-widget-shell :global(.ot-dtp-picker),
@@ -315,23 +313,23 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
                   }
 
                   .reservation-widget-shell :global(iframe) {
-                    min-height: 520px !important;
+                    display: block !important;
+                    height: 292px !important;
+                    min-height: 292px !important;
                   }
 
                   .reservation-widget-shell :global(.ot-dtp-picker) {
                     background: transparent !important;
-                    padding: 28px !important;
+                    padding: 0 !important;
                     color: #ffffff !important;
                   }
                 `}</style>
-                <div ref={reservationWidgetRef} className="min-h-[520px] w-full" />
-              </div>
+                <div ref={reservationWidgetRef} className="h-[292px] w-full" />
             </div>
           </div>
         </div>
       ) : null}
 
-      {isSiteMenuEnabled ? (
       <div
         className={`fixed top-0 left-0 h-full z-[60] bg-panel text-secondary transform transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] w-full flex flex-col justify-between overflow-hidden ${
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -469,7 +467,6 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
             </div>
         </div>
       </div>
-      ) : null}
 
       {isFeedbackOpen ? (
         <FeedbackDrawer

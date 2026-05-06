@@ -93,8 +93,8 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
   const hasGallery = Array.isArray(restaurant.gallery) && restaurant.gallery.length > 0;
   const menuFiles = Array.isArray(restaurant.menuFiles) ? restaurant.menuFiles.filter(Boolean) : [];
   const hasMenuLink = menuFiles.length > 0;
-  const showActionButtons = isGoshtProject(restaurant.name, restaurant.branchName);
   const deliveryMenuEnabled = restaurant.deliveryMenuEnabled === true;
+  const showActionButtons = deliveryMenuEnabled && isGoshtProject(restaurant.name, restaurant.branchName);
   const deliveryMenuCtaHref = restaurant.slug ? `/${lang}/restaurants/${restaurant.slug}/menu` : '#';
   const primaryInfoLabel =
     restaurant.projectType === 'barbershop'
