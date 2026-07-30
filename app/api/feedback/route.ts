@@ -19,6 +19,7 @@ const MAX_MESSAGE_LENGTH = 2500;
 const MONDAY_API_URL = "https://api.monday.com/v2";
 const MONDAY_FILE_API_URL = "https://api.monday.com/v2/file";
 const MONDAY_API_VERSION = process.env.MONDAY_API_VERSION || "2023-10";
+const ADMIN_INGEST_TIMEOUT_MS = 8_000;
 
 const ALLOWED_IMAGE_MIME_TYPES = new Set([
   "image/jpeg",
@@ -308,6 +309,76 @@ async function mondayUploadFile(
   }
 }
 
+async function sendFeedbackToAdminInbox(params: {
+  requestId: string;
+  restaurantId: string;
+  restaurantName: string;
+  name: string;
+  phone: string;
+  email: string;
+  message: string;
+  lang: string;
+  sourceUrl: string;
+  consentAt: string;
+}) {
+  const adminApiUrl = process.env.GOSHT_ADMIN_API_URL?.trim().replace(/\/+$/, "");
+  const ingestSecret = process.env.FORM_INGEST_SECRET_UZ?.trim();
+
+  if (!adminApiUrl || !ingestSecret) {
+    throw new Error(
+      "Gosht Admin ingestion is not configured "
+      + "(GOSHT_ADMIN_API_URL / FORM_INGEST_SECRET_UZ)"
+    );
+  }
+
+  const response = await fetch(`${adminApiUrl}/form-ingest/UZ/feedback`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Gosht-Form-Secret": ingestSecret,
+    },
+    body: JSON.stringify({
+      idempotencyKey: params.requestId,
+      sourceEntityId: params.restaurantId,
+      subject: `Feedback — ${params.restaurantName || params.restaurantId}`,
+      name: params.name,
+      phone: params.phone,
+      email: params.email || undefined,
+      message: params.message,
+      locale: params.lang,
+      sourceUrl: params.sourceUrl || undefined,
+      consentText: "Privacy consent accepted in the website feedback form.",
+      consentAt: params.consentAt,
+      captchaVerified: true,
+      provider: "gosht-web-uz",
+      providerRecordId: params.requestId,
+      deliveryStatus: "DELIVERED",
+    }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(ADMIN_INGEST_TIMEOUT_MS),
+  });
+
+  if (!response.ok) {
+    const responseBody = (await response.text()).slice(0, 500);
+    throw new Error(
+      `Gosht Admin ingestion failed with HTTP ${response.status}: ${responseBody}`
+    );
+  }
+
+  const result = (await response.json()) as {
+    id?: unknown;
+    duplicate?: unknown;
+  };
+  if (typeof result.id !== "string" || !result.id) {
+    throw new Error("Gosht Admin ingestion returned an invalid response");
+  }
+
+  return {
+    id: result.id,
+    duplicate: result.duplicate === true,
+  };
+}
+
 export async function POST(request: NextRequest) {
   if (!isTrustedOriginRequest(request, { requireBrowserHeaders: true })) {
     return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
@@ -441,6 +512,7 @@ export async function POST(request: NextRequest) {
   }));
 
   const requestId = randomUUID();
+  const consentAt = new Date().toISOString();
 
   const payload = {
     requestId,
@@ -452,18 +524,48 @@ export async function POST(request: NextRequest) {
     consent,
     photosCount: photosMeta.length,
     photos: photosMeta,
-    receivedAt: new Date().toISOString(),
+    receivedAt: consentAt,
   };
+
+  try {
+    await sendFeedbackToAdminInbox({
+      requestId,
+      restaurantId,
+      restaurantName,
+      name,
+      phone,
+      email,
+      message,
+      lang,
+      sourceUrl: request.headers.get("referer") || "",
+      consentAt,
+    });
+  } catch (error) {
+    const adminError =
+      error instanceof Error ? error.message : "Unknown Gosht Admin ingestion error";
+    console.error("Feedback request could not be stored in Gosht Admin:", {
+      requestId,
+      error: adminError,
+    });
+    return NextResponse.json(
+      { error: "Feedback inbox is temporarily unavailable" },
+      { status: 502 }
+    );
+  }
 
   const mondayToken = process.env.MONDAY_API_TOKEN;
   const mondayBoardId = process.env.MONDAY_FEEDBACK_BOARD_ID;
   const mondayGroupId = process.env.MONDAY_FEEDBACK_GROUP_ID;
 
   if (!mondayToken || !mondayBoardId) {
-    return NextResponse.json(
-      { error: "Monday CRM is not configured (MONDAY_API_TOKEN / MONDAY_FEEDBACK_BOARD_ID)" },
-      { status: 500 }
-    );
+    console.warn("Monday CRM is not configured; feedback remains in Gosht Admin:", {
+      requestId,
+    });
+    return NextResponse.json({
+      ok: true,
+      requestId,
+      remaining: rateLimit.remaining,
+    });
   }
 
   const itemName = `${restaurantName || restaurantId} — ${name}`.slice(0, 240);
@@ -480,6 +582,8 @@ export async function POST(request: NextRequest) {
     lang,
     photos: photosMeta,
   });
+
+  let mondayDelivered = false;
 
   try {
     const boardMeta = await mondayRequest<MondayBoardColumnsResult>(
@@ -679,16 +783,20 @@ export async function POST(request: NextRequest) {
         await mondayUploadFile(mondayToken, mondayItemId, targetColumn.id, photo);
       }
     }
+    mondayDelivered = true;
   } catch (error) {
-    const message =
+    const mondayError =
       error instanceof Error ? error.message : "Unknown Monday integration error";
-    return NextResponse.json(
-      { error: `Could not send feedback to Monday CRM: ${message}` },
-      { status: 502 }
-    );
+    console.error("Feedback request was stored in Gosht Admin, but Monday delivery failed:", {
+      requestId,
+      error: mondayError,
+    });
   }
 
-  console.info("Feedback request sent to Monday CRM:", payload);
+  console.info("Feedback request stored:", {
+    ...payload,
+    mondayDelivered,
+  });
 
   return NextResponse.json({
     ok: true,

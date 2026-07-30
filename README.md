@@ -34,3 +34,19 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Production feedback delivery
+
+The UZ feedback route stores each verified submission in Gosht Admin before
+attempting the secondary Monday delivery. Configure these server-only variables
+in Vercel:
+
+```bash
+GOSHT_ADMIN_API_URL=https://admin.gosht.uz/api
+FORM_INGEST_SECRET_UZ=<same secret as the UZ secret on Gosht Admin>
+```
+
+`FORM_INGEST_SECRET_UZ` must never use a `NEXT_PUBLIC_` prefix. If Gosht Admin
+cannot accept a submission, the website returns an error instead of displaying
+a false success state. A later Monday failure does not lose the submission
+already stored in Gosht Admin.
