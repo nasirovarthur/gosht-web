@@ -19,7 +19,7 @@ const MAX_MESSAGE_LENGTH = 2500;
 const MONDAY_API_URL = "https://api.monday.com/v2";
 const MONDAY_FILE_API_URL = "https://api.monday.com/v2/file";
 const MONDAY_API_VERSION = process.env.MONDAY_API_VERSION || "2023-10";
-const ADMIN_INGEST_TIMEOUT_MS = 8_000;
+const ADMIN_INGEST_TIMEOUT_MS = 20_000;
 
 const ALLOWED_IMAGE_MIME_TYPES = new Set([
   "image/jpeg",
@@ -320,6 +320,7 @@ async function sendFeedbackToAdminInbox(params: {
   lang: string;
   sourceUrl: string;
   consentAt: string;
+  photos: File[];
 }) {
   const adminApiUrl = process.env.GOSHT_ADMIN_API_URL?.trim().replace(/\/+$/, "");
   const ingestSecret = process.env.FORM_INGEST_SECRET_UZ?.trim();
@@ -331,29 +332,35 @@ async function sendFeedbackToAdminInbox(params: {
     );
   }
 
+  const submission = {
+    idempotencyKey: params.requestId,
+    sourceEntityId: params.restaurantId,
+    subject: `Feedback — ${params.restaurantName || params.restaurantId}`,
+    name: params.name,
+    phone: params.phone,
+    email: params.email || undefined,
+    message: params.message,
+    locale: params.lang,
+    sourceUrl: params.sourceUrl || undefined,
+    consentText: "Privacy consent accepted in the website feedback form.",
+    consentAt: params.consentAt,
+    captchaVerified: true,
+    provider: "gosht-web-uz",
+    providerRecordId: params.requestId,
+    deliveryStatus: "DELIVERED",
+  };
+  const formData = new FormData();
+  formData.append("submission", JSON.stringify(submission));
+  for (const photo of params.photos) {
+    formData.append("attachments", photo, photo.name);
+  }
+
   const response = await fetch(`${adminApiUrl}/form-ingest/UZ/feedback`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       "X-Gosht-Form-Secret": ingestSecret,
     },
-    body: JSON.stringify({
-      idempotencyKey: params.requestId,
-      sourceEntityId: params.restaurantId,
-      subject: `Feedback — ${params.restaurantName || params.restaurantId}`,
-      name: params.name,
-      phone: params.phone,
-      email: params.email || undefined,
-      message: params.message,
-      locale: params.lang,
-      sourceUrl: params.sourceUrl || undefined,
-      consentText: "Privacy consent accepted in the website feedback form.",
-      consentAt: params.consentAt,
-      captchaVerified: true,
-      provider: "gosht-web-uz",
-      providerRecordId: params.requestId,
-      deliveryStatus: "DELIVERED",
-    }),
+    body: formData,
     cache: "no-store",
     signal: AbortSignal.timeout(ADMIN_INGEST_TIMEOUT_MS),
   });
@@ -539,6 +546,7 @@ export async function POST(request: NextRequest) {
       lang,
       sourceUrl: request.headers.get("referer") || "",
       consentAt,
+      photos: normalizedPhotos,
     });
   } catch (error) {
     const adminError =

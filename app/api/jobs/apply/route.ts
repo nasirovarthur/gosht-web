@@ -19,6 +19,7 @@ const MAX_ABOUT_LENGTH = 3000;
 const MONDAY_API_URL = "https://api.monday.com/v2";
 const MONDAY_FILE_API_URL = "https://api.monday.com/v2/file";
 const MONDAY_API_VERSION = process.env.MONDAY_API_VERSION || "2023-10";
+const ADMIN_INGEST_TIMEOUT_MS = 20_000;
 
 const ALLOWED_FILE_TYPES = new Set([
   "application/pdf",
@@ -303,6 +304,84 @@ async function mondayUploadFile(
   }
 }
 
+async function sendJobApplicationToAdminInbox(params: {
+  requestId: string;
+  vacancyId: string;
+  vacancyTitle: string;
+  vacancyRole: string;
+  name: string;
+  phone: string;
+  email: string;
+  about: string;
+  lang: string;
+  sourceUrl: string;
+  consentAt: string;
+  resumes: File[];
+}) {
+  const adminApiUrl = process.env.GOSHT_ADMIN_API_URL?.trim().replace(/\/+$/, "");
+  const ingestSecret = process.env.FORM_INGEST_SECRET_UZ?.trim();
+
+  if (!adminApiUrl || !ingestSecret) {
+    throw new Error(
+      "Gosht Admin ingestion is not configured "
+      + "(GOSHT_ADMIN_API_URL / FORM_INGEST_SECRET_UZ)"
+    );
+  }
+
+  const submission = {
+    idempotencyKey: params.requestId,
+    sourceEntityId: params.vacancyId,
+    subject: `Job application — ${params.vacancyTitle || params.vacancyRole || params.vacancyId}`,
+    name: params.name,
+    phone: params.phone,
+    email: params.email || undefined,
+    message: params.about,
+    locale: params.lang,
+    sourceUrl: params.sourceUrl || undefined,
+    consentText: "Privacy consent accepted in the website job application form.",
+    consentAt: params.consentAt,
+    captchaVerified: true,
+    provider: "gosht-web-uz",
+    providerRecordId: params.requestId,
+    deliveryStatus: "DELIVERED",
+  };
+  const formData = new FormData();
+  formData.append("submission", JSON.stringify(submission));
+  for (const resume of params.resumes) {
+    formData.append("attachments", resume, resume.name);
+  }
+
+  const response = await fetch(`${adminApiUrl}/form-ingest/UZ/job-application`, {
+    method: "POST",
+    headers: {
+      "X-Gosht-Form-Secret": ingestSecret,
+    },
+    body: formData,
+    cache: "no-store",
+    signal: AbortSignal.timeout(ADMIN_INGEST_TIMEOUT_MS),
+  });
+
+  if (!response.ok) {
+    const responseBody = (await response.text()).slice(0, 500);
+    throw new Error(
+      `Gosht Admin ingestion failed with HTTP ${response.status}: ${responseBody}`
+    );
+  }
+
+  const result = (await response.json()) as {
+    id?: unknown;
+    duplicate?: unknown;
+  };
+  if (typeof result.id !== "string" || !result.id) {
+    throw new Error("Gosht Admin ingestion returned an invalid response");
+  }
+
+  return {
+    id: result.id,
+    duplicate: result.duplicate === true,
+  };
+}
+
 export async function POST(request: NextRequest) {
   if (!isTrustedOriginRequest(request, { requireBrowserHeaders: true })) {
     return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
@@ -420,21 +499,52 @@ export async function POST(request: NextRequest) {
     size: file.size,
   }));
 
+  const requestId = randomUUID();
+  const consentAt = new Date().toISOString();
+
+  try {
+    await sendJobApplicationToAdminInbox({
+      requestId,
+      vacancyId,
+      vacancyTitle,
+      vacancyRole,
+      name,
+      phone,
+      email,
+      about,
+      lang,
+      sourceUrl: request.headers.get("referer") || "",
+      consentAt,
+      resumes: normalizedResumes,
+    });
+  } catch (error) {
+    const adminError =
+      error instanceof Error ? error.message : "Unknown Gosht Admin ingestion error";
+    console.error("Job application could not be stored in Gosht Admin:", {
+      requestId,
+      error: adminError,
+    });
+    return NextResponse.json(
+      { error: "Job applications inbox is temporarily unavailable" },
+      { status: 502 }
+    );
+  }
+
   const mondayToken = process.env.MONDAY_API_TOKEN;
   const mondayBoardId = process.env.MONDAY_JOBS_APPLY_BOARD_ID;
   const mondayGroupId = process.env.MONDAY_JOBS_APPLY_GROUP_ID;
 
   if (!mondayToken || !mondayBoardId) {
-    return NextResponse.json(
-      {
-        error:
-          "Monday CRM is not configured (MONDAY_API_TOKEN / MONDAY_JOBS_APPLY_BOARD_ID)",
-      },
-      { status: 500 }
-    );
+    console.warn("Monday CRM is not configured; application remains in Gosht Admin:", {
+      requestId,
+    });
+    return NextResponse.json({
+      ok: true,
+      requestId,
+      remaining: rateLimit.remaining,
+    });
   }
 
-  const requestId = randomUUID();
   const itemName = `${vacancyTitle || "Vacancy"} — ${name}`.slice(0, 240);
   const submittedDate = new Date().toISOString().slice(0, 10);
 
@@ -451,6 +561,8 @@ export async function POST(request: NextRequest) {
     lang,
     files: filesMeta,
   });
+
+  let mondayDelivered = false;
 
   try {
     const boardMeta = await mondayRequest<MondayBoardColumnsResult>(
@@ -665,16 +777,17 @@ export async function POST(request: NextRequest) {
         await mondayUploadFile(mondayToken, mondayItemId, fileColumn.id, file);
       }
     }
+    mondayDelivered = true;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown Monday integration error";
-    return NextResponse.json(
-      { error: `Could not send jobs apply to Monday CRM: ${message}` },
-      { status: 502 }
-    );
+    console.error("Job application was stored in Gosht Admin, but Monday delivery failed:", {
+      requestId,
+      error: message,
+    });
   }
 
-  console.info("Job apply request sent to Monday CRM:", {
+  console.info("Job application stored:", {
     requestId,
     vacancyId,
     vacancyTitle,
@@ -685,6 +798,7 @@ export async function POST(request: NextRequest) {
     resumesCount: filesMeta.length,
     files: filesMeta,
     consent,
+    mondayDelivered,
     receivedAt: new Date().toISOString(),
   });
 
