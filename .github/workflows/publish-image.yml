@@ -1,0 +1,109 @@
+name: Publish immutable site image
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_commit:
+        description: Full commit SHA to publish from main
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-image-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Test, build and publish
+    if: github.actor == github.repository_owner && inputs.release_commit == github.sha
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    env:
+      NEXT_PUBLIC_SITE_URL: https://gosht.uz
+      NEXT_PUBLIC_SANITY_PROJECT_ID: 90iua6vo
+      NEXT_PUBLIC_SANITY_DATASET: production
+      NEXT_PUBLIC_SANITY_API_VERSION: 2026-02-03
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Validate release input
+        run: |
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${{ inputs.release_commit }}" = "${GITHUB_SHA}"
+          test -n "${NEXT_PUBLIC_TURNSTILE_SITE_KEY}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1e60f620b9541d25b2e017d0a9a7ebf8c1b66c6c # v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build application
+        run: npm run build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@371161bbe7024a29a25c5e19bfcbc0804fe9ad2c # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish image
+        id: image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          file: Dockerfile
+          target: runner
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/gosht-web-uz:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=${{ env.NEXT_PUBLIC_SITE_URL }}
+            NEXT_PUBLIC_SANITY_PROJECT_ID=${{ env.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+            NEXT_PUBLIC_SANITY_DATASET=${{ env.NEXT_PUBLIC_SANITY_DATASET }}
+            NEXT_PUBLIC_SANITY_API_VERSION=${{ env.NEXT_PUBLIC_SANITY_API_VERSION }}
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ env.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=site
+          cache-to: type=gha,mode=max,scope=site
+          provenance: mode=max
+          sbom: true
+
+      - name: Write release manifest
+        env:
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          mkdir -p release
+          printf 'RELEASE_COMMIT=%s\nSITE_IMAGE=ghcr.io/%s/gosht-web-uz@%s\n' \
+            "${GITHUB_SHA}" "${GITHUB_REPOSITORY_OWNER}" "${IMAGE_DIGEST}" \
+            > release/release-manifest.env
+          sha256sum release/release-manifest.env > release/SHA256SUMS
+
+      - name: Upload release manifest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: gosht-web-uz-release-${{ github.sha }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 90
