@@ -70,7 +70,6 @@ export const restaurantBranch = defineType({
       options: {
         list: [
           { title: 'Ташкент', value: 'tashkent' },
-          { title: 'Нью-Йорк', value: 'new_york' },
         ],
         layout: 'radio',
       },

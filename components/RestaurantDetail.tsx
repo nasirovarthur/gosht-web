@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect } from 'react';
 import ImageSlider from './ImageSlider';
 import YandexMap from './restaurant/YandexMap';
@@ -12,6 +13,7 @@ import { pickLocalized, translations } from '@/types/i18n';
 interface RestaurantDetailProps {
   restaurant: {
     name: string;
+    slug?: string;
     projectType?: "restaurant" | "barbershop";
     primaryInfoValue?: string;
     branchName: string;
@@ -27,6 +29,7 @@ interface RestaurantDetailProps {
     gallery: string[];
     mapLink: string;
     mapEmbedUrl?: string;
+    deliveryMenuEnabled?: boolean;
     chef?: {
       title?: string;
       name?: string;
@@ -96,6 +99,10 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
   const hasGallery = Array.isArray(restaurant.gallery) && restaurant.gallery.length > 0;
   const menuFiles = Array.isArray(restaurant.menuFiles) ? restaurant.menuFiles.filter(Boolean) : [];
   const hasMenuLink = menuFiles.length > 0;
+  const deliveryMenuHref =
+    restaurant.deliveryMenuEnabled && restaurant.slug
+      ? `/${lang}/restaurants/${restaurant.slug}/menu`
+      : null;
   const primaryInfoLabel =
     restaurant.projectType === 'barbershop'
       ? lang === 'ru'
@@ -189,6 +196,14 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                               </a>
                             ))
                           : null}
+                        {deliveryMenuHref ? (
+                          <Link
+                            href={deliveryMenuHref}
+                            className="block w-fit border-b border-white/20 pb-1 text-body font-light text-white transition-colors hover:border-white/40 hover:text-white/75"
+                          >
+                            {pickLocalized(t.deliveryMenu, lang)}
+                          </Link>
+                        ) : null}
                       </div>
                     </div>
                   </div>

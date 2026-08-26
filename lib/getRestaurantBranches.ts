@@ -78,6 +78,7 @@ const restaurantBranchesQuery = `
     defined(project->_id) &&
     project->isActive != false &&
     coalesce(project->projectType, "restaurant") in ["restaurant", "barbershop"] &&
+    coalesce(city, "tashkent") == "tashkent" &&
     defined(slug.current)
   ] | order(project->name.ru asc, branchName.ru asc) {
     _id,

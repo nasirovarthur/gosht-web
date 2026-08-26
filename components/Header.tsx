@@ -46,11 +46,24 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
 
   const menuButtonText = translations.header.menu;
   const closeButtonText = translations.header.close;
+  const deliveryButtonText = translations.header.delivery;
+  const deliveryMenuHref = `/${lang}/restaurants/gosht-west/menu`;
   const feedbackButtonText =
     pickLocalized(feedbackSettings.title, lang) ||
     pickLocalized(translations.footer.feedback, lang);
   const isAnyDrawerOpen = isOpen || isFeedbackOpen;
-  const headerNavItems = navItems.filter((item) => item.showInHeader);
+  const headerNavItems: NavItem[] = [
+    {
+      _key: 'gosht-west-delivery-menu',
+      label: deliveryButtonText,
+      href: '/restaurants/gosht-west/menu',
+      showInHeader: true,
+      showInFooter: false,
+    },
+    ...navItems.filter(
+      (item) => item.showInHeader && item.href !== '/restaurants/gosht-west/menu'
+    ),
+  ];
 
   useBodyScrollLock(isAnyDrawerOpen);
 
@@ -132,6 +145,21 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
 
           {/* Language Selector (Desktop) */}
           <div className="hidden md:flex items-center justify-end min-w-[140px] gap-3">
+            <Link
+              href={deliveryMenuHref}
+              className="group hidden h-[60px] items-center gap-3 rounded-full border border-white/10 px-6 transition-colors hover:bg-white/5 lg:flex"
+              aria-label={pickLocalized(deliveryButtonText, lang)}
+            >
+              <svg className="h-[20px] w-[20px] text-white/65 transition-colors group-hover:text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 13.5H19L17.8 20H6.2L5 13.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M8.5 13.5C8.5 10.5 10.07 8 12 8C13.93 8 15.5 10.5 15.5 13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M4 13.5H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <span className="text-ui font-light text-white/90">
+                {pickLocalized(deliveryButtonText, lang)}
+              </span>
+            </Link>
+
             <button
               type="button"
               onClick={() => {

@@ -10,6 +10,7 @@ import { pickLocalized } from "@/types/i18n";
 import type { LangCode, LocalizedOptional } from "@/types/i18n";
 
 type BranchRestaurantRaw = {
+  city?: "tashkent";
   branchName?: LocalizedOptional;
   address?: LocalizedOptional;
   phone?: string;
@@ -93,6 +94,19 @@ function buildSlugCandidates(slug: string): string[] {
   return Array.from(new Set([slug, trimmed, `/${trimmed}`]));
 }
 
+function hasIikoDeliveryMenu(
+  slug: string,
+  city: BranchRestaurantRaw["city"] | undefined,
+  projectType: "restaurant" | "barbershop" | undefined
+): boolean {
+  const normalizedSlug = slug.replace(/^\/+|\/+$/g, "");
+  return (
+    normalizedSlug === "gosht-west" &&
+    (city === undefined || city === "tashkent") &&
+    projectType !== "barbershop"
+  );
+}
+
 function buildMapUrls(map: BranchRestaurantRaw["map"] | LegacyRestaurantRaw["map"]): {
   mapLink: string;
   mapEmbedUrl?: string;
@@ -126,6 +140,7 @@ async function getBranchRestaurantBySlug(slug: string): Promise<BranchRestaurant
       project->isActive != false &&
       coalesce(project->projectType, "restaurant") in ["restaurant", "barbershop"]
     ][0] {
+      city,
       branchName,
       address,
       phone,
@@ -413,6 +428,7 @@ export default async function RestaurantPage({
         <RestaurantDetail
           restaurant={{
             name: projectName,
+            slug: slug.replace(/^\/+|\/+$/g, ""),
             projectType: branchRestaurant.project?.projectType === "barbershop" ? "barbershop" : "restaurant",
             primaryInfoValue: primaryInfo,
             branchName,
@@ -428,6 +444,11 @@ export default async function RestaurantPage({
             gallery: branchRestaurant.gallery || [],
             mapLink,
             mapEmbedUrl,
+            deliveryMenuEnabled: hasIikoDeliveryMenu(
+              slug,
+              branchRestaurant.city,
+              branchRestaurant.project?.projectType
+            ),
             chef: {
               title: pickLocalized(branchRestaurant.project?.lead?.title, language),
               name: pickLocalized(branchRestaurant.project?.lead?.name, language),
@@ -486,6 +507,7 @@ export default async function RestaurantPage({
       <RestaurantDetail
         restaurant={{
           name: projectName,
+          slug: slug.replace(/^\/+|\/+$/g, ""),
           projectType: "restaurant",
           primaryInfoValue: projectName,
           branchName,
@@ -501,6 +523,7 @@ export default async function RestaurantPage({
           gallery: legacyRestaurant.gallery || [],
           mapLink,
           mapEmbedUrl,
+          deliveryMenuEnabled: slug.replace(/^\/+|\/+$/g, "") === "gosht-west",
           chef: {
             title: pickLocalized(legacyRestaurant.chef?.title, language),
             name: pickLocalized(legacyRestaurant.chef?.name, language),
