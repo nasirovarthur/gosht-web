@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import RestaurantDeliveryMenuPage from "@/components/RestaurantDeliveryMenuPage";
+import { applyAdminMenuVisibility } from "@/lib/adminMenuVisibility";
 import { getIikoDeliveryMenu, getIikoMainGoshtHints } from "@/lib/iiko";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { resolveLang } from "@/lib/seo/site";
@@ -214,10 +215,11 @@ export default async function RestaurantMenuPage({
     const isRestaurant = branchRestaurant.project?.projectType !== "barbershop";
     const isMainGosht = isGoshtRestaurant(projectName, branchName);
     const shouldLoadIikoMenu = hasIikoDeliveryMenu(slug, branchRestaurant.city, isRestaurant) && isMainGosht;
-    const iikoMenu =
-      shouldLoadIikoMenu
-        ? await getIikoDeliveryMenu(getIikoMainGoshtHints(branchName, projectName))
-        : null;
+    const iikoMenu = shouldLoadIikoMenu
+      ? await applyAdminMenuVisibility(
+        await getIikoDeliveryMenu(getIikoMainGoshtHints(branchName, projectName)),
+      )
+      : null;
     const menuFiles = buildMenuFiles(
       branchRestaurant.menuFiles,
       branchRestaurant.menu,
@@ -255,10 +257,11 @@ export default async function RestaurantMenuPage({
   const branchName = pickLocalized(legacyRestaurant.branchName, language) || projectName;
   const address = pickLocalized(legacyRestaurant.address, language);
   const shouldLoadIikoMenu = IIKO_DELIVERY_SLUGS.has(slug.replace(/^\/+|\/+$/g, "")) && isGoshtRestaurant(projectName, branchName);
-  const iikoMenu =
-    shouldLoadIikoMenu
-      ? await getIikoDeliveryMenu(getIikoMainGoshtHints(branchName, projectName))
-      : null;
+  const iikoMenu = shouldLoadIikoMenu
+    ? await applyAdminMenuVisibility(
+      await getIikoDeliveryMenu(getIikoMainGoshtHints(branchName, projectName)),
+    )
+    : null;
   const menuFiles = buildMenuFiles(legacyRestaurant.menuFiles, legacyRestaurant.menu);
 
   return (
