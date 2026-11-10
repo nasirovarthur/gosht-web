@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBasketShopping, faCalendarCheck } from '@fortawesome/free-solid-svg-icons';
 import ImageSlider from './ImageSlider';
 import YandexMap from './restaurant/YandexMap';
 import Reveal from './Reveal';
@@ -103,6 +105,9 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
     restaurant.deliveryMenuEnabled && restaurant.slug
       ? `/${lang}/restaurants/${restaurant.slug}/menu`
       : null;
+  const openBookingDrawer = () => {
+    window.dispatchEvent(new CustomEvent('open-feedback-drawer'));
+  };
   const primaryInfoLabel =
     restaurant.projectType === 'barbershop'
       ? lang === 'ru'
@@ -114,7 +119,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
   const primaryInfoValue = (restaurant.primaryInfoValue || restaurant.name || '').trim();
 
   return (
-    <main className="min-h-screen bg-base pt-[104px] pb-24 text-white md:pt-[124px] md:pb-28">
+    <main className={`min-h-screen bg-base pt-[104px] text-white md:pt-[124px] md:pb-28 ${deliveryMenuHref ? 'pb-36' : 'pb-24'}`}>
       <div
         ref={scrollContainerRef}
         className="overflow-x-hidden overflow-y-visible lg:overflow-x-auto overscroll-x-contain"
@@ -332,6 +337,33 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
           </section>
         </div>
       </div>
+
+      {deliveryMenuHref ? (
+        <div
+          role="group"
+          aria-label={pickLocalized(t.actions, lang)}
+          data-testid="restaurant-actions"
+          className="pointer-events-none fixed bottom-[max(16px,env(safe-area-inset-bottom))] left-0 right-0 z-30 px-4 sm:left-7 sm:right-auto sm:px-0 md:bottom-7"
+        >
+          <div className="pointer-events-auto flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <Link
+              href={deliveryMenuHref}
+              className="inline-flex h-11 w-full items-center justify-center gap-3 rounded-full border border-white bg-white px-5 text-sm font-light uppercase tracking-normal text-inverse transition-colors hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto sm:justify-start md:h-[60px] md:gap-4 md:px-7 md:text-base"
+            >
+              <FontAwesomeIcon icon={faBasketShopping} aria-hidden="true" className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
+              <span>{pickLocalized(t.deliveryMenu, lang)}</span>
+            </Link>
+            <button
+              type="button"
+              onClick={openBookingDrawer}
+              className="inline-flex h-11 w-full items-center justify-center gap-3 rounded-full border border-white/20 bg-base px-5 text-sm font-light uppercase tracking-normal text-white transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto sm:justify-start md:h-[60px] md:gap-4 md:px-7 md:text-base"
+            >
+              <FontAwesomeIcon icon={faCalendarCheck} aria-hidden="true" className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
+              <span>{pickLocalized(t.bookTable, lang)}</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

@@ -135,3 +135,72 @@ test('map entry keeps the original map and sidebar layout', () => {
   assert.match(html, /data-map-selection="gosht-brooklyn"/);
   assert.match(html, /lg:grid-cols-\[minmax\(0,1fr\)_380px\]/);
 });
+
+let detailLang = 'ru';
+const Detail = load('../components/RestaurantDetail.tsx', {
+  react: { ...React, useEffect: () => {} },
+  'next/image': { default: ({ src, alt }) => React.createElement('img', { src, alt }) },
+  'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
+  './ImageSlider': { default: () => null },
+  './restaurant/YandexMap': { default: () => null },
+  './Reveal': { default: ({ as = 'div', children }) => React.createElement(as, null, children) },
+  '@/hooks/useHorizontalScroll': { useHorizontalScroll: () => ({ current: null }) },
+  '@/context/LanguageContext': { useLanguage: () => ({ lang: detailLang }) },
+  '@/types/i18n': load('../types/i18n.ts'),
+}).default;
+const westDetail = {
+  name: 'Gōsht', slug: 'gosht-west', branchName: 'GŌSHT WEST', address: 'Existing address',
+  phone: '+998995168800', workingHours: 'Existing hours', averageCheck: '200 000 - 300 000 сум',
+  description: 'Existing description', menuFiles: [], gallery: [], mapLink: 'https://yandex.uz/maps', deliveryMenuEnabled: true,
+};
+
+test('West retains its prominent menu and booking controls without a PDF attachment', () => {
+  for (const lang of ['ru', 'uz', 'en']) {
+    detailLang = lang;
+    const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: westDetail }));
+    const actions = html.split('data-testid="restaurant-actions"')[1];
+    assert.ok(actions, lang);
+    assert.ok(actions.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
+    const labels = load('../types/i18n.ts').translations.restaurantDetail;
+    assert.ok(actions.includes(labels.deliveryMenu[lang]));
+    assert.ok(actions.includes(labels.bookTable[lang]));
+    assert.match(actions, /<button[^>]+type="button"/);
+    assert.match(html, /pb-36/);
+  }
+});
+test('branches without connected delivery do not gain West actions or lose attached PDFs', () => {
+  detailLang = 'ru';
+  const restaurant = { ...westDetail, slug: 'gosht-muqimiy', deliveryMenuEnabled: false, menuFiles: ['https://cdn.sanity.io/existing-menu.pdf'] };
+  const html = renderToStaticMarkup(React.createElement(Detail, { restaurant }));
+  assert.ok(!html.includes('data-testid="restaurant-actions"'));
+  assert.ok(html.includes('href="https://cdn.sanity.io/existing-menu.pdf"'));
+  assert.match(html, /pb-24/);
+});
+test('restored booking control uses the existing feedback drawer event', () => {
+  detailLang = 'ru';
+  const element = Detail({ restaurant: westDetail });
+  function findButton(node) {
+    if (!React.isValidElement(node)) return undefined;
+    if (node.type === 'button' && node.props.onClick) return node;
+    for (const child of React.Children.toArray(node.props.children)) {
+      const found = findButton(child);
+      if (found) return found;
+    }
+  }
+  const button = findButton(element);
+  assert.ok(button);
+  const oldWindow = globalThis.window;
+  const oldCustomEvent = globalThis.CustomEvent;
+  const events = [];
+  globalThis.window = { dispatchEvent: event => events.push(event.type) };
+  globalThis.CustomEvent = class { constructor(type) { this.type = type; } };
+  try {
+    button.props.onClick();
+    assert.deepEqual(events, ['open-feedback-drawer']);
+  } finally {
+    if (oldWindow === undefined) delete globalThis.window;
+    else globalThis.window = oldWindow;
+    if (oldCustomEvent === undefined) delete globalThis.CustomEvent;
+    else globalThis.CustomEvent = oldCustomEvent;
+  }
+});
