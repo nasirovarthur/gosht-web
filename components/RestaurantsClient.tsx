@@ -42,6 +42,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
+  const hasNewYork = items.some((item) => item.city === "new_york");
   const filteredItems = useMemo(() => prioritizeHomeRestaurants(items.filter((item) => item.city === activeCity)), [items, activeCity]);
   const getName = (field: LocalizedString) => field?.[lang] || field?.uz || "";
 
@@ -134,12 +135,12 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
             <span className={`absolute bottom-0 left-0 w-full h-[1px] bg-white transition-all duration-500 ease-out ${activeCity === "tashkent" ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-50 group-hover:opacity-30"}`} />
           </button>
 
-          <button type="button" aria-pressed={activeCity === "new_york"} onClick={() => setActiveCity("new_york")} className="group relative pb-2 md:pb-3">
+          {hasNewYork && <button type="button" aria-pressed={activeCity === "new_york"} onClick={() => setActiveCity("new_york")} className="group relative pb-2 md:pb-3">
             <span className={`text-title transition-colors duration-300 ${activeCity === "new_york" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
               New York
             </span>
             <span className={`absolute bottom-0 left-0 w-full h-[1px] bg-white transition-all duration-500 ease-out ${activeCity === "new_york" ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-50 group-hover:opacity-30"}`} />
-          </button>
+          </button>}
         </div>
 
         {/* КНОПКИ */}
@@ -162,7 +163,9 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
           const detailHref = normalizedSlug
             ? `/${lang}/restaurants/${encodeURIComponent(normalizedSlug)}`
             : fallbackHref;
-          const href = normalizedSlug ? detailHref : item.url || fallbackHref;
+          const href = normalizedSlug && item.city === "new_york"
+            ? `https://www.gosht.com${lang === "en" ? "" : `/${lang}`}/restaurants/${encodeURIComponent(normalizedSlug)}`
+            : normalizedSlug ? detailHref : item.url || fallbackHref;
           const isExternal = !normalizedSlug && Boolean(item.url);
 
           return (

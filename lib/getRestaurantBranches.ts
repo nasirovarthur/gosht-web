@@ -80,7 +80,7 @@ const restaurantBranchesQuery = `
     defined(project->_id) &&
     project->isActive != false &&
     coalesce(project->projectType, "restaurant") in ["restaurant", "barbershop"] &&
-    coalesce(city, "tashkent") == "tashkent" &&
+    coalesce(city, "tashkent") in $cities &&
     defined(slug.current)
   ] | order(project->name.ru asc, branchName.ru asc) {
     _id,
@@ -149,8 +149,12 @@ function buildMenuUrls(item: Pick<RestaurantBranchRaw, "menuFiles" | "menuFile" 
   return Array.from(new Set(urls.filter(Boolean)));
 }
 
-export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryData> {
-  const rawData = await client.fetch<RestaurantBranchRaw[]>(restaurantBranchesQuery);
+export async function getRestaurantBranchesData({
+  cities = ["tashkent"],
+}: {
+  cities?: readonly ("tashkent" | "new_york")[];
+} = {}): Promise<RestaurantsDirectoryData> {
+  const rawData = await client.fetch<RestaurantBranchRaw[]>(restaurantBranchesQuery, { cities });
 
   const branches = rawData
     .map<RestaurantBranchItem | null>((item) => {

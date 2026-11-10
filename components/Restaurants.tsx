@@ -2,7 +2,7 @@ import { getRestaurantBranchesData } from "@/lib/getRestaurantBranches";
 import RestaurantsClient from "./RestaurantsClient";
 
 export default async function Restaurants() {
-  const data = await getRestaurantBranchesData();
+  const data = await getRestaurantBranchesData({ cities: ["tashkent", "new_york"] });
 
   const items = data.branches
     .filter((item) => Boolean(item.cardImage))

@@ -209,3 +209,67 @@ test('restaurant detail and catalogue queries select language-tagged PDFs and pr
     assert.ok(!source.includes('getLegacyRestaurantBySlug(slug);'));
   }
 });
+
+let homeCity = 'tashkent';
+let homeLang = 'ru';
+const HomeRestaurants = load('../components/RestaurantsClient.tsx', {
+  react: { ...React, useState: value => [value === 'tashkent' ? homeCity : value, () => {}], useEffect: () => {} },
+  'next/image': { default: ({ src, alt }) => React.createElement('img', { src, alt }) },
+  'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
+  './SliderButton': { default: () => null },
+  '@/context/LanguageContext': { useLanguage: () => ({ lang: homeLang }) },
+  '@/lib/restaurantPresentation': load('../lib/restaurantPresentation.ts'),
+}).default;
+const homeItems = [west, boulevard, ny].map(item => ({
+  ...item, _id: item.id, name: item.branchName, image: item.cardImage,
+}));
+function renderHome(city, lang = 'ru', items = homeItems) {
+  homeCity = city;
+  homeLang = lang;
+  return renderToStaticMarkup(React.createElement(HomeRestaurants, { items }));
+}
+
+test('New York on the UZ homepage displays Brooklyn and links to its real US page in every language', () => {
+  for (const lang of ['ru', 'uz', 'en']) {
+    const html = renderHome('new_york', lang);
+    const prefix = lang === 'en' ? '' : `/${lang}`;
+    assert.ok(html.includes(`href="https://www.gosht.com${prefix}/restaurants/gosht-brooklyn"`));
+    assert.ok(!html.includes(`href="/${lang}/restaurants/gosht-brooklyn"`));
+    assert.ok(!html.includes('Список пуст'));
+    assert.ok(!html.includes('List is empty'));
+    assert.ok(!html.includes('gosht-west'));
+  }
+});
+test('Tashkent retains its local links, ordering and city switch without mixing in Brooklyn', () => {
+  const html = renderHome('tashkent');
+  assert.ok(html.includes('href="/ru/restaurants/gosht-west"'));
+  assert.ok(html.includes('href="/ru/restaurants/gosht-boulevard"'));
+  assert.ok(html.indexOf('restaurants/gosht-west') < html.indexOf('restaurants/gosht-boulevard'));
+  assert.ok(html.includes('New York'));
+  assert.ok(!html.includes('gosht-brooklyn'));
+});
+test('an unavailable NYC card does not leave a selectable empty New York tab', () => {
+  const html = renderHome('tashkent', 'ru', homeItems.filter(item => item.city === 'tashkent'));
+  assert.ok(!html.includes('New York'));
+  assert.ok(html.includes('restaurants/gosht-west'));
+});
+test('branch data stays Tashkent-only by default; only the homepage requests both cities', async () => {
+  const requests = [];
+  const { getRestaurantBranchesData } = load('../lib/getRestaurantBranches.ts', {
+    '@/lib/sanity': {
+      client: { fetch: async (query, params) => { requests.push({ query, params }); return []; } },
+      urlFor: () => ({ url: () => 'https://cdn.sanity.io/photo.jpg' }),
+    },
+  });
+  await getRestaurantBranchesData();
+  await getRestaurantBranchesData({ cities: ['tashkent', 'new_york'] });
+  assert.deepEqual(requests[0].params.cities, ['tashkent']);
+  assert.deepEqual(requests[1].params.cities, ['tashkent', 'new_york']);
+  assert.match(requests[1].query, /coalesce\(city, "tashkent"\) in \$cities/);
+  assert.match(requests[1].query, /isActive != false/);
+  assert.match(requests[1].query, /project->isActive != false/);
+  const homeSource = readFileSync(new URL('../components/Restaurants.tsx', import.meta.url), 'utf8');
+  assert.match(homeSource, /getRestaurantBranchesData\(\{ cities: \["tashkent", "new_york"\] \}\)/);
+  const directorySource = readFileSync(new URL('../app/[lang]/restaurants/page.tsx', import.meta.url), 'utf8');
+  assert.match(directorySource, /getRestaurantBranchesData\(\)/);
+});
