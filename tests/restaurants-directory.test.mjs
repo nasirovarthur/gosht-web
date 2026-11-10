@@ -87,7 +87,8 @@ test('all unfiltered branches remain reachable without changing any input data',
 });
 test('network locations remain ordinary links rather than new accordions', () => {
   const html = render(bsb);
-  assert.ok(html.includes('Другие филиалы'));
+  assert.ok(html.includes('Филиалы'));
+  assert.ok(!html.includes('Другие филиалы'));
   assert.ok(html.includes('restaurants/bsb-one'));
   assert.ok(html.includes('restaurants/bsb-two'));
   assert.doesNotMatch(html, /<details|<summary/);
@@ -99,6 +100,29 @@ test('both filters are named native checkboxes in every language', () => {
     assert.equal((html.match(/aria-label=/g) || []).length, 2);
     assert.equal((html.match(/aria-pressed=/g) || []).length, 2);
   }
+});
+test('group photo, visible caption and complete location list name the same destination', () => {
+  for (const [projectId, projectName, slug, title] of [
+    ['doner', 'GŌSHT DONER', 'gosht-doner-ekobazar', 'GŌSHT DONER ЭКОБАЗАР'],
+    ['bsb', 'BLACK STAR BURGER', 'bsb-riviera', 'BSB RIVIERA'],
+  ]) {
+    const first = branch(slug, { projectId, projectName: localized(projectName), branchName: localized(title) });
+    const second = branch(`${projectId}-second`, { projectId, projectName: localized(projectName) });
+    const html = render([first, second]);
+    assert.ok(html.includes(`data-restaurant-photo="${slug}" aria-label="${title}"`));
+    assert.ok(html.includes(`alt="${title}"`));
+    assert.equal(html.split(`href="/ru/restaurants/${slug}"`).length - 1, 3, 'photo, caption and list must all link to this venue');
+    assert.equal((html.match(/data-restaurant-id=/g) || []).length, 2, 'both locations must be in the list');
+    const caption = html.match(/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/)?.[1];
+    assert.ok(caption?.includes(title));
+    assert.ok(caption?.includes(`href="/ru/restaurants/${slug}"`));
+  }
+});
+test('photo captions follow the displayed branch rather than hard-coding Ekobazar or Riviera', () => {
+  const html = render([...bsb].reverse());
+  const caption = html.match(/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/)?.[1];
+  assert.ok(caption?.includes('bsb-two'));
+  assert.equal((html.match(/data-restaurant-id=/g) || []).length, 2);
 });
 test('delivery entry preselects the checkbox and only includes the connected venue', () => {
   const html = render([west, boulevard], 'delivery=1');

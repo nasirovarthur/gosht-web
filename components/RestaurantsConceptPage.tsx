@@ -265,7 +265,7 @@ function FeaturedRestaurantGroup({
   const image = getImage(mainBranch);
   const cuisine = cuisineLabel(mainBranch, lang);
   const features = Array.from(new Set(branches.flatMap((branch) => featureLabels(branch, lang))));
-  const branchLinks = branches.slice(1).map((branch) => ({
+  const branchLinks = branches.map((branch) => ({
     id: branch.id,
     title: pickLocalized(branch.branchName, lang),
     href: getHref(branch, lang),
@@ -273,34 +273,42 @@ function FeaturedRestaurantGroup({
 
   return (
     <article className={`col-span-full grid min-w-0 gap-8 py-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,1fr)] lg:gap-12 xl:gap-16 ${reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}>
-      <Link href={getHref(mainBranch, lang)} className="group relative block min-w-0 aspect-[2/1] overflow-hidden border border-subtle bg-card" data-restaurant-id={mainBranch.id}>
-        {image ? (
-          <Image
-            src={image}
-            alt={title}
-            fill
-            sizes="(max-width: 1024px) 100vw, 48vw"
-            className="object-cover brightness-[0.78] saturate-[0.9] transition-all duration-700 group-hover:scale-[1.02] group-hover:brightness-100"
-          />
-        ) : null}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-        <div className="absolute bottom-4 left-4 flex h-[92px] w-[92px] items-center justify-center md:h-[108px] md:w-[108px]">
-          {project.logo ? (
+      <figure className="min-w-0">
+        <Link href={getHref(mainBranch, lang)} className="group relative block min-w-0 aspect-[2/1] overflow-hidden border border-subtle bg-card" data-restaurant-photo={mainBranch.id} aria-label={pickLocalized(mainBranch.branchName, lang)}>
+          {image ? (
             <Image
-              src={project.logo}
-              alt={title}
+              src={image}
+              alt={pickLocalized(mainBranch.branchName, lang)}
               fill
-              sizes="108px"
-              className="object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,0.42)]"
+              sizes="(max-width: 1024px) 100vw, 48vw"
+              className="object-cover brightness-[0.78] saturate-[0.9] transition-all duration-700 group-hover:scale-[1.02] group-hover:brightness-100"
             />
-          ) : (
-            <span className="font-serif text-[26px] uppercase leading-none text-primary">
-              {title.slice(0, 2)}
-            </span>
-          )}
-        </div>
-      </Link>
+          ) : null}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+          <div className="absolute bottom-4 left-4 flex h-[92px] w-[92px] items-center justify-center md:h-[108px] md:w-[108px]">
+            {project.logo ? (
+              <Image
+                src={project.logo}
+                alt={title}
+                fill
+                sizes="108px"
+                className="object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,0.42)]"
+              />
+            ) : (
+              <span className="font-serif text-[26px] uppercase leading-none text-primary">
+                {title.slice(0, 2)}
+              </span>
+            )}
+          </div>
+        </Link>
+        <figcaption className="mt-3">
+          <Link href={getHref(mainBranch, lang)} className="inline-flex w-full items-start justify-between gap-4 text-[14px] leading-snug text-secondary transition-colors hover:text-primary">
+            <span>{pickLocalized(mainBranch.branchName, lang)}</span>
+            <ExternalArrowIcon />
+          </Link>
+        </figcaption>
+      </figure>
 
       <div className="grid min-w-0 content-start gap-8 2xl:grid-cols-[minmax(0,1fr)_minmax(220px,0.55fr)]">
         <div className="min-w-0">
@@ -329,7 +337,7 @@ function FeaturedRestaurantGroup({
 
         <div className="pt-5 2xl:pl-7 2xl:pt-0">
           <p className="mb-4 text-[11px] uppercase tracking-normal text-muted">
-            {lang === 'ru' ? 'Другие филиалы' : lang === 'en' ? 'Other branches' : 'Boshqa filiallar'}
+            {lang === 'ru' ? 'Филиалы' : lang === 'en' ? 'Locations' : 'Filiallar'}
           </p>
           <div className="grid gap-3">
             {branchLinks.map((branch) => (
