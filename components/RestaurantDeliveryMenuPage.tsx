@@ -8,6 +8,7 @@ import { faUtensils } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '@/context/LanguageContext';
 import { useBodyScrollLock } from '@/lib/useBodyScrollLock';
 import { pickLocalized, translations } from '@/types/i18n';
+import styles from './RestaurantDeliveryMenuPage.module.css';
 import type { Localized } from '@/types/i18n';
 import type {
   DeliveryMenuCategory,
@@ -945,7 +946,7 @@ export default function RestaurantDeliveryMenuPage({
             aria-label={pickLocalized(selectedDish.title, lang)}
             data-menu-dialog
             tabIndex={-1}
-            className={`delivery-info-card relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-[28px] border border-subtle bg-panel text-primary shadow-[0_28px_90px_rgba(0,0,0,0.54)] ${
+            className={`delivery-info-card relative flex max-h-[90vh] w-full flex-col overflow-y-auto rounded-[28px] border border-subtle bg-panel text-primary shadow-[0_28px_90px_rgba(0,0,0,0.54)] md:overflow-hidden ${
               selectedDishImage
                 ? 'max-w-[880px] md:grid md:grid-cols-[minmax(0,0.95fr)_minmax(320px,1fr)]'
                 : 'max-w-[620px]'
@@ -965,20 +966,20 @@ export default function RestaurantDeliveryMenuPage({
               </div>
             ) : null}
 
-            <div className="flex min-h-0 flex-col">
-              <div className="flex items-start justify-between gap-5 border-b border-subtle px-5 py-5 md:px-7 md:py-6">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted">
+            <div className="flex min-h-0 min-w-0 shrink-0 flex-col md:shrink">
+              <div className="relative shrink-0 border-b border-subtle px-5 py-5 md:px-7 md:py-6">
+                <div className={styles.dishTitleContainer}>
+                  <p className="flex min-h-10 items-center pr-14 text-[10px] uppercase tracking-[0.18em] text-muted">
                     {pickLocalized(selectedDish.categoryLabel, lang)}
                   </p>
-                  <h2 className="mt-3 font-serif text-[34px] uppercase leading-[0.92] text-primary md:text-[46px]">
+                  <h2 className={`${styles.dishTitle} mt-3 font-serif uppercase text-primary`}>
                     {pickLocalized(selectedDish.title, lang)}
                   </h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedDish(null)}
-                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-subtle text-muted transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
+                  className="absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-subtle text-muted transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary md:right-7 md:top-6"
                   aria-label={closeInfoLabel}
                 >
                   <CloseIcon />

@@ -1,0 +1,13 @@
+.dishTitleContainer {
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.dishTitle {
+  max-width: 100%;
+  font-size: 28px;
+  font-size: clamp(20px, 7.5cqw, 32px);
+  line-height: 1.12;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}

@@ -204,6 +204,7 @@ function renderMenu(dishes, props = {}) {
     'next/link': { __esModule: true, default: ({ children, href, ...props }) => React.createElement('a', { href, ...props }, children) },
     '@/context/LanguageContext': { useLanguage: () => ({ lang: 'ru' }) },
     '@/lib/useBodyScrollLock': { useBodyScrollLock: () => {} },
+    './RestaurantDeliveryMenuPage.module.css': { dishTitleContainer: 'dish-title-container', dishTitle: 'dish-title' },
     '@/types/i18n': { pickLocalized: (value, language) => value?.[language] || '', translations: { restaurantDetail: { workingHours: localized('Режим работы'), openFullMenu: localized('Открыть меню') } } },
   }).default;
   return renderToStaticMarkup(React.createElement(component, {
@@ -220,6 +221,23 @@ test('Cyrillic steak categories match grill and category links select the correc
 test('home dish links open the corresponding dialog; unknown dish IDs do not open a blank dialog', () => {
   assert.match(renderMenu([dish('one')], { initialDishId: 'one' }), /role="dialog" aria-modal="true" aria-label="Test one"/);
   assert.doesNotMatch(renderMenu([dish('one')], { initialDishId: 'unknown' }), /role="dialog"/);
+});
+test('dish dialogs preserve long names and reserve separate space for their close control', () => {
+  for (const title of ['Средиземноморский Завтрак', 'Grilled Mediterranean Breakfast', 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ']) {
+    const html = renderMenu([dish('long', 'breakfast', { title: localized(title) })], { initialDishId: 'long' });
+    assert(html.includes(`aria-label="${title}"`));
+    assert(html.includes(`class="dish-title mt-3 font-serif uppercase text-primary">${title}</h2>`));
+    assert.match(html, /class="dish-title-container"/);
+    assert.match(html, /class="absolute right-5 top-5 inline-flex h-10 w-10/);
+    assert.match(html, /flex min-h-0 min-w-0 shrink-0 flex-col md:shrink/);
+    assert.match(html, /overflow-y-auto rounded-\[28px\].*md:overflow-hidden/);
+  }
+  const css = require('postcss').parse(readFileSync(new URL('../components/RestaurantDeliveryMenuPage.module.css', import.meta.url), 'utf8'));
+  const declarations = selector => Object.fromEntries(css.nodes.find(node => node.selector === selector).nodes.filter(node => node.type === 'decl').map(node => [node.prop, node.value]));
+  assert.equal(declarations('.dishTitleContainer')['container-type'], 'inline-size');
+  assert.equal(declarations('.dishTitle')['overflow-wrap'], 'anywhere');
+  assert.equal(declarations('.dishTitle')['font-size'], 'clamp(20px, 7.5cqw, 32px)');
+  assert.equal(declarations('.dishTitle')['line-height'], '1.12');
 });
 test('non-delivery PDF menus never acquire a demo order panel', () => {
   assert.doesNotMatch(renderMenu([]), /id="menu-contact"/);
