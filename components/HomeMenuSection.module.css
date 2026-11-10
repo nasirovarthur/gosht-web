@@ -39,6 +39,7 @@
   .track { grid-auto-columns: 86%; gap: 16px; }
   .spread { display: contents; }
   .dish, .spread[data-count="2"] .dish { display: block; grid-row: auto; scroll-snap-align: start; }
+  .spread[data-count="3"] .dish:last-child { align-self: stretch; }
   .photo, .featured .photo { aspect-ratio: 4 / 3; }
   .dishHeading { padding-top: 12px; }
   .dishHeading h3 { font-size: 24px; }

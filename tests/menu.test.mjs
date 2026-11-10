@@ -49,6 +49,7 @@ test('dish captions stay next to photos and unused space separates dishes', () =
   assert.equal(declarations('.dishHeading')['padding-top'], '12px');
   const mobile = css.nodes.find(node => node.type === 'atrule' && node.params === '(max-width: 767px)');
   assert.equal(mobile.nodes.find(node => node.selector === '.dishHeading').nodes.find(node => node.prop === 'padding-top').value, '12px');
+  assert.equal(mobile.nodes.find(node => node.selector === '.spread[data-count="3"] .dish:last-child').nodes.find(node => node.prop === 'align-self').value, 'stretch');
 });
 
 test('new iiko credentials use v2 and the existing API key', () => {
