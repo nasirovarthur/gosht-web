@@ -167,32 +167,33 @@ test('West retains its prominent delivery menu without a booking control or PDF 
     assert.match(html, /pb-24/);
   }
 });
-test('branches with restaurant PDFs gain the correct menu action without delivery or booking', () => {
+test('branches without delivery keep restaurant PDFs only in their links without floating controls', () => {
   detailLang = 'ru';
   const restaurant = { ...westDetail, slug: 'gosht-muqimiy', deliveryMenuEnabled: false, menuFiles: ['https://cdn.sanity.io/existing-menu.pdf'] };
   const html = renderToStaticMarkup(React.createElement(Detail, { restaurant }));
-  const actions = html.split('data-testid="restaurant-actions"')[1];
-  assert.ok(actions);
-  assert.ok(actions.includes('href="https://cdn.sanity.io/existing-menu.pdf"'));
-  assert.ok(actions.includes('Меню ресторана'));
-  assert.ok(!actions.includes('Меню доставки'));
-  assert.ok(!actions.includes('<button'));
+  assert.ok(!html.includes('data-testid="restaurant-actions"'));
+  assert.ok(html.includes('Меню ресторана'));
+  assert.ok(!html.includes('Меню доставки'));
   assert.ok(html.includes('href="https://cdn.sanity.io/existing-menu.pdf"'));
   assert.match(html, /pb-24/);
 });
-test('West distinguishes its restaurant PDF from the delivery catalogue in every locale', () => {
+test('West keeps one delivery button and one ordinary restaurant-menu link in every locale', () => {
   for (const lang of ['ru', 'uz', 'en']) {
     detailLang = lang;
     const pdf = `https://cdn.sanity.io/west-${lang}.pdf`;
     const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, menuFiles: [pdf] } }));
     const actions = html.split('data-testid="restaurant-actions"')[1];
     const labels = load('../types/i18n.ts').translations.restaurantDetail;
-    assert.ok(actions.includes(labels.menu[lang]));
+    assert.ok(!actions.includes(labels.menu[lang]));
     assert.ok(actions.includes(labels.deliveryMenu[lang]));
-    assert.ok(actions.includes(`href="${pdf}" target="_blank" rel="noopener noreferrer"`));
+    assert.ok(!actions.includes(`href="${pdf}"`));
+    assert.ok(html.includes(`href="${pdf}" target="_blank" rel="noopener noreferrer"`));
+    assert.equal(html.split(`href="${pdf}"`).length - 1, 1);
     assert.ok(actions.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
+    assert.equal(html.split(`href="/${lang}/restaurants/gosht-west/menu"`).length - 1, 1);
+    assert.equal(actions.match(/<a\b/g)?.length, 1);
     assert.ok(!actions.includes('<button'));
-    assert.match(html, /pb-36/);
+    assert.match(html, /pb-24/);
   }
 });
 test('branches without any menu retain their existing page without empty controls', () => {
