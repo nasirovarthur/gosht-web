@@ -30,6 +30,11 @@ test('homepage dish names use the branded uppercase serif and desktop spacing se
   assert.equal(title['font-family'], 'var(--font-roboto-serif), serif');
   assert.equal(title['text-transform'], 'uppercase');
   assert.equal(title['letter-spacing'], '0');
+  assert.equal(title['font-size'], '32px');
+  const responsiveTitle = query => css.nodes.find(node => node.type === 'atrule' && node.params === query).nodes.find(node => node.type === 'rule' && node.selector === '.dishHeading h3').nodes.find(node => node.prop === 'font-size').value;
+  assert.equal(responsiveTitle('(max-width: 1279px)'), '28px');
+  assert.equal(responsiveTitle('(max-width: 1023px)'), '24px');
+  assert.equal(responsiveTitle('(max-width: 767px)'), '24px');
   assert.equal(declarations('.section')['padding-top'], '96px');
   assert.equal(declarations('.description')['text-transform'], undefined);
 });
