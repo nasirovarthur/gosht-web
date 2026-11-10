@@ -154,7 +154,7 @@ const westDetail = {
   description: 'Existing description', menuFiles: [], gallery: [], mapLink: 'https://yandex.uz/maps', deliveryMenuEnabled: true,
 };
 
-test('West retains its prominent menu and booking controls without a PDF attachment', () => {
+test('West retains its prominent delivery menu without a booking control or PDF attachment', () => {
   for (const lang of ['ru', 'uz', 'en']) {
     detailLang = lang;
     const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: westDetail }));
@@ -163,9 +163,8 @@ test('West retains its prominent menu and booking controls without a PDF attachm
     assert.ok(actions.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
     const labels = load('../types/i18n.ts').translations.restaurantDetail;
     assert.ok(actions.includes(labels.deliveryMenu[lang]));
-    assert.ok(actions.includes(labels.bookTable[lang]));
-    assert.match(actions, /<button[^>]+type="button"/);
-    assert.match(html, /pb-36/);
+    assert.ok(!actions.includes('<button'));
+    assert.match(html, /pb-24/);
   }
 });
 test('branches without connected delivery do not gain West actions or lose attached PDFs', () => {
@@ -175,32 +174,4 @@ test('branches without connected delivery do not gain West actions or lose attac
   assert.ok(!html.includes('data-testid="restaurant-actions"'));
   assert.ok(html.includes('href="https://cdn.sanity.io/existing-menu.pdf"'));
   assert.match(html, /pb-24/);
-});
-test('restored booking control uses the existing feedback drawer event', () => {
-  detailLang = 'ru';
-  const element = Detail({ restaurant: westDetail });
-  function findButton(node) {
-    if (!React.isValidElement(node)) return undefined;
-    if (node.type === 'button' && node.props.onClick) return node;
-    for (const child of React.Children.toArray(node.props.children)) {
-      const found = findButton(child);
-      if (found) return found;
-    }
-  }
-  const button = findButton(element);
-  assert.ok(button);
-  const oldWindow = globalThis.window;
-  const oldCustomEvent = globalThis.CustomEvent;
-  const events = [];
-  globalThis.window = { dispatchEvent: event => events.push(event.type) };
-  globalThis.CustomEvent = class { constructor(type) { this.type = type; } };
-  try {
-    button.props.onClick();
-    assert.deepEqual(events, ['open-feedback-drawer']);
-  } finally {
-    if (oldWindow === undefined) delete globalThis.window;
-    else globalThis.window = oldWindow;
-    if (oldCustomEvent === undefined) delete globalThis.CustomEvent;
-    else globalThis.CustomEvent = oldCustomEvent;
-  }
 });

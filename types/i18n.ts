@@ -95,7 +95,6 @@ export const translations = {
     menu: { uz: "Restoran menyusi", ru: "Меню ресторана", en: "Restaurant menu" } as Localized,
     openFullMenu: { uz: "To‘liq menyu", ru: "Полное меню", en: "Full menu" } as Localized,
     deliveryMenu: { uz: "Yetkazib berish menyusi", ru: "Меню доставки", en: "Delivery menu" } as Localized,
-    bookTable: { uz: "Stolni band qilish", ru: "Забронировать столик", en: "Book a table" } as Localized,
     actions: { uz: "Restoran amallari", ru: "Действия ресторана", en: "Restaurant actions" } as Localized,
     openedYear: { uz: "Ochilgan yil", ru: "Год открытия", en: "Opened in" } as Localized,
     openMap: { uz: "Xaritani ochish", ru: "Открыть карту", en: "Open map" } as Localized,
