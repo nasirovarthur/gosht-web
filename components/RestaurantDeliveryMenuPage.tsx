@@ -2,7 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUtensils } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '@/context/LanguageContext';
 import { useBodyScrollLock } from '@/lib/useBodyScrollLock';
 import { pickLocalized, translations } from '@/types/i18n';
@@ -197,7 +199,7 @@ function normalizeMenuCategory(value: string): string {
 function getCategoryGroupId(categoryLabel: Localized): MenuGroupId {
   const normalizedLabel = normalizeMenuCategory(pickLocalized(categoryLabel, 'en') || pickLocalized(categoryLabel, 'ru'));
   const group = MENU_CATEGORY_GROUPS.find((item) =>
-    item.patterns.some((pattern) => normalizedLabel.includes(pattern))
+    item.patterns.some((pattern) => normalizedLabel.includes(normalizeMenuCategory(pattern)))
   );
 
   return group?.id || 'other';
@@ -238,6 +240,8 @@ type RestaurantDeliveryMenuProps = {
   dishes?: DeliveryMenuDish[];
   currencyCode?: string;
   requireApiDishes?: boolean;
+  initialGroupId?: string;
+  initialDishId?: string;
 };
 
 type InfoPopup = 'delivery' | null;
@@ -249,23 +253,51 @@ export default function RestaurantDeliveryMenuPage({
   dishes,
   currencyCode = 'UZS',
   requireApiDishes = false,
+  initialGroupId,
+  initialDishId,
 }: RestaurantDeliveryMenuProps) {
   const { lang } = useLanguage();
   const t = translations.restaurantDetail;
   const hasApiDishes = Array.isArray(dishes) && dishes.length > 0;
+  const showOrderPanel = requireApiDishes || hasApiDishes;
   const menuDishes = useMemo(
     () => (hasApiDishes ? dishes : []),
     [dishes, hasApiDishes]
   );
-  const [activeMenuGroup, setActiveMenuGroup] = useState<MenuGroupId>(ALL_GROUP_ID);
+  const [activeMenuGroup, setActiveMenuGroup] = useState<MenuGroupId>(() => {
+    const group = MENU_CATEGORY_GROUPS.find(group => group.id === initialGroupId);
+    return group && menuDishes.some(dish => getCategoryGroupId(dish.categoryLabel) === group.id) ? group.id : ALL_GROUP_ID;
+  });
   const [activeSubcategory, setActiveSubcategory] = useState<string>(ALL_GROUP_ID);
   const [activeInfoPopup, setActiveInfoPopup] = useState<InfoPopup>(null);
-  const [selectedDish, setSelectedDish] = useState<DeliveryMenuDish | null>(null);
+  const [selectedDish, setSelectedDish] = useState<DeliveryMenuDish | null>(() => menuDishes.find(dish => dish.id === initialDishId) || null);
   const [cartItems, setCartItems] = useState<Record<string, number>>({});
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [failedImageUrls, setFailedImageUrls] = useState<Set<string>>(() => new Set());
 
   useBodyScrollLock(Boolean(activeInfoPopup || selectedDish || isCartOpen));
+  useEffect(() => {
+    if (!activeInfoPopup && !selectedDish && !isCartOpen) return;
+    const panel = document.querySelector<HTMLElement>('main [data-menu-dialog]');
+    if (!panel) return;
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusable = () => [...panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex="0"]')].filter(element => element.getClientRects().length > 0);
+    (focusable()[0] || panel).focus({ preventScroll: true });
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setActiveInfoPopup(null); setSelectedDish(null); setIsCartOpen(false);
+      } else if (event.key === 'Tab') {
+        const elements = focusable();
+        const first = elements[0] || panel;
+        const last = elements.at(-1) || panel;
+        if (event.shiftKey && (document.activeElement === first || !panel.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && (document.activeElement === last || !panel.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => { document.removeEventListener('keydown', handleKey); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
+  }, [activeInfoPopup, selectedDish, isCartOpen]);
 
   const markImageAsFailed = (imageUrl: string) => {
     setFailedImageUrls((current) => {
@@ -491,6 +523,8 @@ export default function RestaurantDeliveryMenuPage({
   const hasPhone = Boolean(restaurant.phone);
   const closeInfoLabel = lang === 'ru' ? 'Закрыть' : lang === 'en' ? 'Close' : 'Yopish';
   const heroTitle = restaurant.branchName.replace(/\bGOSHT\b/i, 'GŌSHT');
+  const [heroBrand, ...heroLocationParts] = heroTitle.trim().split(/\s+/);
+  const heroLocation = heroLocationParts.join(' ');
   const openDishLabel = lang === 'ru' ? 'Открыть блюдо' : lang === 'en' ? 'Open dish' : 'Taomni ochish';
   const imagePendingLabel = lang === 'ru' ? 'Без фотографии' : lang === 'en' ? 'No photo' : 'Fotosuratsiz';
   const dishDescriptionFallback =
@@ -501,10 +535,10 @@ export default function RestaurantDeliveryMenuPage({
         : 'Taom tavsifi tez orada paydo bo‘ladi.';
   const emptyMenuLabel = requireApiDishes
     ? lang === 'ru'
-      ? 'Меню временно недоступно. Мы не смогли получить данные из iiko.'
+      ? 'Меню временно недоступно. Актуальные блюда и цены можно уточнить по телефону ресторана.'
       : lang === 'en'
-        ? 'Menu is temporarily unavailable. We could not load data from iiko.'
-        : 'Menyu vaqtincha mavjud emas. iiko ma’lumotlarini yuklab bo‘lmadi.'
+        ? 'Menu is temporarily unavailable. Please call the restaurant for current dishes and prices.'
+        : 'Menyu vaqtincha mavjud emas. Taomlar va narxlarni restoran telefonidan aniqlashingiz mumkin.'
     : lang === 'ru'
       ? 'Меню временно недоступно.'
       : lang === 'en'
@@ -537,7 +571,7 @@ export default function RestaurantDeliveryMenuPage({
         }}
         className={`${className} ${
           canAdd
-            ? 'bg-primary text-inverse hover:opacity-90'
+            ? 'bg-[color:var(--interactive-strong)] text-inverse hover:opacity-90'
             : 'cursor-not-allowed bg-[color:var(--interactive-hover)] text-muted shadow-none'
         }`}
         aria-label={`${cartLabels.add}: ${pickLocalized(dish.title, lang)}`}
@@ -557,60 +591,72 @@ export default function RestaurantDeliveryMenuPage({
       </div>
 
       {cartLines.length === 0 ? (
-        <p className="mt-5 text-body leading-relaxed text-secondary">{cartLabels.empty}</p>
+        <>
+          <p className="mt-5 text-[15px] leading-relaxed text-secondary">{cartLabels.empty}</p>
+          <button
+            type="button"
+            disabled
+            className="mt-6 inline-flex h-[48px] w-full cursor-not-allowed items-center justify-center rounded-full border border-subtle bg-[color:var(--interactive-hover)] px-5 text-muted"
+            aria-label={cartLabels.checkout}
+          >
+            <span className="text-[11px] uppercase tracking-[0.14em]">{cartLabels.pending}</span>
+          </button>
+        </>
       ) : (
-        <div className="mt-5 border-t border-subtle">
-          {cartLines.map(({ dish, quantity }) => (
-            <div key={dish.id} className="border-b border-subtle py-4">
-              <p className="text-[15px] leading-tight text-primary">
-                {pickLocalized(dish.title, lang)}
-              </p>
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <span className="text-[13px] text-secondary">
-                  {formatDishPrice((dish.price || 0) * quantity, lang, currencyCode)}
-                </span>
-                <div className="grid grid-cols-[34px_36px_34px] items-center border border-subtle">
-                  <button
-                    type="button"
-                    onClick={() => changeCartQuantity(dish.id, -1)}
-                    className="h-[34px] text-lg text-secondary transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
-                    aria-label={`${cartLabels.decrease}: ${pickLocalized(dish.title, lang)}`}
-                    title={cartLabels.decrease}
-                  >
-                    −
-                  </button>
-                  <span className="text-center text-[13px] text-primary">{quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => changeCartQuantity(dish.id, 1)}
-                    className="h-[34px] text-lg text-secondary transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
-                    aria-label={`${cartLabels.increase}: ${pickLocalized(dish.title, lang)}`}
-                    title={cartLabels.increase}
-                  >
-                    +
-                  </button>
+        <>
+          <div className="mt-5 border-t border-subtle">
+            {cartLines.map(({ dish, quantity }) => (
+              <div key={dish.id} className="border-b border-subtle py-4">
+                <p className="text-[15px] leading-tight text-primary">
+                  {pickLocalized(dish.title, lang)}
+                </p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-[13px] text-secondary">
+                    {formatDishPrice((dish.price || 0) * quantity, lang, currencyCode)}
+                  </span>
+                  <div className="grid grid-cols-[34px_36px_34px] items-center rounded-full border border-subtle">
+                    <button
+                      type="button"
+                      onClick={() => changeCartQuantity(dish.id, -1)}
+                      className="h-[34px] rounded-l-full text-lg text-secondary transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
+                      aria-label={`${cartLabels.decrease}: ${pickLocalized(dish.title, lang)}`}
+                      title={cartLabels.decrease}
+                    >
+                      −
+                    </button>
+                    <span className="text-center text-[13px] text-primary">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => changeCartQuantity(dish.id, 1)}
+                      className="h-[34px] rounded-r-full text-lg text-secondary transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
+                      aria-label={`${cartLabels.increase}: ${pickLocalized(dish.title, lang)}`}
+                      title={cartLabels.increase}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
 
-      <div className="mt-5 flex items-baseline justify-between gap-4">
-        <span className="text-[12px] uppercase tracking-[0.14em] text-muted">{cartLabels.total}</span>
-        <span className="text-[22px] font-light text-primary">
-          {formatDishPrice(cartTotal, lang, currencyCode, true)}
-        </span>
-      </div>
-      <button
-        type="button"
-        disabled
-        className="mt-5 inline-flex h-[48px] w-full cursor-not-allowed items-center justify-center border border-subtle bg-[color:var(--interactive-hover)] px-5 text-muted"
-        aria-label={cartLabels.checkout}
-      >
-        <span className="text-[11px] uppercase tracking-[0.14em]">{cartLabels.pending}</span>
-      </button>
-      <p className="mt-3 text-[11px] leading-snug text-muted">{cartLabels.hint}</p>
+          <div className="mt-5 flex items-baseline justify-between gap-4">
+            <span className="text-[12px] uppercase tracking-[0.14em] text-muted">{cartLabels.total}</span>
+            <span className="text-[22px] font-light text-primary">
+              {formatDishPrice(cartTotal, lang, currencyCode, true)}
+            </span>
+          </div>
+          <button
+            type="button"
+            disabled
+            className="mt-5 inline-flex h-[48px] w-full cursor-not-allowed items-center justify-center rounded-full border border-subtle bg-[color:var(--interactive-hover)] px-5 text-muted"
+            aria-label={cartLabels.checkout}
+          >
+            <span className="text-[11px] uppercase tracking-[0.14em]">{cartLabels.pending}</span>
+          </button>
+          <p className="mt-3 text-[11px] leading-snug text-muted">{cartLabels.hint}</p>
+        </>
+      )}
     </>
   );
 
@@ -627,12 +673,8 @@ export default function RestaurantDeliveryMenuPage({
           </Link>
         </div>
 
-        <div
-          className={`grid grid-cols-1 gap-8 xl:items-start ${
-            menuDishes.length > 0 ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''
-          }`}
-        >
-          <div>
+        <div className={`grid grid-cols-1 gap-8 xl:items-start ${showOrderPanel ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
+          <div className="min-w-0">
             <div className="pb-8 md:pb-12">
               <div className="grid gap-8 lg:grid-cols-[170px_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[190px_minmax(0,1fr)]">
             <div className="relative h-[126px] w-[126px] lg:h-[154px] lg:w-[154px]">
@@ -656,11 +698,12 @@ export default function RestaurantDeliveryMenuPage({
               <p className="text-[11px] uppercase tracking-[0.22em] text-muted md:text-[12px]">
                 {deliveryInfoLabels.section}
               </p>
-              <h1 className="mt-3 font-serif text-[46px] font-light uppercase leading-[0.88] text-primary md:text-[72px] xl:text-[92px] 2xl:text-[104px]">
-                {heroTitle}
+              <h1 className="mt-3 break-words font-serif text-[46px] font-light uppercase leading-[0.92] tracking-normal text-primary md:text-[72px] 2xl:text-[104px]">
+                <span className="block">{heroBrand}</span>
+                {heroLocation ? <span className="block">{heroLocation}</span> : null}
               </h1>
 
-              <div className="mt-10 grid gap-8 border-t border-subtle pt-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(230px,0.72fr)] xl:max-w-[1060px] xl:gap-12">
+              <div className="mt-10 grid gap-8 border-t border-subtle pt-7 md:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(190px,0.72fr)] 2xl:gap-12">
                 <div className="space-y-8">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{deliveryInfoLabels.address}</p>
@@ -681,18 +724,12 @@ export default function RestaurantDeliveryMenuPage({
                   </div>
                 </div>
 
-                <div className="space-y-8">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{pickLocalized(t.workingHours, lang)}</p>
-                    <p className="mt-4 text-[17px] leading-snug text-secondary md:text-[18px]">{restaurant.workingHours}</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{pickLocalized(t.averageCheck, lang)}</p>
-                    <p className="mt-4 text-[17px] leading-snug text-secondary md:text-[18px]">{restaurant.averageCheck}</p>
-                  </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{pickLocalized(t.workingHours, lang)}</p>
+                  <p className="mt-4 text-[17px] leading-snug text-secondary md:text-[18px]">{restaurant.workingHours}</p>
                 </div>
 
-                <div className="flex flex-col gap-4 lg:items-start lg:pl-6">
+                <div className="flex flex-col gap-4 md:col-span-2 md:flex-row 2xl:col-span-1 2xl:flex-col">
                   <button
                     type="button"
                     onClick={() => setActiveInfoPopup('delivery')}
@@ -717,7 +754,7 @@ export default function RestaurantDeliveryMenuPage({
             </div>
 
             <div
-              className="mt-7 flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible"
+              className="mt-7 flex items-center gap-2 overflow-x-auto pb-1"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {visibleMenuGroups.map((category) => (
@@ -728,6 +765,7 @@ export default function RestaurantDeliveryMenuPage({
                     setActiveMenuGroup(category.id);
                     setActiveSubcategory(ALL_GROUP_ID);
                   }}
+                  aria-pressed={activeMenuGroup === category.id}
                   className={`shrink-0 h-[36px] rounded-full border px-4 text-[11px] tracking-[0.13em] uppercase transition-colors md:h-[40px] md:px-5 md:text-[12px] ${
                     activeMenuGroup === category.id
                       ? 'border-[color:var(--interactive-strong)] bg-[color:var(--interactive-strong)] text-inverse'
@@ -741,12 +779,13 @@ export default function RestaurantDeliveryMenuPage({
 
             {subcategoryOptions.length > 1 ? (
               <div
-                className="mt-3 flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible"
+                className="mt-3 flex items-center gap-2 overflow-x-auto pb-1"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 <button
                   type="button"
                   onClick={() => setActiveSubcategory(ALL_GROUP_ID)}
+                    aria-pressed={activeSubcategory === ALL_GROUP_ID}
                   className={`shrink-0 h-[32px] rounded-full border px-4 text-[10px] tracking-[0.12em] uppercase transition-colors md:text-[11px] ${
                     activeSubcategory === ALL_GROUP_ID
                       ? 'border-subtle bg-[color:var(--interactive-hover)] text-primary'
@@ -760,6 +799,7 @@ export default function RestaurantDeliveryMenuPage({
                     key={category.id}
                     type="button"
                     onClick={() => setActiveSubcategory(category.id)}
+                    aria-pressed={activeSubcategory === category.id}
                     className={`shrink-0 h-[32px] rounded-full border px-4 text-[10px] tracking-[0.12em] uppercase transition-colors md:text-[11px] ${
                       activeSubcategory === category.id
                         ? 'border-subtle bg-[color:var(--interactive-hover)] text-primary'
@@ -774,8 +814,9 @@ export default function RestaurantDeliveryMenuPage({
 
             <div className="mt-7 grid grid-cols-1 items-start gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:auto-rows-[minmax(210px,auto)]">
               {filteredDishes.length === 0 ? (
-                <div className="sm:col-span-2 xl:col-span-4 border border-subtle bg-card px-5 py-8 text-body text-secondary">
+                <div className="sm:col-span-2 xl:col-span-4 rounded-[22px] border border-subtle bg-card px-5 py-8 text-body text-secondary" role="status">
                   {menuDishes.length === 0 ? emptyMenuLabel : emptyCategoryLabel}
+                  {menuDishes.length === 0 && hasPhone && <a className="mt-4 block w-fit border-b border-strong pb-1 text-primary" href={`tel:${restaurant.phone}`}>{restaurant.phone}</a>}
                 </div>
               ) : filteredDishes.map((dish, index) => {
                 const imageSrc =
@@ -801,12 +842,10 @@ export default function RestaurantDeliveryMenuPage({
                         setSelectedDish(dish);
                       }
                     }}
-                    className={`relative cursor-pointer [-webkit-tap-highlight-color:transparent] focus:outline-none ${layoutClass} ${
-                      hasDishImage ? '' : 'min-h-[210px] border border-subtle bg-card'
-                    }`}
+                    className={`relative cursor-pointer [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 ${layoutClass}`}
                   >
-                    {imageSrc ? (
-                      <div className={`relative overflow-hidden ${isFeatured ? 'aspect-[16/11] md:aspect-[16/10]' : 'aspect-[16/10]'}`}>
+                      <div className={`relative overflow-hidden ${!hasDishImage ? 'h-24 border-b border-subtle' : isFeatured ? 'aspect-[16/11] md:aspect-[16/10]' : 'aspect-[16/10]'}`}>
+                      {imageSrc ? (
                         <Image
                           src={imageSrc}
                           alt={pickLocalized(dish.title, lang)}
@@ -816,29 +855,18 @@ export default function RestaurantDeliveryMenuPage({
                           unoptimized
                           onError={() => markImageAsFailed(imageSrc)}
                         />
-                        <div className="absolute inset-0 bg-black/10" />
+                      ) : <div className="flex h-full flex-col items-center justify-center gap-3 bg-card text-muted"><FontAwesomeIcon icon={faUtensils} className="h-8 w-8" /><span className="text-[10px] uppercase">{imagePendingLabel}</span></div>}
                       </div>
-                    ) : null}
 
-                    <div className={hasDishImage ? 'px-1 pb-1 pt-3 md:pt-4' : 'flex min-h-[210px] flex-col p-5'}>
-                      {!hasDishImage ? (
-                        <span className="mb-8 text-[10px] uppercase tracking-[0.14em] text-muted">
-                          {imagePendingLabel}
-                        </span>
-                      ) : null}
+                    <div className="px-1 pb-1 pt-3 md:pt-4">
                       <div className="flex items-center gap-2.5">
                         <DishBadgeIcons badges={dish.badges} lang={lang} isFeatured={isFeatured} />
-                        <h3 className={`font-light leading-[1.08] text-primary ${isFeatured ? 'font-serif text-[20px] uppercase md:text-[24px] xl:text-[30px]' : 'text-[16px] md:text-[18px] xl:text-[20px]'}`}>
+                        <h3 className={`break-words font-light leading-[1.08] text-primary ${isFeatured ? 'font-serif text-[20px] uppercase md:text-[24px] xl:text-[30px]' : 'text-[16px] md:text-[18px] xl:text-[20px]'}`}>
                           {pickLocalized(dish.title, lang)}
                         </h3>
                       </div>
                       {dish.weight ? <p className="mt-2 text-[12px] text-muted md:text-[13px]">{dish.weight}</p> : null}
-                      {!hasDishImage && pickLocalized(dish.description, lang) ? (
-                        <p className="mt-4 line-clamp-3 text-[13px] leading-relaxed text-secondary">
-                          {pickLocalized(dish.description, lang)}
-                        </p>
-                      ) : null}
-                      <p className={`${hasDishImage ? 'mt-2' : 'mt-auto pt-5'} text-[17px] font-light text-primary md:text-[19px]`}>
+                      <p className="mt-2 text-[17px] font-light text-primary md:text-[19px]">
                         {formatDishPrice(dish.price, lang, currencyCode)}
                       </p>
                     </div>
@@ -849,13 +877,11 @@ export default function RestaurantDeliveryMenuPage({
 
           </div>
 
-          {menuDishes.length > 0 ? (
-            <aside className="hidden xl:sticky xl:top-[136px] xl:block">
-              <div className="border border-subtle bg-card p-5">
+          {showOrderPanel && <aside id="menu-contact" className="hidden xl:sticky xl:top-[136px] xl:block">
+              <div className="rounded-[22px] border border-subtle bg-card p-5">
                 {renderCartContents()}
               </div>
-            </aside>
-          ) : null}
+            </aside>}
         </div>
       </section>
 
@@ -872,7 +898,9 @@ export default function RestaurantDeliveryMenuPage({
             role="dialog"
             aria-modal="true"
             aria-label={deliveryInfoLabels.deliveryTerms}
-            className="delivery-info-card relative w-full max-w-[520px] overflow-hidden rounded-[8px] border border-subtle bg-panel p-6 text-primary shadow-[0_28px_90px_rgba(0,0,0,0.5)] md:p-8"
+            data-menu-dialog
+            tabIndex={-1}
+            className="delivery-info-card relative w-full max-w-[520px] overflow-hidden rounded-[28px] border border-subtle bg-panel p-6 text-primary shadow-[0_28px_90px_rgba(0,0,0,0.5)] md:p-8"
           >
             <div className="mb-6 flex items-start justify-between gap-5">
               <div>
@@ -915,7 +943,9 @@ export default function RestaurantDeliveryMenuPage({
             role="dialog"
             aria-modal="true"
             aria-label={pickLocalized(selectedDish.title, lang)}
-            className={`delivery-info-card relative flex max-h-[90vh] w-full flex-col overflow-hidden border border-subtle bg-panel text-primary shadow-[0_28px_90px_rgba(0,0,0,0.54)] ${
+            data-menu-dialog
+            tabIndex={-1}
+            className={`delivery-info-card relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-[28px] border border-subtle bg-panel text-primary shadow-[0_28px_90px_rgba(0,0,0,0.54)] ${
               selectedDishImage
                 ? 'max-w-[880px] md:grid md:grid-cols-[minmax(0,0.95fr)_minmax(320px,1fr)]'
                 : 'max-w-[620px]'
@@ -982,7 +1012,7 @@ export default function RestaurantDeliveryMenuPage({
 
                 {renderAddControl(
                   selectedDish,
-                  'inline-flex h-[52px] w-full items-center justify-center border border-subtle px-6 transition-all'
+                  'inline-flex h-[52px] w-full items-center justify-center rounded-full border border-subtle px-6 transition-all'
                 )}
                 <p className="mt-3 text-[11px] leading-snug text-muted">{cartLabels.hint}</p>
               </div>
@@ -995,7 +1025,7 @@ export default function RestaurantDeliveryMenuPage({
         <button
           type="button"
           onClick={() => setIsCartOpen(true)}
-          className="fixed bottom-4 left-4 right-4 z-30 flex h-[52px] items-center justify-between border border-strong bg-primary px-5 text-inverse shadow-[0_16px_36px_rgba(0,0,0,0.35)] xl:hidden"
+          className="fixed bottom-4 left-4 right-4 z-30 flex h-[52px] items-center justify-between rounded-full border border-strong bg-[color:var(--interactive-strong)] px-5 text-inverse shadow-[0_16px_36px_rgba(0,0,0,0.35)] xl:hidden"
           aria-label={cartLabels.open}
         >
           <span className="text-[12px] uppercase tracking-[0.14em]">{cartLabels.title}</span>
@@ -1015,7 +1045,9 @@ export default function RestaurantDeliveryMenuPage({
             role="dialog"
             aria-modal="true"
             aria-label={cartLabels.title}
-            className="relative max-h-[82vh] w-full overflow-y-auto border-t border-subtle bg-panel p-5 pb-8 text-primary"
+            data-menu-dialog
+            tabIndex={-1}
+            className="relative max-h-[82vh] w-full overflow-y-auto rounded-t-[28px] border-t border-subtle bg-panel p-5 pb-8 text-primary"
           >
             <div className="mb-3 flex justify-end">
               <button

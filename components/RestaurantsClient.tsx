@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import SliderButton from "./SliderButton";
 import { useLanguage } from "@/context/LanguageContext";
+import { prioritizeHomeRestaurants } from "@/lib/restaurantPresentation";
 
 const scrollbarHiddenStyles = `
   .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -41,7 +42,7 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const filteredItems = items.filter((item) => item.city === activeCity);
+  const filteredItems = useMemo(() => prioritizeHomeRestaurants(items.filter((item) => item.city === activeCity)), [items, activeCity]);
   const getName = (field: LocalizedString) => field?.[lang] || field?.uz || "";
 
   const ui = {
@@ -50,6 +51,8 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
     playground: lang === 'uz' ? "Bolalar maydonchasi" : lang === 'ru' ? "Детская площадка" : "Playground",
     vipRoom: lang === 'uz' ? "VIP kabinet" : lang === 'ru' ? "VIP-кабинет" : "VIP Room",
     kidsHaircut: lang === 'uz' ? "Bolalar soch turmagi" : lang === 'ru' ? "Детская стрижка" : "Kids Haircut",
+    previous: lang === 'uz' ? "Oldingi restoranlar" : lang === 'ru' ? "Предыдущие рестораны" : "Previous restaurants",
+    next: lang === 'uz' ? "Keyingi restoranlar" : lang === 'ru' ? "Следующие рестораны" : "Next restaurants",
   };
 
   const getFeatureTags = (item: Restaurant) => {
@@ -120,18 +123,18 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
       <style jsx global>{scrollbarHiddenStyles}</style>
 
       {/* HEADER */}
-      <div className="relative page-x mb-10 flex items-center justify-between md:justify-start">
+      <div className="page-x mb-10 flex flex-wrap items-center justify-between gap-x-8 gap-y-6" data-restaurants-toolbar>
         
         {/* ТАБЫ */}
-        <div className="flex justify-start items-center gap-8 md:gap-12 relative z-10">
-          <button onClick={() => setActiveCity("tashkent")} className="group relative pb-2 md:pb-3">
+        <div className="flex justify-start items-center gap-6 md:gap-12" data-restaurant-cities>
+          <button type="button" aria-pressed={activeCity === "tashkent"} onClick={() => setActiveCity("tashkent")} className="group relative pb-2 md:pb-3">
             <span className={`text-title transition-colors duration-300 ${activeCity === "tashkent" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
               {ui.tashkent}
             </span>
             <span className={`absolute bottom-0 left-0 w-full h-[1px] bg-white transition-all duration-500 ease-out ${activeCity === "tashkent" ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-50 group-hover:opacity-30"}`} />
           </button>
 
-          <button onClick={() => setActiveCity("new_york")} className="group relative pb-2 md:pb-3">
+          <button type="button" aria-pressed={activeCity === "new_york"} onClick={() => setActiveCity("new_york")} className="group relative pb-2 md:pb-3">
             <span className={`text-title transition-colors duration-300 ${activeCity === "new_york" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
               New York
             </span>
@@ -140,15 +143,9 @@ export default function RestaurantsClient({ items }: { items: Restaurant[] }) {
         </div>
 
         {/* КНОПКИ */}
-        <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 gap-4">
-            <SliderButton direction="left" onClick={handleScrollPrev} disabled={!canScrollLeft} />
-            <SliderButton direction="right" onClick={handleScrollNext} disabled={!canScrollRight} />
-        </div>
-        
-        {/* Мобильные кнопки */}
-        <div className="flex md:hidden gap-2">
-             <SliderButton direction="left" onClick={handleScrollPrev} className="scale-75 origin-right" disabled={!canScrollLeft} />
-             <SliderButton direction="right" onClick={handleScrollNext} className="scale-75 origin-right" disabled={!canScrollRight} />
+        <div className="ml-auto flex shrink-0 gap-2 md:gap-4" data-restaurant-controls>
+            <SliderButton direction="left" onClick={handleScrollPrev} disabled={!canScrollLeft} ariaLabel={ui.previous} />
+            <SliderButton direction="right" onClick={handleScrollNext} disabled={!canScrollRight} ariaLabel={ui.next} />
         </div>
       </div>
 

@@ -68,6 +68,17 @@
   --color-card: #1A1A1A;
   --color-text: #d1d1d1;
 
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.82);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-inverse: #111111;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --interactive-bg: rgba(255, 255, 255, 0.03);
+  --interactive-hover: rgba(255, 255, 255, 0.06);
+  --interactive-strong: #ffffff;
+  --overlay-backdrop: rgba(0, 0, 0, 0.6);
+
   --page-x: 16px;
   --section-y-sm: 40px;
   --section-y: 64px;
@@ -175,6 +186,30 @@
 
   .bg-card {
     background-color: var(--color-card);
+  }
+
+  .text-primary {
+    color: var(--text-primary);
+  }
+
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .text-inverse {
+    color: var(--text-inverse);
+  }
+
+  .border-subtle {
+    border-color: var(--border-subtle);
+  }
+
+  .border-strong {
+    border-color: var(--border-strong);
   }
 
   .text-display {

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import RestaurantDeliveryMenuPage from "@/components/RestaurantDeliveryMenuPage";
-import { applyAdminMenuVisibility } from "@/lib/adminMenuVisibility";
-import { getIikoDeliveryMenu, getIikoMainGoshtHints } from "@/lib/iiko";
+import { getGoshtDeliveryMenu } from "@/lib/getGoshtDeliveryMenu";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { resolveLang } from "@/lib/seo/site";
 import { client } from "@/lib/sanity";
@@ -199,10 +198,15 @@ export async function generateMetadata({
 
 export default async function RestaurantMenuPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string; slug: string }>;
+  searchParams: Promise<{ category?: string | string[]; dish?: string | string[] }>;
 }) {
   const { lang, slug } = await params;
+  const query = await searchParams;
+  const initialGroupId = typeof query.category === 'string' ? query.category : undefined;
+  const initialDishId = typeof query.dish === 'string' ? query.dish : undefined;
   const language = resolveLang(lang) as LangCode;
   const backHref = `/${language}/restaurants/${slug}`;
 
@@ -216,9 +220,7 @@ export default async function RestaurantMenuPage({
     const isMainGosht = isGoshtRestaurant(projectName, branchName);
     const shouldLoadIikoMenu = hasIikoDeliveryMenu(slug, branchRestaurant.city, isRestaurant) && isMainGosht;
     const iikoMenu = shouldLoadIikoMenu
-      ? await applyAdminMenuVisibility(
-        await getIikoDeliveryMenu(getIikoMainGoshtHints(branchName, projectName)),
-      )
+      ? await getGoshtDeliveryMenu()
       : null;
     const menuFiles = buildMenuFiles(
       branchRestaurant.menuFiles,
@@ -228,6 +230,9 @@ export default async function RestaurantMenuPage({
 
     return (
       <RestaurantDeliveryMenuPage
+        key={`${slug}:${initialGroupId || ''}:${initialDishId || ''}`}
+        initialGroupId={initialGroupId}
+        initialDishId={initialDishId}
         backHref={backHref}
         restaurant={{
           name: projectName,
@@ -258,14 +263,15 @@ export default async function RestaurantMenuPage({
   const address = pickLocalized(legacyRestaurant.address, language);
   const shouldLoadIikoMenu = IIKO_DELIVERY_SLUGS.has(slug.replace(/^\/+|\/+$/g, "")) && isGoshtRestaurant(projectName, branchName);
   const iikoMenu = shouldLoadIikoMenu
-    ? await applyAdminMenuVisibility(
-      await getIikoDeliveryMenu(getIikoMainGoshtHints(branchName, projectName)),
-    )
+    ? await getGoshtDeliveryMenu()
     : null;
   const menuFiles = buildMenuFiles(legacyRestaurant.menuFiles, legacyRestaurant.menu);
 
   return (
     <RestaurantDeliveryMenuPage
+      key={`${slug}:${initialGroupId || ''}:${initialDishId || ''}`}
+      initialGroupId={initialGroupId}
+      initialDishId={initialDishId}
       backHref={backHref}
       restaurant={{
         name: projectName,

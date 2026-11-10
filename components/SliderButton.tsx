@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 
 interface SliderButtonProps {
   onClick?: () => void;
@@ -11,6 +12,17 @@ interface SliderButtonProps {
   tone?: 'light' | 'dark';
   variant?: 'arrow' | 'symbol';
   symbol?: '+' | '×';
+  href?: string;
+  ariaLabel?: string;
+  children?: React.ReactNode;
+}
+
+function SliderControl({ href, ariaLabel, children, ...props }: Pick<SliderButtonProps, 'href' | 'ariaLabel' | 'onClick' | 'disabled' | 'className' | 'children'>) {
+  const focusClass = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/80';
+  if (href && !props.disabled) {
+    return <Link href={href} onClick={props.onClick} aria-label={ariaLabel} className={`${props.className} ${focusClass}`}>{children}</Link>;
+  }
+  return <button type="button" onClick={props.onClick} disabled={props.disabled} aria-label={ariaLabel} title={ariaLabel} className={`${props.className} ${focusClass}`}>{children}</button>;
 }
 
 const SliderButton: React.FC<SliderButtonProps> = ({ 
@@ -22,6 +34,9 @@ const SliderButton: React.FC<SliderButtonProps> = ({
   tone = 'light',
   variant = 'arrow',
   symbol = '+',
+  href,
+  ariaLabel,
+  children,
 }) => {
   const rotationClass =
     direction === 'left'
@@ -63,14 +78,16 @@ const SliderButton: React.FC<SliderButtonProps> = ({
       );
 
     return (
-      <button
-        type="button"
+      <SliderControl
+        href={href}
+        ariaLabel={ariaLabel}
         onClick={onClick}
         disabled={disabled}
         className={`group relative flex h-10 w-10 items-center justify-center rounded-full outline-none ${className} ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
+        {children}
         <span className="absolute inset-0 rounded-full border border-white/28 transition-all duration-300 group-hover:border-white/52" />
         <span
           className={`absolute inset-0 rounded-full bg-[#AE0E16] transition-transform duration-300 ${
@@ -88,19 +105,21 @@ const SliderButton: React.FC<SliderButtonProps> = ({
         >
           {icon}
         </span>
-      </button>
+      </SliderControl>
     );
   }
 
   return (
-    <button
-      type="button"
+    <SliderControl
+      href={href}
+      ariaLabel={ariaLabel}
       onClick={onClick}
       disabled={disabled}
       className={`group relative flex items-center justify-center outline-none ${className} ${rotationClass} ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       }`}
     >
+      {children}
       <svg
         width="101"
         height="77"
@@ -156,7 +175,7 @@ const SliderButton: React.FC<SliderButtonProps> = ({
             }`}
         />
       </svg>
-    </button>
+    </SliderControl>
   );
 };
 

@@ -1,4 +1,5 @@
 import "server-only";
+import { getIikoAuthRequest } from './iikoAuth';
 import type {
   DeliveryMenuCategory,
   DeliveryMenuDish,
@@ -6,7 +7,6 @@ import type {
 } from "@/types/deliveryMenu";
 
 const IIKO_API_HOST = process.env.IIKO_API_HOST || "https://api-ru.iiko.services";
-const IIKO_API_LOGIN = process.env.IIKO_API_LOGIN;
 const IIKO_ORGANIZATION_ID = process.env.IIKO_ORGANIZATION_ID;
 const IIKO_EXTERNAL_MENU_ID = process.env.IIKO_EXTERNAL_MENU_ID;
 const IIKO_EXTERNAL_MENU_NAME = (process.env.IIKO_EXTERNAL_MENU_NAME || "").trim().toLowerCase();
@@ -546,14 +546,9 @@ async function iikoPost<T>(endpoint: string, body: Record<string, unknown>, toke
 }
 
 async function loginToIiko(): Promise<string | null> {
-  if (!IIKO_API_LOGIN) {
-    return null;
-  }
-
-  const payload = await iikoPost<IikoAccessTokenResponse>("/api/1/access_token", {
-    apiLogin: IIKO_API_LOGIN,
-  });
-
+  const auth = getIikoAuthRequest(process.env);
+  if (!auth) return null;
+  const payload = await iikoPost<IikoAccessTokenResponse>(auth.endpoint, auth.body);
   return payload.token || null;
 }
 
@@ -779,7 +774,7 @@ const menuCache = new Map<string, IikoMenuCacheEntry>();
 export function getIikoDeliveryMenu(
   options: IikoDeliveryMenuOptions = {}
 ): Promise<IikoDeliveryMenuResult | null> {
-  if (!IIKO_API_LOGIN) {
+  if (!(process.env.IIKO_API_KEY || process.env.IIKO_API_LOGIN)) {
     return Promise.resolve(null);
   }
 

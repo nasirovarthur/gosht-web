@@ -108,9 +108,9 @@ const fallbackSettings: FooterSettingsData = {
     en: '© GOSHT Group. All rights reserved',
   },
   madeByLabel: {
-    uz: 'Реализовано Артуром',
-    ru: 'Реализовано Артуром',
-    en: 'Реализовано Артуром',
+    uz: 'SYNX tomonidan yaratilgan',
+    ru: 'Реализовано SYNX',
+    en: 'Built by SYNX',
   },
   madeByHref: null,
   madeByOpenInNewTab: false,
@@ -189,9 +189,10 @@ export const getFooterSettings = cache(async (): Promise<FooterSettingsData> => 
       feedbackHref: normalizeLinkHref(raw.feedbackLink),
       feedbackOpenInNewTab: raw.feedbackLink?.openInNewTab || false,
       rightsText: normalizeLocalized(raw.rightsText, fallbackSettings.rightsText),
-      madeByLabel: normalizeLocalized(raw.madeByLabel, fallbackSettings.madeByLabel),
-      madeByHref: normalizeLinkHref(raw.madeByLink),
-      madeByOpenInNewTab: raw.madeByLink?.openInNewTab || false,
+      // Keep the approved credit independent of stale agency text and links in the CMS.
+      madeByLabel: fallbackSettings.madeByLabel,
+      madeByHref: null,
+      madeByOpenInNewTab: false,
       socialLinks,
     }
   } catch (error) {

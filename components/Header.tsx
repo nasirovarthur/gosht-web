@@ -147,7 +147,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
           <div className="hidden md:flex items-center justify-end min-w-[140px] gap-3">
             <Link
               href={deliveryMenuHref}
-              className="group hidden h-[60px] items-center gap-3 rounded-full border border-white/10 px-6 transition-colors hover:bg-white/5 lg:flex"
+              className="group hidden h-[60px] items-center gap-3 rounded-full border border-white/10 px-6 transition-colors hover:bg-white/5 xl:flex"
               aria-label={pickLocalized(deliveryButtonText, lang)}
             >
               <svg className="h-[20px] w-[20px] text-white/65 transition-colors group-hover:text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">

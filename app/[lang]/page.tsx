@@ -9,6 +9,9 @@ import EventsSection from "@/components/EventsSection";
 import { getHomeEventsSectionData } from "@/lib/getEvents";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { resolveLang } from "@/lib/seo/site";
+import HomeMenuSection from '@/components/HomeMenuSection';
+import { getGoshtDeliveryMenu } from '@/lib/getGoshtDeliveryMenu';
+import { selectHomeDishes } from '@/lib/menuPresentation';
 
 const HOME_COPY = {
   uz: {
@@ -66,9 +69,9 @@ export default async function Home({
   const { lang } = await params;
   const langCode = resolveLang(lang);
   const seo = HOME_COPY[langCode];
-  const runningLineData = await getRunningLine();
-  const groupStorySectionData = await getGroupStorySection();
-  const homeEventsData = await getHomeEventsSectionData();
+  const [runningLineData, groupStorySectionData, homeEventsData, menu] = await Promise.all([
+    getRunningLine(), getGroupStorySection(), getHomeEventsSectionData(), getGoshtDeliveryMenu(),
+  ]);
 
   return (
     <main className="min-h-screen bg-base">
@@ -78,6 +81,8 @@ export default async function Home({
       </section>
 
       <HeroSlider />
+
+      <HomeMenuSection dishes={selectHomeDishes(menu?.dishes || [])} />
       
       <RunningLine text={runningLineData?.text} />
 
