@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import SliderButton from './SliderButton';
+import HomeMenuMarquee from './HomeMenuMarquee';
 import { useLanguage } from '@/context/LanguageContext';
 import { pickLocalized } from '@/types/i18n';
 import type { DeliveryMenuDish } from '@/types/deliveryMenu';
@@ -52,9 +53,11 @@ export default function HomeMenuSection({ dishes }: { dishes: DeliveryMenuDish[]
     element.scrollTo({ left: (current + direction) * step, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   };
 
-  return <section className={`page-x ${styles.section}`} aria-labelledby="home-menu-title" id="menu">
+  return <section className={styles.section} aria-labelledby="home-menu-title" id="menu">
+    <HomeMenuMarquee />
+    <div className={`page-x ${styles.body}`}><div className={styles.inner}>
     <header className={styles.header}>
-      <div><h2 id="home-menu-title">{text.title}</h2><p>{text.description}</p></div>
+      <p>{text.description}</p>
       <SliderButton className={styles.menuLink} href={menuUrl}><span>{text.menu}</span></SliderButton>
     </header>
     {visibleDishes.length ? <>
@@ -71,7 +74,7 @@ export default function HomeMenuSection({ dishes }: { dishes: DeliveryMenuDish[]
                 if (image.naturalHeight > image.naturalWidth * 1.15) setPortraitImages(current => current.has(dish.id) ? current : new Set(current).add(dish.id));
               }} onError={() => setFailedImages(current => new Set(current).add(dish.id))} /></div>
               <div className={styles.dishHeading}>
-                <h3>{pickLocalized(dish.title, lang)}</h3>
+                <h3 className={styles.title}>{pickLocalized(dish.title, lang)}</h3>
                 {description && <p className={styles.description}>{description}</p>}
               </div>
             </Link>;
@@ -86,5 +89,6 @@ export default function HomeMenuSection({ dishes }: { dishes: DeliveryMenuDish[]
       <Link href={menuUrl} className={styles.kitchenPhoto} aria-label={text.menu}><Image src={kitchenPhoto} alt={lang === 'ru' ? 'Стейк на гриле GŌSHT' : lang === 'uz' ? 'GŌSHT gril steyki' : 'GŌSHT grilled steak'} fill sizes="(max-width: 600px) 100vw, 75vw" className={styles.image} /></Link>
       <div className={styles.kitchenCaption}><span>GŌSHT WEST</span><p>{text.unavailable}</p></div>
     </div>}
+    </div></div>
   </section>;
 }

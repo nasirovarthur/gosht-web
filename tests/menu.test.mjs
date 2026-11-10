@@ -23,33 +23,35 @@ const dish = (id, categoryId = 'grill', overrides = {}) => ({ id, title: localiz
 const linkStub = { __esModule: true, default: ({ children, href, ...props }) => React.createElement('a', { href, ...props }, children) };
 const sliderButton = load('../components/SliderButton.tsx', { 'next/link': linkStub }).default;
 
-test('homepage dish names use the branded uppercase serif and desktop spacing separates the banner', () => {
+test('homepage dish names share the approved US serif scale and marquee spacing', () => {
   const css = require('postcss').parse(readFileSync(new URL('../components/HomeMenuSection.module.css', import.meta.url), 'utf8'));
   const declarations = selector => Object.fromEntries(css.nodes.find(node => node.type === 'rule' && node.selector === selector).nodes.filter(node => node.type === 'decl').map(node => [node.prop, node.value]));
-  const title = declarations('.dishHeading h3');
+  const shared = require('postcss').parse(readFileSync(new URL('../components/HomeFeatureGrid.module.css', import.meta.url), 'utf8'));
+  const title = Object.fromEntries(shared.nodes.find(node => node.selector === '.title').nodes.filter(node => node.type === 'decl').map(node => [node.prop, node.value]));
   assert.equal(title['font-family'], 'var(--font-roboto-serif), serif');
   assert.equal(title['text-transform'], 'uppercase');
   assert.equal(title['letter-spacing'], '0');
-  assert.equal(title['font-size'], '32px');
-  const responsiveTitle = query => css.nodes.find(node => node.type === 'atrule' && node.params === query).nodes.find(node => node.type === 'rule' && node.selector === '.dishHeading h3').nodes.find(node => node.prop === 'font-size').value;
-  assert.equal(responsiveTitle('(max-width: 1279px)'), '28px');
-  assert.equal(responsiveTitle('(max-width: 1023px)'), '24px');
-  assert.equal(responsiveTitle('(max-width: 767px)'), '24px');
-  assert.equal(declarations('.section')['padding-top'], '96px');
+  assert.equal(title['font-size'], '24px');
+  assert.equal(declarations('.featured .title')['font-size'], '32px');
+  const tablet = css.nodes.find(node => node.type === 'atrule' && node.params === '(max-width: 1199px) and (min-width: 768px)');
+  assert.equal(tablet.nodes.find(node => node.selector === '.featured .title').nodes.find(node => node.prop === 'font-size').value, '28px');
+  assert.equal(declarations('.body')['padding-top'], '32px');
   assert.equal(declarations('.description')['text-transform'], undefined);
 });
 
-test('dish captions stay next to photos and unused space separates dishes', () => {
+test('dish captions use natural heights and food framing does not stretch with text', () => {
   const css = require('postcss').parse(readFileSync(new URL('../components/HomeMenuSection.module.css', import.meta.url), 'utf8'));
   const declarations = selector => Object.fromEntries(css.nodes.find(node => node.type === 'rule' && node.selector === selector).nodes.filter(node => node.type === 'decl').map(node => [node.prop, node.value]));
   assert.equal(declarations('.dish')['grid-template-rows'], 'auto auto');
   assert.equal(declarations('.dish')['align-content'], 'start');
-  assert.equal(declarations('.featured')['grid-template-rows'], 'minmax(0, 1fr) auto');
-  assert.equal(declarations('.spread[data-count="3"] .dish:last-child')['align-self'], 'end');
-  assert.equal(declarations('.dishHeading')['padding-top'], '12px');
+  assert.equal(declarations('.featured .photo')['aspect-ratio'], '16 / 9');
+  assert.match(declarations('.dishHeading').composes, /^caption from/);
+  const shared = readFileSync(new URL('../components/HomeFeatureGrid.module.css', import.meta.url), 'utf8');
+  assert.match(shared, /\.caption \{ padding-top: 16px; \}/);
+  assert.match(shared, /\.caption \{ padding-top: 12px; \}/);
   const mobile = css.nodes.find(node => node.type === 'atrule' && node.params === '(max-width: 767px)');
-  assert.equal(mobile.nodes.find(node => node.selector === '.dishHeading').nodes.find(node => node.prop === 'padding-top').value, '12px');
-  assert.equal(mobile.nodes.find(node => node.selector === '.spread[data-count="3"] .dish:last-child').nodes.find(node => node.prop === 'align-self').value, 'stretch');
+  assert.equal(mobile.nodes.find(node => node.selector === '.photo, .featured .photo').nodes.find(node => node.prop === 'aspect-ratio').value, '4 / 3');
+  assert.doesNotMatch(css.toString(), /aspect-ratio: auto|grid-template-rows: repeat\(2/);
 });
 
 test('new iiko credentials use v2 and the existing API key', () => {
@@ -109,10 +111,16 @@ test('homepage and menu share the same hidden category and dish policy', async (
   assert.equal(input.searchParams.get('market'), 'UZ');
 });
 function renderHome(dishes, lang) {
+  const marquee = load('../components/HomeMenuMarquee.tsx', {
+    '@/context/LanguageContext': { useLanguage: () => ({ lang }) },
+    '@fortawesome/react-fontawesome': { FontAwesomeIcon: () => React.createElement('svg', { 'aria-hidden': true }) },
+    './HomeMenuMarquee.module.css': {},
+  }).default;
   const component = load('../components/HomeMenuSection.tsx', {
     'next/image': { __esModule: true, default: ({ src, alt }) => React.createElement('img', { src, alt }) },
     'next/link': linkStub,
     './SliderButton': { __esModule: true, default: sliderButton },
+    './HomeMenuMarquee': { __esModule: true, default: marquee },
     '@/context/LanguageContext': { useLanguage: () => ({ lang }) },
     '@/lib/menuPresentation': presentation,
     '@/types/i18n': { pickLocalized: (value, language) => value?.[language] || '' },

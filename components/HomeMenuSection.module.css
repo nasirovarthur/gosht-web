@@ -1,49 +1,47 @@
-.section { padding-top: 96px; padding-bottom: 32px; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); scroll-margin-top: 100px; }
-.header { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; margin-bottom: 24px; }
-.header h2 { font-family: var(--font-roboto-serif), serif; font-size: 64px; font-weight: 300; line-height: 1.08; letter-spacing: 0; }
-.header p { margin-top: 8px; color: var(--text-secondary); font-size: 18px; line-height: 1.6; }
-.menuLink { display: inline-flex; flex: none; align-items: center; gap: 20px; padding: 0; white-space: nowrap; }
+.section { scroll-margin-top: 100px; border-bottom: 1px solid var(--border-subtle); }
+.body { padding-top: 32px; padding-bottom: 48px; }
+.inner { composes: frame from './HomeFeatureGrid.module.css'; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 32px; margin-bottom: 24px; }
+.header p { max-width: 60ch; color: var(--text-secondary); font-size: 18px; line-height: 1.6; }
+.menuLink { display: inline-flex; flex: none; align-items: center; gap: 20px; padding: 0; }
 .menuLink > svg { width: 84px; height: 64px; flex: none; }
-.track { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; gap: 24px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 8px; }
+.track { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; gap: 24px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 4px 0 8px; }
 .track::-webkit-scrollbar { display: none; }
-.spread { display: grid; grid-template-columns: minmax(0, 1.43fr) minmax(0, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 24px; scroll-snap-align: start; }
+.spread { composes: grid from './HomeFeatureGrid.module.css'; scroll-snap-align: start; }
 .dish { display: grid; grid-template-rows: auto auto; align-content: start; min-width: 0; min-height: 0; }
-.featured { grid-row: span 2; grid-template-rows: minmax(0, 1fr) auto; align-content: normal; }
-.spread[data-count="3"] .dish:last-child { align-self: end; }
-.spread[data-count="1"] { grid-template-columns: 1fr; aspect-ratio: 2.2; }
-.spread[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); aspect-ratio: 2.2; }
-.spread[data-count="2"] .dish { grid-row: span 2; }
-.photo { position: relative; min-height: 0; aspect-ratio: 16 / 7; overflow: hidden; background: var(--color-card); }
-.featured .photo { aspect-ratio: auto; }
-.image { object-fit: cover; transition: transform 350ms ease; }
-.image[data-portrait="true"] { object-position: center 70%; }
-.dish:hover .image { transform: scale(1.025); }
-.dishHeading { padding-top: 12px; }
-.dishHeading h3 { font-family: var(--font-roboto-serif), serif; font-size: 32px; font-weight: 300; line-height: 1.3; letter-spacing: 0; text-transform: uppercase; overflow-wrap: anywhere; }
+.featured { grid-row: span 2; }
+.spread[data-count="1"] { grid-template-columns: 1fr; }
+.spread[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.spread[data-count="2"] .dish { grid-row: auto; }
+.photo { composes: photo from './HomeFeatureGrid.module.css'; }
+.featured .photo { aspect-ratio: 16 / 9; }
+.image { object-fit: cover; }
+.dishHeading { composes: caption from './HomeFeatureGrid.module.css'; }
+.title { composes: title from './HomeFeatureGrid.module.css'; transition: color 180ms ease-out; }
+.featured .title { font-size: 32px; }
+.dish:hover .title { color: var(--text-secondary); }
 .description { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; max-width: 65ch; margin-top: 8px; color: var(--text-secondary); font-size: 16px; line-height: 1.5; }
-.controls { display: flex; justify-content: flex-end; margin-top: 24px; }
-.kitchenCaption > span { color: var(--text-muted); font-size: 13px; }
-.controls > div { display: flex; gap: 10px; }
-.kitchen { display: grid; grid-template-columns: minmax(0, 3fr) minmax(180px, 1fr); align-items: end; gap: 32px; }
-.kitchenPhoto { display: block; position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
-.kitchenCaption p { color: var(--text-secondary); line-height: 1.7; margin: 24px 0; }
+.controls { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 .section :focus-visible { outline: 2px solid var(--text-primary); outline-offset: 4px; }
 .dish:focus-visible { outline-offset: -2px; }
-@media (max-width: 1279px) { .dishHeading h3 { font-size: 28px; } }
-@media (max-width: 1023px) { .header h2 { font-size: 48px; } .spread { gap: 20px; } .dishHeading h3 { font-size: 24px; } }
+.section ::selection { background: var(--accent-brand); color: var(--text-primary); }
+@media (max-width: 1199px) and (min-width: 768px) { .featured { grid-column: 1 / -1; grid-row: auto; } .featured .title { font-size: 28px; } .featured .photo { aspect-ratio: 1200 / 628; } .spread[data-count="2"] .featured { grid-column: auto; } }
 @media (max-width: 767px) {
-  .section { padding-top: 40px; padding-bottom: 40px; scroll-margin-top: 80px; }
-  .header { align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 24px; }
-  .header h2 { font-size: 36px; } .header p { font-size: 16px; margin-top: 12px; }
+  .section { scroll-margin-top: 80px; }
+  .body { padding-top: 24px; padding-bottom: 40px; }
+  .header { align-items: flex-start; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .header p { font-size: 16px; }
   .menuLink { gap: 12px; } .menuLink > svg { width: 64px; height: 49px; }
   .track { grid-auto-columns: 86%; gap: 16px; }
   .spread { display: contents; }
   .dish, .spread[data-count="2"] .dish { display: block; grid-row: auto; scroll-snap-align: start; }
-  .spread[data-count="3"] .dish:last-child { align-self: stretch; }
   .photo, .featured .photo { aspect-ratio: 4 / 3; }
-  .dishHeading { padding-top: 12px; }
-  .dishHeading h3 { font-size: 24px; }
-  .kitchen { grid-template-columns: 1fr; gap: 24px; } .kitchenCaption p { margin: 16px 0; }
+  .featured .title { font-size: 24px; }
 }
-@media (min-width: 640px) and (max-width: 767px) { .section { padding-top: 80px; } }
-@media (prefers-reduced-motion: reduce) { .image { transition: none; } }
+.image[data-portrait="true"] { object-position: center 70%; }
+.kitchen { display: grid; grid-template-columns: minmax(0, 3fr) minmax(180px, 1fr); align-items: end; gap: 32px; }
+.kitchenPhoto { display: block; position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+.kitchenCaption > span { color: var(--text-muted); font-size: 13px; }
+.kitchenCaption p { color: var(--text-secondary); line-height: 1.7; margin: 24px 0; }
+.controls > div { display: flex; gap: 12px; }
+@media (max-width: 767px) { .kitchen { grid-template-columns: 1fr; gap: 24px; } .kitchenCaption p { margin: 16px 0; } }

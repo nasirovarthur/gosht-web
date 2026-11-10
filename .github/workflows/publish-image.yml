@@ -56,6 +56,9 @@ jobs:
       - name: Test restaurant directory
         run: node --test tests/restaurants-directory.test.mjs
 
+      - name: Test menu and unified homepage layout
+        run: node --test tests/menu.test.mjs tests/home-feature-grid.test.mjs
+
       - name: Build application
         run: npm run build
 
