@@ -2,6 +2,8 @@
 .body { padding-top: 32px; padding-bottom: 48px; }
 .inner { composes: frame from './HomeFeatureGrid.module.css'; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 32px; margin-bottom: 24px; }
+.header h2 { font-family: var(--font-roboto-serif), serif; font-size: 64px; font-weight: 300; line-height: 1.08; letter-spacing: 0; overflow-wrap: anywhere; }
+.header h2 + p { margin-top: 8px; }
 .header p { max-width: 60ch; color: var(--text-secondary); font-size: 18px; line-height: 1.6; }
 .menuLink { display: inline-flex; flex: none; align-items: center; gap: 20px; padding: 0; }
 .menuLink > svg { width: 84px; height: 64px; flex: none; }
@@ -31,6 +33,7 @@
   .body { padding-top: 24px; padding-bottom: 40px; }
   .header { align-items: flex-start; flex-direction: column; gap: 12px; margin-bottom: 24px; }
   .header p { font-size: 16px; }
+  .header h2 { font-size: 40px; }
   .menuLink { gap: 12px; } .menuLink > svg { width: 64px; height: 49px; }
   .track { grid-auto-columns: 86%; gap: 16px; }
   .spread { display: contents; }

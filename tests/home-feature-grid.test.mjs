@@ -58,14 +58,12 @@ test('posters never crop or zoom and menu still uses real West dish deep links',
   assert.match(menu,/\?dish=\$\{encodeURIComponent\(dish.id\)\}/);
   assert.match(menu,/portraitImages/);
 });
-test('menu marquee is one semantic heading with pause, focus and reduced-motion states',()=>{
-  const source=read('../components/HomeMenuMarquee.tsx');
-  const style=read('../components/HomeMenuMarquee.module.css');
-  assert.match(source,/<h2 id="home-menu-title" className="sr-only">/);
-  assert.match(source,/МЕНЮ РЕСТОРАНА/);
-  assert.match(source,/setPaused\(value => !value\)/);
-  assert.match(style,/animation-play-state: paused/);
-  assert.match(style,/:focus-visible/);
-  assert.match(style,/prefers-reduced-motion: reduce.*animation: none/);
+test('UZ keeps its original restaurant marquee and a plain menu heading without duplicate scrolling text or pause controls',()=>{
+  const source=read('../components/HomeMenuSection.tsx');
+  assert.match(source,/<h2 id="home-menu-title">\{text.title\}<\/h2>/);
+  assert.doesNotMatch(source,/HomeMenuMarquee|animate-infinite-scroll|МЕНЮ РЕСТОРАНА/);
+  const original=read('../components/RunningLine.tsx');
+  assert.match(original,/РЕСТОРАНЫ И ПРОЕКТЫ GŌSHT GROUP/);
+  assert.doesNotMatch(original,/setPaused|faPause|<button/);
   assert.match(read('../app/[lang]/page.tsx'),/<RunningLine text=\{runningLineData\?\.text\} \/>/);
 });

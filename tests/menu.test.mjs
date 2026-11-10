@@ -111,16 +111,10 @@ test('homepage and menu share the same hidden category and dish policy', async (
   assert.equal(input.searchParams.get('market'), 'UZ');
 });
 function renderHome(dishes, lang) {
-  const marquee = load('../components/HomeMenuMarquee.tsx', {
-    '@/context/LanguageContext': { useLanguage: () => ({ lang }) },
-    '@fortawesome/react-fontawesome': { FontAwesomeIcon: () => React.createElement('svg', { 'aria-hidden': true }) },
-    './HomeMenuMarquee.module.css': {},
-  }).default;
   const component = load('../components/HomeMenuSection.tsx', {
     'next/image': { __esModule: true, default: ({ src, alt }) => React.createElement('img', { src, alt }) },
     'next/link': linkStub,
     './SliderButton': { __esModule: true, default: sliderButton },
-    './HomeMenuMarquee': { __esModule: true, default: marquee },
     '@/context/LanguageContext': { useLanguage: () => ({ lang }) },
     '@/lib/menuPresentation': presentation,
     '@/types/i18n': { pickLocalized: (value, language) => value?.[language] || '' },

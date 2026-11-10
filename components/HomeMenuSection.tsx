@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import SliderButton from './SliderButton';
-import HomeMenuMarquee from './HomeMenuMarquee';
 import { useLanguage } from '@/context/LanguageContext';
 import { pickLocalized } from '@/types/i18n';
 import type { DeliveryMenuDish } from '@/types/deliveryMenu';
@@ -54,10 +53,9 @@ export default function HomeMenuSection({ dishes }: { dishes: DeliveryMenuDish[]
   };
 
   return <section className={styles.section} aria-labelledby="home-menu-title" id="menu">
-    <HomeMenuMarquee />
     <div className={`page-x ${styles.body}`}><div className={styles.inner}>
     <header className={styles.header}>
-      <p>{text.description}</p>
+      <div><h2 id="home-menu-title">{text.title}</h2><p>{text.description}</p></div>
       <SliderButton className={styles.menuLink} href={menuUrl}><span>{text.menu}</span></SliderButton>
     </header>
     {visibleDishes.length ? <>
