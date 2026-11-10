@@ -129,7 +129,7 @@ function buildMapUrls(map: BranchRestaurantRaw["map"] | LegacyRestaurantRaw["map
   };
 }
 
-async function getBranchRestaurantBySlug(slug: string): Promise<BranchRestaurantRaw | null> {
+async function getBranchRestaurantBySlug(slug: string, language: LangCode): Promise<BranchRestaurantRaw | null> {
   const slugCandidates = buildSlugCandidates(slug);
   const query = `
     *[
@@ -147,7 +147,7 @@ async function getBranchRestaurantBySlug(slug: string): Promise<BranchRestaurant
       workingHours,
       averageCheck,
       yearOpened,
-      "menuFiles": menuFiles[].asset->url,
+      "menuFiles": menuFiles[!defined(language) || language == $language].asset->url,
       "menu": menuFile.asset->url,
       "gallery": gallery[].asset->url,
       map {
@@ -174,10 +174,10 @@ async function getBranchRestaurantBySlug(slug: string): Promise<BranchRestaurant
     }
   `;
 
-  return client.fetch<BranchRestaurantRaw | null>(query, { slugCandidates });
+  return client.fetch<BranchRestaurantRaw | null>(query, { slugCandidates, language });
 }
 
-async function getLegacyRestaurantBySlug(slug: string): Promise<LegacyRestaurantRaw | null> {
+async function getLegacyRestaurantBySlug(slug: string, language: LangCode): Promise<LegacyRestaurantRaw | null> {
   const slugCandidates = buildSlugCandidates(slug);
   const query = `
     *[_type == "restaurants" && slug.current in $slugCandidates][0] {
@@ -191,7 +191,7 @@ async function getLegacyRestaurantBySlug(slug: string): Promise<LegacyRestaurant
       descriptionExtended,
       descriptionAdditional,
       yearOpened,
-      "menuFiles": menuFiles[].asset->url,
+      "menuFiles": menuFiles[!defined(language) || language == $language].asset->url,
       "menu": menuFile.asset->url,
       "gallery": gallery[].asset->url,
       map {
@@ -209,7 +209,7 @@ async function getLegacyRestaurantBySlug(slug: string): Promise<LegacyRestaurant
     }
   `;
 
-  return client.fetch<LegacyRestaurantRaw | null>(query, { slugCandidates });
+  return client.fetch<LegacyRestaurantRaw | null>(query, { slugCandidates, language });
 }
 
 function buildMenuFiles(menuFiles?: string[], menu?: string, defaultMenu?: string): string[] {
@@ -289,7 +289,7 @@ export async function generateMetadata({
   const { lang, slug } = await params;
   const language = resolveLang(lang);
 
-  const branchRestaurant = await getBranchRestaurantBySlug(slug);
+  const branchRestaurant = await getBranchRestaurantBySlug(slug, language);
 
   if (branchRestaurant) {
     const projectName = pickLocalized(branchRestaurant.project?.name, language);
@@ -325,7 +325,7 @@ export async function generateMetadata({
     });
   }
 
-  const legacyRestaurant = await getLegacyRestaurantBySlug(slug);
+  const legacyRestaurant = await getLegacyRestaurantBySlug(slug, language);
   if (legacyRestaurant) {
     const projectName = pickLocalized(legacyRestaurant.name, language);
     const branchName =
@@ -374,7 +374,7 @@ export default async function RestaurantPage({
   const { lang, slug } = await params;
   const language = resolveLang(lang) as LangCode;
 
-  const branchRestaurant = await getBranchRestaurantBySlug(slug);
+  const branchRestaurant = await getBranchRestaurantBySlug(slug, language);
 
   if (branchRestaurant) {
     const { mapLink, mapEmbedUrl } = buildMapUrls(branchRestaurant.map);
@@ -461,7 +461,7 @@ export default async function RestaurantPage({
     );
   }
 
-  const legacyRestaurant = await getLegacyRestaurantBySlug(slug);
+  const legacyRestaurant = await getLegacyRestaurantBySlug(slug, language);
   if (!legacyRestaurant) {
     notFound();
   }

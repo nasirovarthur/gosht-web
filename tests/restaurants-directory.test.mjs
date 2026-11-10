@@ -167,11 +167,45 @@ test('West retains its prominent delivery menu without a booking control or PDF 
     assert.match(html, /pb-24/);
   }
 });
-test('branches without connected delivery do not gain West actions or lose attached PDFs', () => {
+test('branches with restaurant PDFs gain the correct menu action without delivery or booking', () => {
   detailLang = 'ru';
   const restaurant = { ...westDetail, slug: 'gosht-muqimiy', deliveryMenuEnabled: false, menuFiles: ['https://cdn.sanity.io/existing-menu.pdf'] };
   const html = renderToStaticMarkup(React.createElement(Detail, { restaurant }));
-  assert.ok(!html.includes('data-testid="restaurant-actions"'));
+  const actions = html.split('data-testid="restaurant-actions"')[1];
+  assert.ok(actions);
+  assert.ok(actions.includes('href="https://cdn.sanity.io/existing-menu.pdf"'));
+  assert.ok(actions.includes('Меню ресторана'));
+  assert.ok(!actions.includes('Меню доставки'));
+  assert.ok(!actions.includes('<button'));
   assert.ok(html.includes('href="https://cdn.sanity.io/existing-menu.pdf"'));
   assert.match(html, /pb-24/);
+});
+test('West distinguishes its restaurant PDF from the delivery catalogue in every locale', () => {
+  for (const lang of ['ru', 'uz', 'en']) {
+    detailLang = lang;
+    const pdf = `https://cdn.sanity.io/west-${lang}.pdf`;
+    const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, menuFiles: [pdf] } }));
+    const actions = html.split('data-testid="restaurant-actions"')[1];
+    const labels = load('../types/i18n.ts').translations.restaurantDetail;
+    assert.ok(actions.includes(labels.menu[lang]));
+    assert.ok(actions.includes(labels.deliveryMenu[lang]));
+    assert.ok(actions.includes(`href="${pdf}" target="_blank" rel="noopener noreferrer"`));
+    assert.ok(actions.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
+    assert.ok(!actions.includes('<button'));
+    assert.match(html, /pb-36/);
+  }
+});
+test('branches without any menu retain their existing page without empty controls', () => {
+  detailLang = 'ru';
+  const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, deliveryMenuEnabled: false } }));
+  assert.ok(!html.includes('data-testid="restaurant-actions"'));
+});
+test('restaurant detail and catalogue queries select language-tagged PDFs and preserve untagged legacy files', () => {
+  for (const file of ['../app/[lang]/restaurants/[slug]/page.tsx', '../app/[lang]/restaurants/[slug]/menu/page.tsx']) {
+    const source = readFileSync(new URL(file, import.meta.url), 'utf8');
+    assert.equal(source.match(/menuFiles\[!defined\(language\) \|\| language == \$language\]\.asset->url/g)?.length, 2);
+    assert.equal(source.match(/query, \{ slugCandidates, language \}/g)?.length, 2);
+    assert.ok(!source.includes('getBranchRestaurantBySlug(slug);'));
+    assert.ok(!source.includes('getLegacyRestaurantBySlug(slug);'));
+  }
 });

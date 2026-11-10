@@ -173,7 +173,7 @@ export const restaurantBranch = defineType({
     }),
     defineField({
       name: 'menuFiles',
-      title: 'Меню филиала (PDF, несколько файлов)',
+      title: 'Меню филиала (PDF)',
       type: 'array',
       of: [
         {
@@ -181,6 +181,21 @@ export const restaurantBranch = defineType({
           options: {
             accept: 'application/pdf',
           },
+          fields: [
+            defineField({
+              name: 'language',
+              title: 'Язык меню',
+              description: 'Если язык не указан, файл показывается на всех языках сайта.',
+              type: 'string',
+              options: {
+                list: [
+                  { title: 'Русский', value: 'ru' },
+                  { title: 'O‘zbekcha', value: 'uz' },
+                  { title: 'English', value: 'en' },
+                ],
+              },
+            }),
+          ],
         },
       ],
     }),
