@@ -39,6 +39,18 @@ test('homepage dish names use the branded uppercase serif and desktop spacing se
   assert.equal(declarations('.description')['text-transform'], undefined);
 });
 
+test('dish captions stay next to photos and unused space separates dishes', () => {
+  const css = require('postcss').parse(readFileSync(new URL('../components/HomeMenuSection.module.css', import.meta.url), 'utf8'));
+  const declarations = selector => Object.fromEntries(css.nodes.find(node => node.type === 'rule' && node.selector === selector).nodes.filter(node => node.type === 'decl').map(node => [node.prop, node.value]));
+  assert.equal(declarations('.dish')['grid-template-rows'], 'auto auto');
+  assert.equal(declarations('.dish')['align-content'], 'start');
+  assert.equal(declarations('.featured')['grid-template-rows'], 'minmax(0, 1fr) auto');
+  assert.equal(declarations('.spread[data-count="3"] .dish:last-child')['align-self'], 'end');
+  assert.equal(declarations('.dishHeading')['padding-top'], '12px');
+  const mobile = css.nodes.find(node => node.type === 'atrule' && node.params === '(max-width: 767px)');
+  assert.equal(mobile.nodes.find(node => node.selector === '.dishHeading').nodes.find(node => node.prop === 'padding-top').value, '12px');
+});
+
 test('new iiko credentials use v2 and the existing API key', () => {
   assert.deepEqual(auth.getIikoAuthRequest({ IIKO_API_LOGIN: 'legacy-key', IIKO_APP_ID: 'app', IIKO_CLIENT_SECRET: 'secret' }), {
     endpoint: '/api/v2/access_token', body: { appId: 'app', clientSecret: 'secret', apiKey: 'legacy-key' },
