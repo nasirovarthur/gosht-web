@@ -53,6 +53,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Test restaurant directory
+        run: node --test tests/restaurants-directory.test.mjs
+
       - name: Build application
         run: npm run build
 

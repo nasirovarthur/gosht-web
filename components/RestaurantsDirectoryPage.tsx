@@ -1,171 +1,338 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { useState } from 'react';
-import Reveal from '@/components/Reveal';
-import RestaurantsMap from '@/components/restaurant/RestaurantsMap';
+import Image from "next/image";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useRef, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowRight,
+  faArrowUpRightFromSquare,
+  faCheck,
+  faChevronDown,
+  faListUl,
+  faMap,
+  faRotateLeft,
+  faUtensils,
+  faBagShopping,
+} from "@fortawesome/free-solid-svg-icons";
+import RestaurantsMap from "./restaurant/RestaurantsMap";
 import type {
   RestaurantBranchItem,
   RestaurantProjectItem,
   RestaurantsDirectoryData,
-} from '@/lib/getRestaurantBranches';
-import type { RestaurantsPageSettingsData } from '@/lib/getRestaurantsPageSettings';
-import { pickLocalized } from '@/types/i18n';
-import type { LangCode } from '@/types/i18n';
+} from "@/lib/getRestaurantBranches";
+import type { RestaurantsPageSettingsData } from "@/lib/getRestaurantsPageSettings";
+import {
+  filterRestaurantProjects,
+  formatRestaurantCount,
+  groupRestaurantProject,
+  hasDeliveryMenu,
+  restaurantCuisine,
+  restaurantFeatures,
+} from "@/lib/restaurantDirectory";
+import { pickLocalized } from "@/types/i18n";
+import type { LangCode } from "@/types/i18n";
+import styles from "./RestaurantsDirectory.module.css";
 
-type ViewMode = 'list' | 'map';
+const copy = {
+  ru: {
+    title: "Рестораны",
+    region: "Регион",
+    list: "Списком",
+    map: "На карте",
+    view: "Вид ресторанов",
+    cuisine: "Кухня",
+    all: "Все кухни",
+    banquet: "Банкетный зал",
+    delivery: "Доставка",
+    filters: "Фильтры ресторанов",
+    reset: "Сбросить фильтры",
+    empty: "По выбранным фильтрам ресторанов нет",
+    details: "Подробнее",
+    address: "Адрес",
+    phone: "Телефон",
+    hours: "Режим работы",
+    average: "Средний чек",
+    menu: "Открыть меню",
+    deliveryMenu: "Меню доставки",
+    branches: "Филиалы",
+    found: "Найдено",
+    places: "мест",
+    openMap: "На карте",
+  },
+  en: {
+    title: "Restaurants",
+    region: "Region",
+    list: "List",
+    map: "Map",
+    view: "Restaurant view",
+    cuisine: "Cuisine",
+    all: "All cuisines",
+    banquet: "Banquet hall",
+    delivery: "Delivery",
+    filters: "Restaurant filters",
+    reset: "Reset filters",
+    empty: "No restaurants match these filters",
+    details: "Explore",
+    address: "Address",
+    phone: "Phone",
+    hours: "Opening hours",
+    average: "Average check",
+    menu: "Open menu",
+    deliveryMenu: "Delivery menu",
+    branches: "Locations",
+    found: "Results",
+    places: "locations",
+    openMap: "On map",
+  },
+  uz: {
+    title: "Restoranlar",
+    region: "Hudud",
+    list: "Ro‘yxat",
+    map: "Xaritada",
+    view: "Restoranlar ko‘rinishi",
+    cuisine: "Oshxona",
+    all: "Barcha oshxonalar",
+    banquet: "Banket zali",
+    delivery: "Yetkazish",
+    filters: "Restoran filtrlari",
+    reset: "Filtrlarni tozalash",
+    empty: "Bu filtrlarga mos restoranlar yo‘q",
+    details: "Batafsil",
+    address: "Manzil",
+    phone: "Telefon",
+    hours: "Ish vaqti",
+    average: "O‘rtacha hisob",
+    menu: "Menyuni ochish",
+    deliveryMenu: "Yetkazish menyusi",
+    branches: "Filiallar",
+    found: "Topildi",
+    places: "joy",
+    openMap: "Xaritada",
+  },
+};
 
-function formatBranchesCount(count: number, lang: LangCode): string {
-  if (lang === 'ru') {
-    const mod10 = count % 10;
-    const mod100 = count % 100;
-    let noun = 'филиалов';
-
-    if (mod10 === 1 && mod100 !== 11) {
-      noun = 'филиал';
-    } else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-      noun = 'филиала';
-    }
-
-    return `${count} ${noun}`;
-  }
-
-  if (lang === 'en') {
-    return `${count} ${count === 1 ? 'branch' : 'branches'}`;
-  }
-
-  return `${count} ${count === 1 ? 'filial' : 'filial'}`;
+function cityName(city: string, lang: LangCode) {
+  return city === "new_york"
+    ? { ru: "Нью-Йорк", en: "New York", uz: "Nyu-York" }[lang]
+    : { ru: "Ташкент", en: "Tashkent", uz: "Toshkent" }[lang];
 }
 
-function projectMonogram(name: string): string {
-  const words = name
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
-
-  return words.slice(0, 2).map((word) => word[0]?.toUpperCase() || '').join('') || 'GR';
+function branchHref(branch: RestaurantBranchItem, lang: LangCode) {
+  return `/${lang}/${branch.slug ? `restaurants/${encodeURIComponent(branch.slug)}` : "restaurants"}`;
 }
 
-function ProjectLogo({
-  project,
+function BranchFacts({
+  branch,
   lang,
-  className = '',
+  onMap,
 }: {
-  project: RestaurantProjectItem;
+  branch: RestaurantBranchItem;
   lang: LangCode;
-  className?: string;
+  onMap?: (id: string) => void;
 }) {
-  const name = pickLocalized(project.name, lang);
-
-  if (project.logo) {
-    return (
-      <div className={`relative aspect-square overflow-hidden ${className}`}>
-        <Image
-          src={project.logo}
-          alt={name}
-          fill
-          className="object-contain p-2"
-          sizes="140px"
-        />
-      </div>
-    );
-  }
-
+  const text = copy[lang];
+  const address = pickLocalized(branch.address, lang);
+  const hours = pickLocalized(branch.workingHours, lang);
+  const average = pickLocalized(branch.averageCheck, lang);
+  const features = restaurantFeatures(branch, lang);
+  const menus = Array.from(
+    new Set([...branch.menuUrls, ...(branch.menuUrl ? [branch.menuUrl] : [])]),
+  );
   return (
-    <div className={`relative aspect-square overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(174,14,22,0.22),_transparent_55%),linear-gradient(180deg,_rgba(255,255,255,0.03),_rgba(255,255,255,0.01))] ${className}`}>
-      <div className="absolute inset-0 bg-[linear-gradient(135deg,_rgba(174,14,22,0.08),_transparent_46%,_rgba(255,255,255,0.03))]" />
-      <div className="relative z-10 flex h-full items-center justify-center p-3 md:p-4">
-        <span className="text-[46px] md:text-[58px] leading-none tracking-[-0.05em] font-light font-serif text-white/88">
-          {projectMonogram(name)}
-        </span>
+    <div className={styles.facts}>
+      {features.length > 0 && (
+        <ul className={styles.features}>
+          {features.map((feature) => (
+            <li key={feature}>{feature}</li>
+          ))}
+        </ul>
+      )}
+      <dl className={styles.contacts}>
+        {address && (
+          <div>
+            <dt>{text.address}</dt>
+            <dd>{address}</dd>
+          </div>
+        )}
+        {branch.phone && (
+          <div>
+            <dt>{text.phone}</dt>
+            <dd>
+              <a href={`tel:${branch.phone}`}>{branch.phone}</a>
+            </dd>
+          </div>
+        )}
+        {hours && (
+          <div>
+            <dt>{text.hours}</dt>
+            <dd>{hours}</dd>
+          </div>
+        )}
+        {average && (
+          <div>
+            <dt>{text.average}</dt>
+            <dd>{average}</dd>
+          </div>
+        )}
+      </dl>
+      <div className={styles.actions}>
+        <Link href={branchHref(branch, lang)}>
+          {text.details}
+          <FontAwesomeIcon icon={faArrowRight} />
+        </Link>
+        {menus.map((href, index) => (
+          <a key={href} href={href} target="_blank" rel="noopener noreferrer">
+            {text.menu}
+            {menus.length > 1 ? ` ${index + 1}` : ""}
+            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+          </a>
+        ))}
+        {hasDeliveryMenu(branch) && (
+          <Link href={`${branchHref(branch, lang)}/menu`}>
+            {text.deliveryMenu}
+            <FontAwesomeIcon icon={faBagShopping} />
+          </Link>
+        )}
+        {onMap && branch.mapCoordinates && (
+          <button type="button" onClick={() => onMap(branch.id)}>
+            {text.openMap}
+            <FontAwesomeIcon icon={faMap} />
+          </button>
+        )}
+        {!onMap && branch.mapLink && (
+          <a href={branch.mapLink} target="_blank" rel="noopener noreferrer">
+            {text.openMap}
+            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+          </a>
+        )}
       </div>
     </div>
   );
 }
 
-function cityLabel(city: string, lang: LangCode): string {
-  if (city === 'new_york') {
-    return lang === 'ru' ? 'Нью-Йорк' : lang === 'en' ? 'New York' : 'Nyu-York';
-  }
-
-  return lang === 'ru' ? 'Ташкент' : lang === 'en' ? 'Tashkent' : 'Toshkent';
-}
-
-function featureLabels(branch: RestaurantBranchItem, lang: LangCode): string[] {
-  const labels: string[] = [];
-
-  if (branch.projectType === 'barbershop') {
-    if (branch.hasVipRoom) {
-      labels.push(lang === 'ru' ? 'VIP-кабинет' : lang === 'en' ? 'VIP room' : 'VIP kabinet');
-    }
-
-    if (branch.hasKidsHaircut) {
-      labels.push(lang === 'ru' ? 'Детская стрижка' : lang === 'en' ? 'Kids haircut' : 'Bolalar soch turmagi');
-    }
-
-    return labels;
-  }
-
-  if (branch.hasBanquet) {
-    labels.push(lang === 'ru' ? 'Банкетный зал' : lang === 'en' ? 'Banquet hall' : 'Banket zali');
-  }
-
-  if (branch.hasPlayground) {
-    labels.push(lang === 'ru' ? 'Детская площадка' : lang === 'en' ? 'Playground' : 'Bolalar maydonchasi');
-  }
-
-  return labels;
-}
-
-function IconList({ className = '' }: { className?: string }) {
+function RestaurantPhoto({
+  branch,
+  lang,
+  project,
+}: {
+  branch: RestaurantBranchItem;
+  lang: LangCode;
+  project?: RestaurantProjectItem;
+}) {
+  const image = branch.cardImage || branch.gallery[0];
+  const title = pickLocalized(project?.name || branch.branchName, lang);
+  const logo = project?.logo || branch.projectLogo;
   return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={className}>
-      <path d="M6 5.5H16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M6 10H16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M6 14.5H16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <circle cx="3.5" cy="5.5" r="0.9" fill="currentColor" />
-      <circle cx="3.5" cy="10" r="0.9" fill="currentColor" />
-      <circle cx="3.5" cy="14.5" r="0.9" fill="currentColor" />
-    </svg>
+    <Link
+      href={branchHref(branch, lang)}
+      className={styles.photo}
+      aria-label={title}
+    >
+      {image && (
+        <Image
+          src={image}
+          alt={title}
+          fill
+          sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
+          className={styles.image}
+        />
+      )}
+      {logo && (
+        <span className={styles.logo}>
+          <Image
+            src={logo}
+            alt={pickLocalized(branch.projectName, lang)}
+            fill
+            sizes="104px"
+            className={styles.logoImage}
+          />
+        </span>
+      )}
+    </Link>
   );
 }
 
-function IconMap({ className = '' }: { className?: string }) {
+function RestaurantCard({
+  branch,
+  lang,
+  onMap,
+  single = false,
+}: {
+  branch: RestaurantBranchItem;
+  lang: LangCode;
+  onMap: (id: string) => void;
+  single?: boolean;
+}) {
+  const cuisine = restaurantCuisine(branch, lang);
   return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={className}>
-      <path d="M3 5.4L7.4 3.8L12.2 5.7L17 4.1V14.6L12.2 16.2L7.4 14.3L3 15.9V5.4Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M7.4 3.9V14.2" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M12.2 5.8V16.1" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
+    <article
+      className={`${styles.card} ${single ? styles.single : ""}`}
+      data-restaurant-id={branch.id}
+    >
+      <RestaurantPhoto branch={branch} lang={lang} />
+      <div className={styles.cardBody}>
+        <h2>
+          <Link href={branchHref(branch, lang)}>
+            {pickLocalized(branch.branchName, lang)}
+          </Link>
+        </h2>
+        {cuisine && <p className={styles.cuisine}>{cuisine}</p>}
+        <BranchFacts branch={branch} lang={lang} onMap={onMap} />
+      </div>
+    </article>
   );
 }
 
-function IconLocation({ className = '' }: { className?: string }) {
+function RestaurantGroup({
+  project,
+  lang,
+  onMap,
+  reverse,
+}: {
+  project: RestaurantProjectItem;
+  lang: LangCode;
+  onMap: (id: string) => void;
+  reverse: boolean;
+}) {
+  const first = project.branches[0];
+  const description = pickLocalized(project.description, lang);
   return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={className}>
-      <path d="M10 17C12.8 13.8 15.2 11 15.2 8C15.2 5.1 12.9 2.8 10 2.8C7.1 2.8 4.8 5.1 4.8 8C4.8 11 7.2 13.8 10 17Z" stroke="currentColor" strokeWidth="1.4" />
-      <circle cx="10" cy="8" r="1.8" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-}
-
-function IconPhone({ className = '' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={className}>
-      <path d="M6.1 3.9L8.3 3.3C8.8 3.2 9.3 3.4 9.5 3.9L10.3 5.9C10.5 6.3 10.4 6.8 10 7.1L8.8 8.1C8.6 8.2 8.5 8.5 8.6 8.8C9.2 10.2 10.4 11.3 11.7 12C12 12.1 12.3 12 12.5 11.8L13.4 10.6C13.7 10.2 14.2 10.1 14.7 10.3L16.6 11.1C17.1 11.3 17.4 11.8 17.2 12.3L16.6 14.5C16.5 15 16.1 15.3 15.5 15.3C8.8 15.1 4.9 11.3 4.7 4.5C4.7 3.9 5 4.1 6.1 3.9Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconWallet({ className = '' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={className}>
-      <rect x="3" y="5.5" width="14" height="9" rx="1.8" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M12 10H17" stroke="currentColor" strokeWidth="1.3" />
-      <circle cx="12.4" cy="10" r="0.8" fill="currentColor" />
-      <path d="M5.3 5.4L14.3 5.4" stroke="currentColor" strokeWidth="1.3" />
-    </svg>
+    <article
+      className={styles.projectGroup}
+      data-reverse={reverse || undefined}
+    >
+      <RestaurantPhoto branch={first} lang={lang} project={project} />
+      <div className={styles.groupBody}>
+        <h2>{pickLocalized(project.name, lang)}</h2>
+        {description && (
+          <p className={styles.projectDescription}>{description}</p>
+        )}
+        <div className={styles.branchList} aria-label={copy[lang].branches}>
+          {project.branches.map((branch) => (
+            <details
+              key={branch.id}
+              className={styles.branch}
+              data-restaurant-id={branch.id}
+            >
+              <summary>
+                <span>
+                  <span className={styles.branchName}>
+                    {pickLocalized(branch.branchName, lang)}
+                  </span>
+                  <span className={styles.branchAddress}>
+                    {pickLocalized(branch.address, lang)}
+                  </span>
+                </span>
+                <FontAwesomeIcon icon={faChevronDown} />
+              </summary>
+              <BranchFacts branch={branch} lang={lang} onMap={onMap} />
+            </details>
+          ))}
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -175,379 +342,231 @@ export default function RestaurantsDirectoryPage({
   lang,
 }: {
   data: RestaurantsDirectoryData;
-  pageSettings: RestaurantsPageSettingsData;
+  pageSettings?: RestaurantsPageSettingsData;
   lang: LangCode;
 }) {
-  const [activeView, setActiveView] = useState<ViewMode>('list');
-  const initialProjectId = data.projects[0]?.id || '';
-
-  const [activeProjectId, setActiveProjectId] = useState(initialProjectId);
-
-  const filteredProjects = data.projects.filter((project) => project.branches.length > 0);
-
-  const activeProject =
-    filteredProjects.find((project) => project.id === activeProjectId) || filteredProjects[0] || null;
-
-  const [activeBranchId, setActiveBranchId] = useState(activeProject?.branches[0]?.id || '');
-  const effectiveProject = activeProject;
-  const effectiveBranch =
-    effectiveProject?.branches.find((branch) => branch.id === activeBranchId) ||
-    effectiveProject?.branches[0] ||
-    null;
-
-  if (!data.projects.length) {
-    return null;
-  }
-
-  const ui = {
-    eyebrow: pickLocalized(pageSettings.eyebrow, lang),
-    title: pickLocalized(pageSettings.title, lang),
-    intro: pickLocalized(pageSettings.intro, lang),
-    projectsLabel: lang === 'ru' ? 'ПРОЕКТЫ' : lang === 'en' ? 'PROJECTS' : 'LOYIHALAR',
-    listLabel: lang === 'ru' ? 'СПИСОК' : lang === 'en' ? 'LIST' : 'RO‘YXAT',
-    mapLabel: lang === 'ru' ? 'КАРТА' : lang === 'en' ? 'MAP' : 'XARITA',
-    address: lang === 'ru' ? 'АДРЕС' : lang === 'en' ? 'ADDRESS' : 'MANZIL',
-    contacts: lang === 'ru' ? 'КОНТАКТЫ' : lang === 'en' ? 'CONTACTS' : 'ALOQA',
-    hours: lang === 'ru' ? 'РЕЖИМ' : lang === 'en' ? 'HOURS' : 'ISH VAQTI',
-    averageCheck: lang === 'ru' ? 'СРЕДНИЙ ЧЕК' : lang === 'en' ? 'AVERAGE CHECK' : 'O‘RTACHA CHEK',
-    details: lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'Explore' : 'Batafsil',
-    openMap: lang === 'ru' ? 'НА КАРТЕ' : lang === 'en' ? 'ON MAP' : 'XARITADA',
-    noBranches:
-      lang === 'ru'
-        ? 'В этом городе пока нет опубликованных филиалов.'
-        : lang === 'en'
-          ? 'There are no published branches in this city yet.'
-          : 'Bu shaharda hali e’lon qilingan filiallar yo‘q.',
+  const search = useSearchParams();
+  const text = copy[lang];
+  const cities = data.availableCities;
+  const initialCity = cities.includes(search.get("city") || "")
+    ? search.get("city")!
+    : cities[0] || "";
+  const [city, setCity] = useState(initialCity);
+  const [view, setView] = useState<"list" | "map">(
+    search.get("view") === "map" ? "map" : "list",
+  );
+  const [cuisine, setCuisine] = useState("all");
+  const [banquet, setBanquet] = useState(false);
+  const [delivery, setDelivery] = useState(search.get("delivery") === "1");
+  const [selectedId, setSelectedId] = useState("");
+  const headerRef = useRef<HTMLElement>(null);
+  const cuisines = Array.from(
+    new Set(
+      data.branches
+        .filter((branch) => branch.city === city)
+        .map((branch) => restaurantCuisine(branch, lang))
+        .filter(Boolean),
+    ),
+  );
+  const projects = filterRestaurantProjects(
+    data,
+    { city, cuisine, banquet, delivery },
+    lang,
+  );
+  const branches = projects.flatMap((project) => project.branches);
+  const selected =
+    branches.find((branch) => branch.id === selectedId) || branches[0];
+  const filtered = cuisine !== "all" || banquet || delivery;
+  const reset = () => {
+    setCuisine("all");
+    setBanquet(false);
+    setDelivery(false);
   };
-
-  const activeProjectName = effectiveProject ? pickLocalized(effectiveProject.name, lang) : '';
-  const activeProjectBranches = effectiveProject?.branches || [];
-
-  const handleProjectChange = (projectId: string) => {
-    setActiveProjectId(projectId);
-
-    const nextProject = filteredProjects.find((project) => project.id === projectId) || null;
-    setActiveBranchId(nextProject?.branches[0]?.id || '');
+  const showMap = (id: string) => {
+    setSelectedId(id);
+    setView("map");
+    headerRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
   };
+  const groupedIds = projects
+    .filter(groupRestaurantProject)
+    .map((project) => project.id);
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-base pt-[200px] pb-24 text-white md:pt-[244px] md:pb-28">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-[-16%] top-[8%] h-[440px] w-[440px] rounded-full bg-[#AE0E16]/8 blur-[150px]" />
-        <div className="absolute right-[-12%] top-[20%] h-[420px] w-[420px] rounded-full bg-white/[0.03] blur-[150px]" />
-      </div>
-
-      <div className="page-x relative z-10">
-        <div className="mx-auto max-w-[1600px]">
-          <header className="max-w-[1100px]">
-            <span className="text-[12px] uppercase tracking-[0.22em] text-white/34">
-              {ui.eyebrow}
-            </span>
-            <h1 className="mt-6 text-[clamp(48px,6vw,118px)] leading-[0.88] tracking-[-0.03em] font-light font-serif text-white">
-              {ui.title}
-            </h1>
-            <p className="mt-8 max-w-[880px] text-[15px] md:text-[19px] leading-relaxed text-white/58">
-              {ui.intro}
-            </p>
-          </header>
-
-          <div className="mt-16 border-t border-white/10 pt-8 md:pt-10 xl:grid xl:grid-cols-[280px_minmax(0,1fr)] xl:gap-14">
-            <aside
-              className="xl:sticky xl:top-[138px] xl:self-start xl:border-r xl:border-white/10 xl:pr-10"
-            >
-              <div>
-                <p className="mb-6 text-[12px] uppercase tracking-[0.2em] text-white/34">
-                  {ui.projectsLabel}
-                </p>
-
-                <div className="flex flex-col">
-                  {filteredProjects.map((project) => {
-                    const isActive = project.id === effectiveProject?.id;
-                    const projectName = pickLocalized(project.name, lang);
-
-                    return (
-                      <button
-                        key={project.id}
-                        type="button"
-                        onClick={() => handleProjectChange(project.id)}
-                        className={`group relative flex w-full items-start gap-4 border-b border-white/10 py-4 pl-5 text-left transition-all duration-300 ${
-                          isActive ? 'text-white' : 'text-white/52 hover:text-white/78'
-                        }`}
-                      >
-                        <span
-                          className={`absolute left-0 top-4 bottom-4 w-px transition-all duration-300 ${
-                            isActive ? 'bg-[#AE0E16]' : 'bg-transparent group-hover:bg-white/18'
-                          }`}
-                        />
-                        <ProjectLogo
-                          project={project}
-                          lang={lang}
-                          className="w-[56px] flex-shrink-0"
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-[24px] leading-[1.02] tracking-[-0.02em] font-light font-serif">
-                            {projectName}
-                          </span>
-                          <span className="mt-3 block text-[11px] uppercase tracking-[0.18em] text-white/32">
-                            {formatBranchesCount(project.branches.length, lang)}
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </aside>
-
-            <div className="mt-10 min-w-0 xl:mt-0">
-              <div
-                className="flex flex-wrap items-center justify-between gap-6 border-b border-white/10 pb-6"
+    <main className={`page-x bg-base ${styles.page}`}>
+      <h1 className={styles.srOnly}>
+        {pickLocalized(pageSettings?.title, lang) || text.title}
+      </h1>
+      <header ref={headerRef} className={styles.header}>
+        <div className={styles.region}>
+          <span>{text.region}:</span>
+          {cities.length > 1 ? (
+            <label className={styles.citySelect}>
+              <span className={styles.srOnly}>{text.region}</span>
+              <select
+                value={city}
+                onChange={(event) => {
+                  setCity(event.target.value);
+                  reset();
+                  setSelectedId("");
+                }}
               >
-                <div>
-                  <h2 className="text-[clamp(28px,3.4vw,56px)] leading-[0.94] tracking-[-0.03em] font-light font-serif text-white">
-                    {activeProjectName}
-                  </h2>
-                  <p className="mt-3 text-[12px] uppercase tracking-[0.2em] text-white/30">
-                    {formatBranchesCount(activeProjectBranches.length, lang)}
-                  </p>
-                </div>
-
-                <div className="inline-flex rounded-full border border-white/10 bg-white/[0.02] p-1">
-                  {(['list', 'map'] as const).map((mode) => {
-                    const isActive = activeView === mode;
-
-                    return (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => setActiveView(mode)}
-                        className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] transition-colors ${
-                          isActive
-                            ? 'bg-white text-black'
-                            : 'text-white/60 hover:text-white'
-                        }`}
-                      >
-                        {mode === 'list' ? (
-                          <IconList className="h-3.5 w-3.5" />
-                        ) : (
-                          <IconMap className="h-3.5 w-3.5" />
-                        )}
-                        {mode === 'list' ? ui.listLabel : ui.mapLabel}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {!effectiveProject ? (
-                <div className="border-b border-white/10 py-20 text-[16px] leading-relaxed text-white/52">
-                  {ui.noBranches}
-                </div>
-              ) : activeView === 'list' ? (
-                <div className="pt-10">
-                  <div className="flex flex-col">
-                    {activeProjectBranches.map((branch, index) => {
-                      const title = pickLocalized(branch.branchName, lang);
-                      const address = pickLocalized(branch.address, lang);
-                      const hours = pickLocalized(branch.workingHours, lang);
-                      const averageCheck = pickLocalized(branch.averageCheck, lang);
-                      const menuLinks = branch.menuUrls || [];
-                      const href = branch.slug
-                        ? `/${lang}/restaurants/${encodeURIComponent(branch.slug)}`
-                        : `/${lang}/restaurants`;
-                      const features = featureLabels(branch, lang);
-
-                      return (
-                        <Reveal
-                          key={branch.id}
-                          as="article"
-                          className="border-b border-white/10 py-8 md:py-10"
-                          delay={Math.min(index, 4) * 80}
-                          distance={34}
-                          blur={8}
-                        >
-                          <div className="grid gap-8 lg:grid-cols-[minmax(280px,420px)_minmax(0,1fr)] lg:gap-10">
-                            <Link href={href} className="group relative block min-h-[240px] overflow-hidden border border-white/10 bg-card">
-                              {branch.cardImage ? (
-                                <Image
-                                  src={branch.cardImage}
-                                  alt={title}
-                                  fill
-                                  className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                                  sizes="(max-width: 1024px) 100vw, 420px"
-                                />
-                              ) : null}
-                            </Link>
-
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-start justify-between gap-5">
-                                <div>
-                                  <span className="inline-flex items-center gap-2 text-[12px] tracking-[0.08em] text-white/42">
-                                    <IconLocation className="h-3.5 w-3.5" />
-                                    {cityLabel(branch.city, lang)}
-                                  </span>
-                                  <h3 className="mt-4 text-[clamp(30px,3vw,54px)] leading-[0.94] tracking-[-0.03em] font-light font-serif text-white">
-                                    {title}
-                                  </h3>
-                                </div>
-                              </div>
-
-                              {features.length > 0 ? (
-                                <div className="mt-6 flex flex-wrap gap-3">
-                                  {features.map((item) => (
-                                    <span
-                                      key={item}
-                                      className="inline-flex items-center gap-2 bg-white/[0.04] px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-white/54"
-                                    >
-                                      <span className="h-1.5 w-1.5 rounded-full bg-white/35" />
-                                      {item}
-                                    </span>
-                                  ))}
-                                </div>
-                              ) : null}
-
-                              <div className="mt-8 grid gap-6 md:grid-cols-3 md:gap-8">
-                                <div>
-                                  <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-white/30">
-                                    <IconLocation className="h-3.5 w-3.5" />
-                                    {ui.address}
-                                  </p>
-                                  <p className="mt-3 text-[15px] leading-relaxed text-white/82">
-                                    {address}
-                                  </p>
-                                </div>
-
-                                <div>
-                                  <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-white/30">
-                                    <IconPhone className="h-3.5 w-3.5" />
-                                    {ui.contacts}
-                                  </p>
-                                  <div className="mt-3 flex flex-col gap-2 text-[15px] leading-relaxed text-white/82">
-                                    {branch.phone ? (
-                                      <a href={`tel:${branch.phone}`} className="transition-colors hover:text-white">
-                                        {branch.phone}
-                                      </a>
-                                    ) : null}
-                                    {hours ? <span>{hours}</span> : null}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-white/30">
-                                    <IconWallet className="h-3.5 w-3.5" />
-                                    {ui.averageCheck}
-                                  </p>
-                                  <div className="mt-3 flex flex-col gap-2 text-[15px] leading-relaxed text-white/82">
-                                    {averageCheck ? <span>{averageCheck}</span> : null}
-                                    {menuLinks.map((menuUrl, menuIndex) => (
-                                      <a
-                                        key={`${branch.id}-menu-${menuIndex}`}
-                                        href={menuUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="transition-colors hover:text-white"
-                                      >
-                                        {menuLinks.length === 1
-                                          ? lang === 'ru'
-                                            ? 'Открыть меню'
-                                            : lang === 'en'
-                                              ? 'Open menu'
-                                              : 'Menyuni ochish'
-                                          : lang === 'ru'
-                                            ? `Меню ${menuIndex + 1}`
-                                            : lang === 'en'
-                                              ? `Menu ${menuIndex + 1}`
-                                              : `Menyu ${menuIndex + 1}`}
-                                      </a>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="mt-8 flex flex-wrap gap-6 text-[12px] uppercase tracking-[0.18em]">
-                                <Link href={href} className="border-b border-white/20 pb-2 text-white/90 transition-colors hover:text-white hover:border-white/40">
-                                  {ui.details}
-                                </Link>
-                                {branch.mapLink ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setActiveView('map');
-                                      setActiveBranchId(branch.id);
-                                    }}
-                                    className="border-b border-white/20 pb-2 text-white/68 transition-colors hover:text-white hover:border-white/40"
-                                  >
-                                    {ui.openMap}
-                                  </button>
-                                ) : null}
-                              </div>
-                            </div>
-                          </div>
-                        </Reveal>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div className="pt-10">
-                  <div className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)]">
-                    <Reveal
-                      as="div"
-                      className="overflow-hidden border border-white/10 bg-card/20"
-                      delay={80}
-                      distance={32}
-                      blur={6}
-                    >
-                      <div className="max-h-[620px] overflow-y-auto">
-                        {activeProjectBranches.map((branch) => {
-                          const isActive = branch.id === effectiveBranch?.id;
-                          const features = featureLabels(branch, lang);
-
-                          return (
-                            <button
-                              key={branch.id}
-                              type="button"
-                              onClick={() => setActiveBranchId(branch.id)}
-                              className={`w-full border-b border-white/10 px-5 py-5 text-left transition-colors ${
-                                isActive ? 'bg-white/[0.05]' : 'hover:bg-white/[0.02]'
-                              }`}
-                            >
-                              <span className="inline-flex items-center gap-2 text-[12px] tracking-[0.08em] text-white/42">
-                                <IconLocation className="h-3.5 w-3.5" />
-                                {cityLabel(branch.city, lang)}
-                              </span>
-                              <h3 className="mt-3 text-[26px] leading-[1] tracking-[-0.02em] font-light font-serif text-white">
-                                {pickLocalized(branch.branchName, lang)}
-                              </h3>
-                              <p className="mt-3 text-[14px] leading-relaxed text-white/62">
-                                {pickLocalized(branch.address, lang)}
-                              </p>
-                              {features.length > 0 ? (
-                                <p className="mt-4 text-[11px] uppercase tracking-[0.18em] text-white/36">
-                                  {features.join(' • ')}
-                                </p>
-                              ) : null}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </Reveal>
-
-                    <Reveal as="div" delay={120} distance={34} blur={8}>
-                      <RestaurantsMap
-                        branches={activeProjectBranches}
-                        activeBranchId={effectiveBranch?.id}
-                        lang={lang}
-                        onSelectBranch={setActiveBranchId}
-                      />
-                    </Reveal>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+                {cities.map((value) => (
+                  <option key={value} value={value}>
+                    {cityName(value, lang)}
+                  </option>
+                ))}
+              </select>
+              <FontAwesomeIcon icon={faChevronDown} />
+            </label>
+          ) : (
+            <span>{cityName(city, lang)}</span>
+          )}
         </div>
-      </div>
-    </section>
+        <div className={styles.toolbar}>
+          <div className={styles.views} role="group" aria-label={text.view}>
+            <button
+              type="button"
+              aria-pressed={view === "list"}
+              onClick={() => setView("list")}
+            >
+              <FontAwesomeIcon icon={faListUl} />
+              {text.list}
+            </button>
+            <button
+              type="button"
+              aria-pressed={view === "map"}
+              onClick={() => setView("map")}
+            >
+              <FontAwesomeIcon icon={faMap} />
+              {text.map}
+            </button>
+          </div>
+          <fieldset className={styles.filters}>
+            <legend className={styles.srOnly}>{text.filters}</legend>
+            {cuisines.length > 1 && (
+              <label className={styles.cuisineSelect}>
+                <span>{text.cuisine}</span>
+                <select
+                  value={cuisine}
+                  onChange={(event) => setCuisine(event.target.value)}
+                >
+                  <option value="all">{text.all}</option>
+                  {cuisines.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label className={styles.filter} data-active={banquet || undefined}>
+              <input
+                type="checkbox"
+                checked={banquet}
+                onChange={(event) => setBanquet(event.target.checked)}
+              />
+              <span className={styles.checkbox} aria-hidden="true">
+                <FontAwesomeIcon icon={faCheck} />
+              </span>
+              <FontAwesomeIcon icon={faUtensils} />
+              <span>{text.banquet}</span>
+            </label>
+            <label
+              className={styles.filter}
+              data-active={delivery || undefined}
+            >
+              <input
+                type="checkbox"
+                checked={delivery}
+                onChange={(event) => setDelivery(event.target.checked)}
+              />
+              <span className={styles.checkbox} aria-hidden="true">
+                <FontAwesomeIcon icon={faCheck} />
+              </span>
+              <FontAwesomeIcon icon={faBagShopping} />
+              <span>{text.delivery}</span>
+            </label>
+          </fieldset>
+        </div>
+        <div className={styles.resultBar}>
+          <p role="status" aria-live="polite">
+            {text.found}: {formatRestaurantCount(branches.length, lang)}
+          </p>
+          {filtered && branches.length > 0 && (
+            <button type="button" onClick={reset}>
+              <FontAwesomeIcon icon={faRotateLeft} />
+              {text.reset}
+            </button>
+          )}
+        </div>
+      </header>
+
+      {!branches.length ? (
+        <section className={styles.empty}>
+          <h2>{text.empty}</h2>
+          {filtered && (
+            <button type="button" onClick={reset}>
+              {text.reset}
+              <FontAwesomeIcon icon={faRotateLeft} />
+            </button>
+          )}
+        </section>
+      ) : view === "list" ? (
+        <section className={styles.restaurants} aria-label={text.title}>
+          {projects.map((project) =>
+            groupRestaurantProject(project) ? (
+              <RestaurantGroup
+                key={project.id}
+                project={project}
+                lang={lang}
+                onMap={showMap}
+                reverse={groupedIds.indexOf(project.id) % 2 === 1}
+              />
+            ) : (
+              project.branches.map((branch) => (
+                <RestaurantCard
+                  key={branch.id}
+                  branch={branch}
+                  lang={lang}
+                  onMap={showMap}
+                  single={branches.length === 1}
+                />
+              ))
+            ),
+          )}
+        </section>
+      ) : (
+        <section className={styles.mapLayout} aria-label={text.map}>
+          <div className={styles.mapCanvas}>
+            <RestaurantsMap
+              branches={branches}
+              activeBranchId={selected?.id}
+              lang={lang}
+              onSelectBranch={setSelectedId}
+            />
+          </div>
+          <aside className={styles.mapList}>
+            <ul>
+              {branches.map((branch) => (
+                <li key={branch.id} data-restaurant-id={branch.id}>
+                  <button
+                    type="button"
+                    className={styles.mapChoice}
+                    aria-pressed={branch.id === selected?.id}
+                    onClick={() => setSelectedId(branch.id)}
+                  >
+                    <span>{pickLocalized(branch.branchName, lang)}</span>
+                    <span>{pickLocalized(branch.address, lang)}</span>
+                  </button>
+                  {branch.id === selected?.id && (
+                    <BranchFacts branch={branch} lang={lang} />
+                  )}
+                </li>
+              ))}
+            </ul>
+          </aside>
+        </section>
+      )}
+    </main>
   );
 }

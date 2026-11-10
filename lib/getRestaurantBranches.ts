@@ -13,6 +13,7 @@ type RestaurantBranchRaw = {
   projectName?: LocalizedOptional;
   projectLogo?: unknown;
   projectDescription?: LocalizedOptional;
+  projectPrimaryInfo?: LocalizedOptional;
   cardImage?: unknown;
   gallery?: unknown[];
   address?: LocalizedOptional;
@@ -40,6 +41,7 @@ export type RestaurantBranchItem = {
   projectName: LocalizedOptional;
   projectLogo?: string;
   projectDescription?: LocalizedOptional;
+  projectPrimaryInfo?: LocalizedOptional;
   cardImage?: string;
   gallery: string[];
   address?: LocalizedOptional;
@@ -90,6 +92,7 @@ const restaurantBranchesQuery = `
     "projectName": project->name,
     "projectLogo": project->logo,
     "projectDescription": project->description,
+    "projectPrimaryInfo": project->detailPrimaryInfo,
     cardImage,
     gallery,
     address,
@@ -169,6 +172,7 @@ export async function getRestaurantBranchesData(): Promise<RestaurantsDirectoryD
         projectName: item.projectName,
         projectLogo: item.projectLogo ? urlFor(item.projectLogo as ImageSource).url() : undefined,
         projectDescription: item.projectDescription,
+        projectPrimaryInfo: item.projectPrimaryInfo,
         cardImage: item.cardImage ? urlFor(item.cardImage as ImageSource).url() : undefined,
         gallery: Array.isArray(item.gallery)
           ? item.gallery
