@@ -23,6 +23,17 @@ const dish = (id, categoryId = 'grill', overrides = {}) => ({ id, title: localiz
 const linkStub = { __esModule: true, default: ({ children, href, ...props }) => React.createElement('a', { href, ...props }, children) };
 const sliderButton = load('../components/SliderButton.tsx', { 'next/link': linkStub }).default;
 
+test('homepage dish names use the branded uppercase serif and desktop spacing separates the banner', () => {
+  const css = require('postcss').parse(readFileSync(new URL('../components/HomeMenuSection.module.css', import.meta.url), 'utf8'));
+  const declarations = selector => Object.fromEntries(css.nodes.find(node => node.type === 'rule' && node.selector === selector).nodes.filter(node => node.type === 'decl').map(node => [node.prop, node.value]));
+  const title = declarations('.dishHeading h3');
+  assert.equal(title['font-family'], 'var(--font-roboto-serif), serif');
+  assert.equal(title['text-transform'], 'uppercase');
+  assert.equal(title['letter-spacing'], '0');
+  assert.equal(declarations('.section')['padding-top'], '96px');
+  assert.equal(declarations('.description')['text-transform'], undefined);
+});
+
 test('new iiko credentials use v2 and the existing API key', () => {
   assert.deepEqual(auth.getIikoAuthRequest({ IIKO_API_LOGIN: 'legacy-key', IIKO_APP_ID: 'app', IIKO_CLIENT_SECRET: 'secret' }), {
     endpoint: '/api/v2/access_token', body: { appId: 'app', clientSecret: 'secret', apiKey: 'legacy-key' },
