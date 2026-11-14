@@ -15,6 +15,8 @@ type Slide = {
   buttonText: Localized;
   showButton: boolean;
   image: string;
+  imagePosition?: string;
+  imageOverlay?: string;
   buttonMode: "none" | "custom" | "event";
   buttonUrl?: string;
   eventSlug?: string;
@@ -141,11 +143,17 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
                 src={slide.image}
                 alt={pickLocalized(slide.title, lang)}
                 fill
-                className="object-cover object-center brightness-[0.6]"
+                className={slide.imagePosition
+                  ? "object-cover brightness-[0.85]"
+                  : "object-cover object-center brightness-[0.6]"}
+                style={slide.imagePosition ? { objectPosition: slide.imagePosition } : undefined}
                 priority={index === 0}
               />
               {/* Градиент теперь ВНУТРИ, чтобы не было "отслойки" при движении */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-[#0D0D0D]/95 z-10" />
+              <div
+                className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-[#0D0D0D]/95 z-10"
+                style={slide.imageOverlay ? { backgroundImage: slide.imageOverlay } : undefined}
+              />
             </div>
           </div>
         ))}

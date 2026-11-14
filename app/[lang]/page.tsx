@@ -80,7 +80,7 @@ export default async function Home({
         <p>{seo.lead}</p>
       </section>
 
-      <HeroSlider />
+      <HeroSlider lang={langCode} />
 
       <HomeMenuSection dishes={selectHomeDishes(menu?.dishes || [])} />
       
