@@ -103,7 +103,7 @@ test('sitemap includes existing menu translations and excludes duplicate or empt
   assert.deepEqual(entries.find(entry => entry.url.endsWith('/ru/restaurants/gosht-mirabad/menu')).alternates.languages, { ru: 'https://gosht.uz/ru/restaurants/gosht-mirabad/menu' });
 });
 
-test('menu metadata uses restaurant copy and only real PDF language alternates', async () => {
+test('shared Gōsht catalogue is available in every language and PDF-only menus retain their language coverage', async () => {
   const localized = value => ({ ru: value, uz: value, en: value });
   const restaurant = {
     city: 'tashkent',
@@ -124,14 +124,14 @@ test('menu metadata uses restaurant copy and only real PDF language alternates',
   const result = await menuPage.generateMetadata({ params: Promise.resolve({ lang: 'ru', slug: 'gosht-mirabad' }) });
   assert.match(result.title, /меню ресторана/);
   assert.doesNotMatch(result.description, /демонстрацион|корзин/);
-  assert.deepEqual(result.alternates.languages, { ru: 'https://gosht.uz/ru/restaurants/gosht-mirabad/menu' });
+  assert.deepEqual(Object.keys(result.alternates.languages), ['uz', 'ru', 'en']);
   assert.equal(result.robots.index, true);
-  const unavailableTranslation = await menuPage.generateMetadata({ params: Promise.resolve({ lang: 'en', slug: 'gosht-mirabad' }) });
+  const unavailableTranslation = await menuPage.generateMetadata({ params: Promise.resolve({ lang: 'en', slug: 'only-pdf' }) });
   assert.equal(unavailableTranslation.robots.index, false);
-  assert.deepEqual(unavailableTranslation.alternates.languages, { ru: 'https://gosht.uz/ru/restaurants/gosht-mirabad/menu' });
+  assert.deepEqual(unavailableTranslation.alternates.languages, { ru: 'https://gosht.uz/ru/restaurants/only-pdf/menu' });
   restaurant.branchName = localized('GŌSHT West');
   const westResult = await menuPage.generateMetadata({ params: Promise.resolve({ lang: 'en', slug: 'gosht-west' }) });
-  assert.match(westResult.title, /delivery menu/);
+  assert.match(westResult.title, /restaurant menu/);
   assert.equal(westResult.robots.index, true);
   assert.deepEqual(Object.keys(westResult.alternates.languages), ['uz', 'ru', 'en']);
 });
@@ -159,6 +159,6 @@ test('sitemap and the actual menu predicate agree for branch and legacy West rec
     const sitemap = load('../app/sitemap.ts', { '@/lib/sanity': { client }, '@/lib/seo/site': site, '@/lib/restaurantMenu': restaurantMenu, '@/types/i18n': i18n }).default;
     const menuEntries = (await sitemap()).filter(entry => entry.url.endsWith('/gosht-west/menu'));
     assert.equal(menuEntries.length, expected ? 3 : 0, JSON.stringify(record));
-    assert.equal(restaurantMenu.hasGoshtDeliveryMenu({ slug: venue.slug, source: venue._type === 'restaurantBranch' ? 'branch' : 'legacy', city: venue.city, projectType: venue.projectType, names: [i18n.pickLocalized(venue.name, 'ru')] }), expected);
+    assert.equal(restaurantMenu.hasGoshtSharedMenu({ slug: venue.slug, source: venue._type === 'restaurantBranch' ? 'branch' : 'legacy', city: venue.city, projectType: venue.projectType, names: [i18n.pickLocalized(venue.name, 'ru')] }), expected);
   }
 });

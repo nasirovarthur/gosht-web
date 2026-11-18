@@ -3,7 +3,7 @@ import { client } from '@/lib/sanity'
 import { SUPPORTED_LANGS, getCanonicalUrl, getLanguageAlternates } from '@/lib/seo/site'
 import { pickLocalized } from '@/types/i18n'
 import type { LangCode, LocalizedOptional } from '@/types/i18n'
-import { hasGoshtDeliveryMenu } from '@/lib/restaurantMenu'
+import { hasGoshtSharedMenu } from '@/lib/restaurantMenu'
 
 type SlugRecord = {
   slug?: string
@@ -73,7 +73,7 @@ async function getEventRecords(): Promise<SlugRecord[]> {
 
 function getMenuLanguages(record: RestaurantRecord, slug: string): LangCode[] {
   return SUPPORTED_LANGS.filter(lang =>
-    hasGoshtDeliveryMenu({
+    hasGoshtSharedMenu({
       slug,
       source: record._type === 'restaurantBranch' ? 'branch' : 'legacy',
       city: record.city,

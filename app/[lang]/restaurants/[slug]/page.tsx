@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import RestaurantDetail from "@/components/RestaurantDetail";
-import { hasGoshtDeliveryMenu } from "@/lib/restaurantMenu";
+import { hasGoshtSharedMenu } from "@/lib/restaurantMenu";
 import SeoJsonLd from "@/components/SeoJsonLd";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { getBreadcrumbSchema, getVenueSchema } from "@/lib/seo/schema";
@@ -22,6 +22,7 @@ type BranchRestaurantRaw = {
   menu?: string;
   gallery?: string[];
   kidsGallery?: string[];
+  kidsMenuUrl?: string;
   map?: {
     coordinates?: string;
     latitude?: number;
@@ -60,6 +61,7 @@ type LegacyRestaurantRaw = {
   menu?: string;
   gallery?: string[];
   kidsGallery?: string[];
+  kidsMenuUrl?: string;
   map?: {
     coordinates?: string;
     latitude?: number;
@@ -145,6 +147,7 @@ async function getBranchRestaurantBySlug(slug: string, language: LangCode): Prom
       "menu": menuFile.asset->url,
       "gallery": gallery[].asset->url,
       "kidsGallery": kidsGallery[].asset->url,
+      "kidsMenuUrl": *[_type == "companyProject" && slug.current == "gosht-kids-01" && isActive != false][0].kidsMenu.asset->url,
       map {
         coordinates,
         latitude,
@@ -190,6 +193,7 @@ async function getLegacyRestaurantBySlug(slug: string, language: LangCode): Prom
       "menu": menuFile.asset->url,
       "gallery": gallery[].asset->url,
       "kidsGallery": kidsGallery[].asset->url,
+      "kidsMenuUrl": *[_type == "companyProject" && slug.current == "gosht-kids-01" && isActive != false][0].kidsMenu.asset->url,
       map {
         coordinates,
         latitude,
@@ -439,11 +443,12 @@ export default async function RestaurantPage({
             menuFiles,
             gallery: branchRestaurant.gallery || [],
             kidsGallery: branchRestaurant.kidsGallery || [],
+            kidsMenuUrl: branchRestaurant.kidsMenuUrl,
             mapLink,
             mapEmbedUrl,
             directionsLink,
             mapCoordinates,
-            deliveryMenuEnabled: hasGoshtDeliveryMenu({
+            deliveryMenuEnabled: hasGoshtSharedMenu({
               slug,
               source: "branch",
               city: branchRestaurant.city,
@@ -523,11 +528,12 @@ export default async function RestaurantPage({
           menuFiles,
           gallery: legacyRestaurant.gallery || [],
           kidsGallery: legacyRestaurant.kidsGallery || [],
+          kidsMenuUrl: legacyRestaurant.kidsMenuUrl,
           mapLink,
           mapEmbedUrl,
           directionsLink,
           mapCoordinates,
-          deliveryMenuEnabled: hasGoshtDeliveryMenu({
+          deliveryMenuEnabled: hasGoshtSharedMenu({
             slug,
             source: "legacy",
             names: [projectName, branchName],

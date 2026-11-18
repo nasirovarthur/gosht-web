@@ -1,6 +1,7 @@
 const EXCLUDED_GOSHT_MARKERS = ['mahalla', 'doner', 'blackstar', 'topor', 'catering', 'kids', 'lavka'];
+const GOSHT_MENU_BRANCHES = new Set(['gosht-west', 'gosht-mirabad', 'gosht-boulevard', 'gosht-muqimiy']);
 
-type DeliveryMenuVenue = {
+type SharedMenuVenue = {
   slug: string;
   source: 'branch' | 'legacy';
   city?: string;
@@ -8,12 +9,15 @@ type DeliveryMenuVenue = {
   names: string[];
 };
 
-export function hasGoshtDeliveryMenu({ slug, source, city, projectType, names }: DeliveryMenuVenue): boolean {
-  const normalizedSlug = slug.replace(/^\/+|\/+$/g, '');
+export function isGoshtMenuBranch(slug?: string): boolean {
+  return GOSHT_MENU_BRANCHES.has(slug?.replace(/^\/+|\/+$/g, '') || '');
+}
+
+export function hasGoshtSharedMenu({ slug, source, city, projectType, names }: SharedMenuVenue): boolean {
   const normalizedNames = names.join(' ').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
   const isEligibleVenue = source === 'legacy' || (city === 'tashkent' && projectType !== 'barbershop');
 
-  return normalizedSlug === 'gosht-west'
+  return isGoshtMenuBranch(slug)
     && isEligibleVenue
     && normalizedNames.includes('gosht')
     && !EXCLUDED_GOSHT_MARKERS.some(marker => normalizedNames.includes(marker));

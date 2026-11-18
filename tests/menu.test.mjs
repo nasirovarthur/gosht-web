@@ -261,5 +261,12 @@ test('regular PDF menus use restaurant labels and remain available without deliv
     assert.ok(delivery.includes(text.terms));
     assert.match(delivery, /role="status"/);
     assert.match(delivery, /id="menu-contact"/);
+
+    const shared = renderMenu([dish('one')], { ...props, requireApiDishes: true, sharedCatalogue: true, initialDishId: 'one' }, lang);
+    assert.match(shared, /<h1[^>]*><span class="block">GŌSHT<\/span><\/h1>/);
+    assert.match(shared, /<article/);
+    assert.match(shared, /aria-label="Test one"/);
+    assert.doesNotMatch(shared, /id="menu-contact"|КОРЗИНА|CHECKOUT LATER|BUYURTMA KEYIN/);
+    assert.ok(shared.includes(restaurant.menuFiles[0]));
   }
 });

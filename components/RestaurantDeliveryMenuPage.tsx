@@ -243,6 +243,7 @@ type RestaurantDeliveryMenuProps = {
   dishes?: DeliveryMenuDish[];
   currencyCode?: string;
   requireApiDishes?: boolean;
+  sharedCatalogue?: boolean;
   initialGroupId?: string;
   initialDishId?: string;
 };
@@ -256,6 +257,7 @@ export default function RestaurantDeliveryMenuPage({
   dishes,
   currencyCode = 'UZS',
   requireApiDishes = false,
+  sharedCatalogue = false,
   initialGroupId,
   initialDishId,
 }: RestaurantDeliveryMenuProps) {
@@ -267,7 +269,7 @@ export default function RestaurantDeliveryMenuPage({
   }, [pathname, lang]);
   const t = translations.restaurantDetail;
   const hasApiDishes = Array.isArray(dishes) && dishes.length > 0;
-  const showOrderPanel = requireApiDishes || hasApiDishes;
+  const showOrderPanel = !sharedCatalogue && (requireApiDishes || hasApiDishes);
   const menuDishes = useMemo(
     () => (hasApiDishes ? dishes : []),
     [dishes, hasApiDishes]
@@ -528,10 +530,10 @@ export default function RestaurantDeliveryMenuPage({
 
   const menuFiles = Array.isArray(restaurant.menuFiles) ? restaurant.menuFiles.filter(Boolean) : [];
   const fullMenuUrl = menuFiles[0];
-  const hasRegularPdfMenu = !showOrderPanel && Boolean(fullMenuUrl);
+  const hasRegularPdfMenu = !hasApiDishes && !showOrderPanel && Boolean(fullMenuUrl);
   const hasPhone = Boolean(restaurant.phone);
   const closeInfoLabel = lang === 'ru' ? 'Закрыть' : lang === 'en' ? 'Close' : 'Yopish';
-  const heroTitle = restaurant.branchName.replace(/\bGOSHT\b/i, 'GŌSHT');
+  const heroTitle = sharedCatalogue ? 'GŌSHT' : restaurant.branchName.replace(/\bGOSHT\b/i, 'GŌSHT');
   const [heroBrand, ...heroLocationParts] = heroTitle.trim().split(/\s+/);
   const heroLocation = heroLocationParts.join(' ');
   const openDishLabel = lang === 'ru' ? 'Открыть блюдо' : lang === 'en' ? 'Open dish' : 'Taomni ochish';
@@ -1019,18 +1021,21 @@ export default function RestaurantDeliveryMenuPage({
               <div className="border-t border-subtle px-5 py-5 md:px-7">
                 <div className="mb-4 flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-muted">{cartLabels.title}</p>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-muted">
+                      {showOrderPanel ? cartLabels.title : lang === 'ru' ? 'Цена' : lang === 'en' ? 'Price' : 'Narx'}
+                    </p>
                     <p className="mt-1 text-[24px] font-light text-primary">
                       {formatDishPrice(selectedDish.price, lang, currencyCode)}
                     </p>
                   </div>
                 </div>
 
-                {renderAddControl(
-                  selectedDish,
-                  'inline-flex h-[52px] w-full items-center justify-center rounded-full border border-subtle px-6 transition-all'
+                {showOrderPanel && (
+                  <>
+                    {renderAddControl(selectedDish, 'inline-flex h-[52px] w-full items-center justify-center rounded-full border border-subtle px-6 transition-all')}
+                    <p className="mt-3 text-[11px] leading-snug text-muted">{cartLabels.hint}</p>
+                  </>
                 )}
-                <p className="mt-3 text-[11px] leading-snug text-muted">{cartLabels.hint}</p>
               </div>
             </div>
           </div>

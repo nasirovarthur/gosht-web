@@ -66,6 +66,13 @@ export const companyProject = defineType({
     localizedStringField('descriptionTitle', 'Заголовок описания'),
     localizedTextField('description', 'Описание', 6),
     defineField({
+      name: 'kidsMenu',
+      title: 'Детское меню (PDF)',
+      type: 'file',
+      options: { accept: 'application/pdf' },
+      hidden: ({ document }) => (document?.slug as { current?: string } | undefined)?.current !== 'gosht-kids-01',
+    }),
+    defineField({
       name: 'gallery',
       title: 'Галерея',
       type: 'array',

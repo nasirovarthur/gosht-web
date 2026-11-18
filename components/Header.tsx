@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import FeedbackDrawer from "@/components/FeedbackDrawer";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
+import { isGoshtMenuBranch } from "@/lib/restaurantMenu";
 import { useLanguage } from "@/context/LanguageContext";
 import { pickLocalized, translations } from "@/types/i18n";
 import type { FeedbackSettingsData } from "@/types/feedback";
@@ -47,17 +48,19 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
 
   const menuButtonText = translations.header.menu;
   const closeButtonText = translations.header.close;
-  const deliveryButtonText = translations.header.delivery;
-  const deliveryMenuHref = `/${lang}/restaurants/gosht-west/menu`;
+  const restaurantMenuText = translations.header.restaurantMenu;
+  const currentBranch = pathname.match(/^\/(?:uz|ru|en)\/restaurants\/([^/]+)/)?.[1];
+  const menuBranch = isGoshtMenuBranch(currentBranch) ? currentBranch : "gosht-west";
+  const restaurantMenuPath = `/restaurants/${menuBranch}/menu`;
   const feedbackButtonText =
     pickLocalized(feedbackSettings.title, lang) ||
     pickLocalized(translations.footer.feedback, lang);
   const isAnyDrawerOpen = isOpen || isFeedbackOpen;
   const headerNavItems: NavItem[] = [
     {
-      _key: 'gosht-west-delivery-menu',
-      label: deliveryButtonText,
-      href: '/restaurants/gosht-west/menu',
+      _key: 'gosht-restaurant-menu',
+      label: restaurantMenuText,
+      href: restaurantMenuPath,
       showInHeader: true,
       showInFooter: false,
     },
@@ -147,9 +150,9 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
           {/* Language Selector (Desktop) */}
           <div className="hidden md:flex items-center justify-end min-w-[140px] gap-3">
             <Link
-              href={deliveryMenuHref}
+              href={`/${lang}${restaurantMenuPath}`}
               className="group hidden h-[60px] items-center gap-3 rounded-full border border-white/10 px-6 transition-colors hover:bg-white/5 xl:flex"
-              aria-label={pickLocalized(deliveryButtonText, lang)}
+              aria-label={pickLocalized(restaurantMenuText, lang)}
             >
               <svg className="h-[20px] w-[20px] text-white/65 transition-colors group-hover:text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M5 13.5H19L17.8 20H6.2L5 13.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -157,7 +160,7 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
                 <path d="M4 13.5H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
               <span className="text-ui font-light text-white/90">
-                {pickLocalized(deliveryButtonText, lang)}
+                {pickLocalized(restaurantMenuText, lang)}
               </span>
             </Link>
 

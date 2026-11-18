@@ -51,10 +51,10 @@ export const translations = {
   header: {
     menu: { uz: "MENU", ru: "МЕНЮ", en: "MENU" } as Localized,
     close: { uz: "YOPISH", ru: "ЗАКРЫТЬ", en: "CLOSE" } as Localized,
-    delivery: {
-      uz: "WEST’DAN YETKAZIB BERISH",
-      ru: "ДОСТАВКА ИЗ WEST",
-      en: "DELIVERY FROM WEST",
+    restaurantMenu: {
+      uz: "GŌSHT MENYUSI",
+      ru: "МЕНЮ GŌSHT",
+      en: "GŌSHT MENU",
     } as Localized,
   },
 
@@ -97,6 +97,7 @@ export const translations = {
     links: { uz: "HAVOLALAR", ru: "ССЫЛКИ", en: "LINKS" } as Localized,
     workingHours: { uz: "Ish vaqti", ru: "Режим работы", en: "Working hours" } as Localized,
     menu: { uz: "Restoran menyusi", ru: "Меню ресторана", en: "Restaurant menu" } as Localized,
+    printedMenu: { uz: "Bosma menyu", ru: "Печатное меню", en: "Printed menu" } as Localized,
     openFullMenu: { uz: "To‘liq menyu", ru: "Полное меню", en: "Full menu" } as Localized,
     deliveryMenu: { uz: "Yetkazib berish menyusi", ru: "Меню доставки", en: "Delivery menu" } as Localized,
     actions: { uz: "Restoran amallari", ru: "Действия ресторана", en: "Restaurant actions" } as Localized,

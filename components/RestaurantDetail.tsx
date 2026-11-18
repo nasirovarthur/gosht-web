@@ -13,6 +13,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { pickLocalized, translations } from '@/types/i18n';
 import GoshtBranchDetail from './GoshtBranchDetail';
 import { getRestaurantAnalyticsId } from '@/lib/analytics/restaurant-actions';
+import { isGoshtMenuBranch } from '@/lib/restaurantMenu';
 
 export interface RestaurantDetailProps {
   restaurant: {
@@ -32,6 +33,7 @@ export interface RestaurantDetailProps {
     menuFiles: string[];
     gallery: string[];
     kidsGallery?: string[];
+    kidsMenuUrl?: string;
     mapLink: string;
     directionsLink?: string;
     mapCoordinates?: [number, number];
@@ -72,7 +74,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
   const { lang } = useLanguage();
   const scrollContainerRef = useHorizontalScroll(true);
   const t = translations.restaurantDetail;
-  const isMainBranch = mainGoshtSlugs.has(restaurant.slug || '');
+  const isMainBranch = isGoshtMenuBranch(restaurant.slug);
   const restaurantId = getRestaurantAnalyticsId(restaurant.slug);
   const analytics = isMainBranch ? { 'data-restaurant-id': restaurantId, 'data-cta-location': 'branch_page' } : {};
 
@@ -109,8 +111,8 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
   const hasGallery = Array.isArray(restaurant.gallery) && restaurant.gallery.length > 0;
   const menuFiles = Array.isArray(restaurant.menuFiles) ? restaurant.menuFiles.filter(Boolean) : [];
   const hasMenuLink = menuFiles.length > 0;
-  const deliveryMenuHref =
-    restaurant.deliveryMenuEnabled && restaurant.slug
+  const menuPageHref =
+    (isMainBranch || restaurant.deliveryMenuEnabled) && restaurant.slug
       ? `/${lang}/restaurants/${restaurant.slug}/menu`
       : null;
   const primaryInfoLabel =
@@ -178,6 +180,13 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                             {restaurant.phone}
                           </a>
                         ) : null}
+                        {isMainBranch && (
+                          <a href={restaurant.directionsLink || restaurant.mapLink} target="_blank" rel="noopener noreferrer" data-analytics-event="get_directions" {...analytics}
+                            className="mt-4 flex min-h-11 w-fit items-center gap-2 rounded-full border border-white/20 px-3 text-sm text-white transition-colors hover:bg-white/5">
+                            <FontAwesomeIcon icon={faLocationArrow} className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            {lang === 'ru' ? 'Построить маршрут' : lang === 'en' ? 'Get directions' : 'Yo‘nalish olish'}
+                          </a>
+                        )}
                       </div>
                     </div>
 
@@ -202,7 +211,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                                 className="inline-block border-b border-white/20 pb-1 text-body font-light text-white transition-colors hover:border-white/40 hover:text-white/75"
                               >
                                 {menuFiles.length === 1
-                                  ? pickLocalized(t.menu, lang)
+                                  ? pickLocalized(isMainBranch ? t.printedMenu : t.menu, lang)
                                   : lang === 'ru'
                                     ? `Меню ${menuIndex + 1}`
                                     : lang === 'en'
@@ -214,21 +223,6 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                       </div>
                     </div>
                   </div>
-                  {isMainBranch && (
-                    <div className="mt-7 flex flex-wrap gap-3">
-                      <a href={`tel:${restaurant.phone}`} data-analytics-event="click_to_call" {...analytics} className="inline-flex min-h-11 items-center gap-3 rounded-full border border-white/20 px-5 text-sm text-white transition-colors hover:bg-white/5">
-                        <FontAwesomeIcon icon={faPhone} className="h-4 w-4" aria-hidden="true" />
-                        {lang === 'ru' ? 'Позвонить' : lang === 'en' ? 'Call the restaurant' : 'Qo‘ng‘iroq qilish'}
-                      </a>
-                      <a href={restaurant.directionsLink || restaurant.mapLink} target="_blank" rel="noopener noreferrer" data-analytics-event="get_directions" {...analytics} className="inline-flex min-h-11 items-center gap-3 rounded-full border border-white/20 px-5 text-sm text-white transition-colors hover:bg-white/5">
-                        <FontAwesomeIcon icon={faLocationArrow} className="h-4 w-4" aria-hidden="true" />
-                        {lang === 'ru' ? 'Построить маршрут' : lang === 'en' ? 'Get directions' : 'Yo‘nalish olish'}
-                      </a>
-                      {deliveryMenuHref && <Link href={deliveryMenuHref} data-analytics-event="view_menu" data-menu-format="page" {...analytics} className="inline-flex min-h-11 items-center border-b border-white/20 text-sm text-white">
-                        {lang === 'ru' ? 'Доставка из GŌSHT West' : lang === 'en' ? 'Delivery from GŌSHT West' : 'GŌSHT West’dan yetkazib berish'}
-                      </Link>}
-                    </div>
-                  )}
                 </div>
 
                 <div>
@@ -378,14 +372,14 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
               <FontAwesomeIcon icon={faPhone} aria-hidden="true" className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
               <span>{lang === 'ru' ? 'Позвонить' : lang === 'en' ? 'Call the restaurant' : 'Qo‘ng‘iroq qilish'}</span>
             </a>
-            {hasMenuLink && <a href={menuFiles[0]} target="_blank" rel="noopener noreferrer" data-analytics-event="view_menu" data-menu-format="pdf" data-restaurant-id={restaurantId} data-cta-location="branch_actions" className="inline-flex h-11 w-full items-center justify-center gap-3 rounded-full border border-white/20 bg-base px-5 text-sm font-light uppercase text-white transition-colors hover:bg-white/5 sm:w-auto md:h-[60px] md:px-7 md:text-base">
+            {menuPageHref && <Link href={menuPageHref} data-analytics-event="view_menu" data-menu-format="page" data-restaurant-id={restaurantId} data-cta-location="branch_actions" className="inline-flex h-11 w-full items-center justify-center gap-3 rounded-full border border-white/20 bg-base px-5 text-sm font-light uppercase text-white transition-colors hover:bg-white/5 sm:w-auto md:h-[60px] md:px-7 md:text-base">
               <FontAwesomeIcon icon={faUtensils} aria-hidden="true" className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
               <span>{pickLocalized(t.menu, lang)}</span>
-            </a>}
+            </Link>}
           </div>
         </div>
       ) : null}
-      {deliveryMenuHref && !isMainBranch ? (
+      {menuPageHref && !isMainBranch ? (
         <div
           role="group"
           aria-label={pickLocalized(t.actions, lang)}
@@ -394,7 +388,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
         >
           <div className="pointer-events-auto flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <Link
-              href={deliveryMenuHref}
+              href={menuPageHref}
               className="inline-flex h-11 w-full items-center justify-center gap-3 rounded-full border border-white/20 bg-base px-5 text-sm font-light uppercase tracking-normal text-white transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto sm:justify-start md:h-[60px] md:gap-4 md:px-7 md:text-base"
             >
               <FontAwesomeIcon icon={faBasketShopping} aria-hidden="true" className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
@@ -406,5 +400,3 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
     </main>
   );
 }
-
-const mainGoshtSlugs = new Set(['gosht-mirabad', 'gosht-west', 'gosht-boulevard', 'gosht-muqimiy']);

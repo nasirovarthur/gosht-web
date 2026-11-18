@@ -150,13 +150,13 @@ const detailImports = {
 };
 const GoshtBranchDetail = load('../components/GoshtBranchDetail.tsx', {
   ...detailImports,
-  './GoshtBranchDetail.module.css': { default: {} },
   '@/lib/analytics/restaurant-actions': load('../lib/analytics/restaurant-actions.ts'),
 }).default;
 const Detail = load('../components/RestaurantDetail.tsx', {
   ...detailImports,
   './GoshtBranchDetail': { default: GoshtBranchDetail },
   '@/lib/analytics/restaurant-actions': load('../lib/analytics/restaurant-actions.ts'),
+  '@/lib/restaurantMenu': load('../lib/restaurantMenu.ts'),
 }).default;
 const westDetail = {
   name: 'Gōsht', slug: 'gosht-west', branchName: 'GŌSHT WEST', address: 'Existing address',
@@ -164,7 +164,7 @@ const westDetail = {
   description: 'Existing description', menuFiles: [], gallery: [], mapLink: 'https://yandex.uz/maps', deliveryMenuEnabled: true,
 };
 
-test('West keeps its separate delivery link and a mobile call action in every language', () => {
+test('West opens the shared online menu and keeps a call action in every language', () => {
   for (const lang of ['ru', 'uz', 'en']) {
     detailLang = lang;
     const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: westDetail }));
@@ -173,6 +173,7 @@ test('West keeps its separate delivery link and a mobile call action in every la
     assert.ok(html.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
     assert.ok(actions.includes('href="tel:+998995168800"'));
     assert.ok(actions.includes('data-analytics-event="click_to_call"'));
+    assert.ok(actions.includes('data-menu-format="page"'));
     assert.ok(!actions.includes('data-menu-format="pdf"'));
     assert.ok(!actions.includes('<button'));
   }
@@ -190,21 +191,22 @@ test('main branches without delivery expose their own restaurant PDF and mobile 
   assert.ok(html.includes('href="/ru/restaurants/gosht-muqimiy/menu"'));
   assert.match(html, /href="\/ru\/restaurants\/gosht-muqimiy\/menu"[^>]*data-menu-format="page"/);
 });
-test('West distinguishes its own PDF from its one delivery link in every locale', () => {
+test('every Gōsht branch opens the shared catalogue from its own page and lists the printed PDF once', () => {
   for (const lang of ['ru', 'uz', 'en']) {
     detailLang = lang;
-    const pdf = `https://cdn.sanity.io/west-${lang}.pdf`;
-    const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, menuFiles: [pdf] } }));
-    const actions = html.split('data-testid="restaurant-actions"')[1];
-    assert.ok(actions.includes(`href="${pdf}"`));
-    assert.ok(actions.includes('data-menu-format="pdf"'));
-    assert.ok(actions.includes('data-restaurant-id="west"'));
-    assert.ok(html.includes(`href="${pdf}" target="_blank" rel="noopener noreferrer"`));
-    assert.equal(html.split(`href="${pdf}"`).length - 1, 3, 'hero, family section and mobile actions use the selected PDF');
-    assert.ok(!actions.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
-    assert.equal(html.split(`href="/${lang}/restaurants/gosht-west/menu"`).length - 1, 1);
-    assert.equal(actions.match(/<a\b/g)?.length, 2);
-    assert.ok(!actions.includes('<button'));
+    for (const branch of ['west', 'mirabad', 'boulevard', 'muqimiy']) {
+      const slug = `gosht-${branch}`;
+      const pdf = `https://cdn.sanity.io/${branch}-${lang}.pdf`;
+      const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, slug, menuFiles: [pdf] } }));
+      const actions = html.split('data-testid="restaurant-actions"')[1];
+      assert.ok(actions.includes(`href="/${lang}/restaurants/${slug}/menu"`));
+      assert.ok(actions.includes('data-menu-format="page"'));
+      assert.ok(actions.includes(`data-restaurant-id="${branch}"`));
+      assert.ok(html.includes(`href="${pdf}" target="_blank" rel="noopener noreferrer"`));
+      assert.equal(html.split(`href="${pdf}"`).length - 1, 1);
+      assert.ok(!actions.includes(`href="${pdf}"`));
+      assert.ok(html.includes(`href="/${lang}/projects?project=gosht-kids-01#project-description"`));
+    }
   }
 });
 test('other branches without any menu retain their existing page without empty controls', () => {

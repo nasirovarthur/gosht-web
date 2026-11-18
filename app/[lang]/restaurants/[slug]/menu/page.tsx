@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import RestaurantDeliveryMenuPage from "@/components/RestaurantDeliveryMenuPage";
 import { getGoshtDeliveryMenu } from "@/lib/getGoshtDeliveryMenu";
-import { hasGoshtDeliveryMenu } from "@/lib/restaurantMenu";
+import { hasGoshtSharedMenu } from "@/lib/restaurantMenu";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { resolveLang, SUPPORTED_LANGS } from "@/lib/seo/site";
 import { client } from "@/lib/sanity";
@@ -120,17 +120,15 @@ function getMenuMetadata({
   slug,
   branchName,
   restaurant,
-  isDeliveryMenu,
+  isSharedMenu,
 }: {
   language: LangCode;
   slug: string;
   branchName: string;
   restaurant: BranchMenuRaw | LegacyMenuRaw;
-  isDeliveryMenu: boolean;
+  isSharedMenu: boolean;
 }): Metadata {
-  const menuTitle = isDeliveryMenu
-    ? { ru: "меню доставки", uz: "yetkazib berish menyusi", en: "delivery menu" }
-    : { ru: "меню ресторана", uz: "restoran menyusi", en: "restaurant menu" };
+  const menuTitle = { ru: "меню ресторана", uz: "restoran menyusi", en: "restaurant menu" };
   const description = {
     ru: `${branchName}: ${menuTitle.ru}, блюда и актуальные цены.`,
     uz: `${branchName}: ${menuTitle.uz}, taomlar va amaldagi narxlar.`,
@@ -138,7 +136,7 @@ function getMenuMetadata({
   };
   const defaultMenu = "project" in restaurant ? restaurant.project?.defaultMenu : undefined;
   const hasGeneralMenu = Boolean(restaurant.menu || defaultMenu || restaurant.menuLanguages?.includes(null));
-  const languages = isDeliveryMenu || hasGeneralMenu
+  const languages = isSharedMenu || hasGeneralMenu
     ? SUPPORTED_LANGS
     : SUPPORTED_LANGS.filter(lang => restaurant.menuLanguages?.includes(lang));
 
@@ -171,7 +169,7 @@ export async function generateMetadata({
       slug,
       branchName,
       restaurant: branchRestaurant,
-      isDeliveryMenu: hasGoshtDeliveryMenu({
+      isSharedMenu: hasGoshtSharedMenu({
         slug,
         source: "branch",
         city: branchRestaurant.city,
@@ -190,7 +188,7 @@ export async function generateMetadata({
       slug,
       branchName,
       restaurant: legacyRestaurant,
-      isDeliveryMenu: hasGoshtDeliveryMenu({
+      isSharedMenu: hasGoshtSharedMenu({
         slug,
         source: "legacy",
         names: [projectName, branchName],
@@ -233,7 +231,7 @@ export default async function RestaurantMenuPage({
     const projectName = pickLocalized(branchRestaurant.project?.name, language);
     const branchName = pickLocalized(branchRestaurant.branchName, language) || projectName;
     const address = pickLocalized(branchRestaurant.address, language);
-    const shouldLoadIikoMenu = hasGoshtDeliveryMenu({
+    const shouldLoadIikoMenu = hasGoshtSharedMenu({
       slug,
       source: "branch",
       city: branchRestaurant.city,
@@ -270,6 +268,7 @@ export default async function RestaurantMenuPage({
         dishes={iikoMenu?.dishes}
         currencyCode={iikoMenu?.currencyCode}
         requireApiDishes={shouldLoadIikoMenu}
+        sharedCatalogue={shouldLoadIikoMenu}
       />
     );
   }
@@ -282,7 +281,7 @@ export default async function RestaurantMenuPage({
   const projectName = pickLocalized(legacyRestaurant.name, language);
   const branchName = pickLocalized(legacyRestaurant.branchName, language) || projectName;
   const address = pickLocalized(legacyRestaurant.address, language);
-  const shouldLoadIikoMenu = hasGoshtDeliveryMenu({
+  const shouldLoadIikoMenu = hasGoshtSharedMenu({
     slug,
     source: "legacy",
     names: [projectName, branchName],
@@ -313,6 +312,7 @@ export default async function RestaurantMenuPage({
       dishes={iikoMenu?.dishes}
       currencyCode={iikoMenu?.currencyCode}
       requireApiDishes={shouldLoadIikoMenu}
+      sharedCatalogue={shouldLoadIikoMenu}
     />
   );
 }

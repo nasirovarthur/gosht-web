@@ -43,12 +43,14 @@ export async function generateMetadata({
 
 export default async function ProjectsRoute({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ project?: string | string[] }>;
 }) {
-  const { lang } = await params;
+  const [{ lang }, { project }, data] = await Promise.all([params, searchParams, getProjectsPageData()]);
   const langCode = resolveLang(lang) as LangCode;
-  const data = await getProjectsPageData();
+  const selectedIndex = data.projects.findIndex(item => item.slug === project);
 
-  return <ProjectsPage data={data} lang={langCode} />;
+  return <ProjectsPage key={selectedIndex} data={data} lang={langCode} initialIndex={Math.max(0, selectedIndex)} />;
 }

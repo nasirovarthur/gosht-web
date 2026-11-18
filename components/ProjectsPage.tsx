@@ -78,11 +78,13 @@ function ProjectLogo({
 export default function ProjectsPage({
   data,
   lang,
+  initialIndex = 0,
 }: {
   data: ProjectsPageData;
   lang: LangCode;
+  initialIndex?: number;
 }) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [gallerySwiper, setGallerySwiper] = useState<SwiperInstance | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -241,7 +243,7 @@ export default function ProjectsPage({
                   </div>
                 ) : null}
 
-                <section>
+                <section id="project-description" className="scroll-mt-28 md:scroll-mt-32">
                   <div className="grid gap-10 border-b border-white/10 pb-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
                     <div className="min-w-0">
                       <span className="text-[12px] uppercase tracking-[0.2em] text-white/30">
