@@ -34,7 +34,8 @@ export function useHorizontalScroll(enabled: boolean) {
     if (!container || !enabled) return;
 
     const handleWheel = (event: WheelEvent) => {
-      if (window.getComputedStyle(container).overflowX === 'hidden') {
+      const overflowX = window.getComputedStyle(container).overflowX;
+      if (overflowX !== 'auto' && overflowX !== 'scroll') {
         return;
       }
       if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {

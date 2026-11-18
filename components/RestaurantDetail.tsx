@@ -127,7 +127,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
     <main className="min-h-screen bg-base pt-[104px] pb-24 text-white md:pt-[124px] md:pb-28">
       <div
         ref={scrollContainerRef}
-        className="overflow-x-hidden overflow-y-visible lg:overflow-x-auto overscroll-x-contain"
+        className="overflow-x-clip overflow-y-visible lg:overflow-x-auto overscroll-x-contain"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
