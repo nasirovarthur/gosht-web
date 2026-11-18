@@ -429,6 +429,7 @@ export async function POST(request: NextRequest) {
   }
 
   const restaurantId = valueFromFormData(formData, "restaurantId");
+  const submittedRequestId = valueFromFormData(formData, "requestId");
   const restaurantName = valueFromFormData(formData, "restaurantName");
   const name = valueFromFormData(formData, "name");
   const phone = valueFromFormData(formData, "phone");
@@ -439,6 +440,10 @@ export async function POST(request: NextRequest) {
   const turnstileToken = valueFromFormData(formData, "turnstileToken");
   const photosRaw = formData.getAll("photos");
   const fallbackSinglePhoto = formData.get("photo");
+
+  if (submittedRequestId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(submittedRequestId)) {
+    return NextResponse.json({ error: "requestId is invalid" }, { status: 400 });
+  }
 
   if (!restaurantId || !name || !phone || !message || !consent) {
     return NextResponse.json(
@@ -518,7 +523,7 @@ export async function POST(request: NextRequest) {
     size: photo.size,
   }));
 
-  const requestId = randomUUID();
+  const requestId = submittedRequestId || randomUUID();
   const consentAt = new Date().toISOString();
 
   const payload = {
@@ -535,7 +540,7 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    await sendFeedbackToAdminInbox({
+    const receipt = await sendFeedbackToAdminInbox({
       requestId,
       restaurantId,
       restaurantName,
@@ -548,6 +553,9 @@ export async function POST(request: NextRequest) {
       consentAt,
       photos: normalizedPhotos,
     });
+    if (receipt.duplicate) {
+      return NextResponse.json({ ok: true, requestId, duplicate: true, remaining: rateLimit.remaining });
+    }
   } catch (error) {
     const adminError =
       error instanceof Error ? error.message : "Unknown Gosht Admin ingestion error";

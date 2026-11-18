@@ -1,6 +1,7 @@
 import { LanguageProvider } from "@/context/LanguageContext";
 import ClientHeader from "@/components/ClientHeader";
 import Footer from "@/components/Footer";
+import RestaurantAnalytics from "@/components/RestaurantAnalytics";
 import { getNavigation } from "@/lib/getNavigation";
 import { getFooterSettings } from "@/lib/getFooterSettings";
 import { getFeedbackSettings } from "@/lib/getFeedbackSettings";
@@ -25,6 +26,7 @@ export default async function LanguageLayout({
 
   return (
     <LanguageProvider initialLang={langCode}>
+      <RestaurantAnalytics />
       <ClientHeader navItems={navItems} feedbackSettings={feedbackSettings} />
       {children}
       <Footer settings={footerSettings} navItems={navItems} />

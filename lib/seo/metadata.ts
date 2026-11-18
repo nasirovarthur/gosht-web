@@ -17,6 +17,7 @@ type PageMetadataInput = {
   keywords?: string[]
   type?: 'website' | 'article'
   noindex?: boolean
+  languages?: LangCode[]
 }
 
 const DEFAULT_OG_IMAGE = '/og/gosht-group-og.jpg'
@@ -61,10 +62,11 @@ export function createPageMetadata({
   keywords,
   type = 'website',
   noindex = false,
+  languages: availableLanguages,
 }: PageMetadataInput): Metadata {
   const fullTitle = buildMetaTitle(title)
   const canonical = getCanonicalUrl(lang, pathname)
-  const languages = getLanguageAlternates(pathname)
+  const languages = getLanguageAlternates(pathname, availableLanguages)
   const absoluteImage = getAbsoluteUrl(image || DEFAULT_OG_IMAGE)
 
   return {

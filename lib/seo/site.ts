@@ -16,10 +16,7 @@ export function getSiteUrl(): string {
   const candidates = [
     process.env.NEXT_PUBLIC_SITE_URL,
     process.env.SITE_URL,
-    process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : undefined,
-    'https://gosht-web.vercel.app',
+    'https://gosht.uz',
   ]
 
   const siteUrl = candidates.find(Boolean)
@@ -27,7 +24,7 @@ export function getSiteUrl(): string {
 }
 
 export function getLocalizedPath(lang: LangCode, pathname = ''): string {
-  const normalizedPath = pathname.replace(/^\/+|\/+$/g, '')
+  const normalizedPath = pathname.split(/[?#]/)[0].replace(/^\/+|\/+$/g, '')
   return normalizedPath ? `/${lang}/${normalizedPath}` : `/${lang}`
 }
 
@@ -44,12 +41,8 @@ export function getCanonicalUrl(lang: LangCode, pathname = ''): string {
   return getAbsoluteUrl(getLocalizedPath(lang, pathname))
 }
 
-export function getLanguageAlternates(pathname = ''): Record<LangCode, string> {
-  return {
-    uz: getCanonicalUrl('uz', pathname),
-    ru: getCanonicalUrl('ru', pathname),
-    en: getCanonicalUrl('en', pathname),
-  }
+export function getLanguageAlternates(pathname = '', languages: LangCode[] = SUPPORTED_LANGS): Partial<Record<LangCode, string>> {
+  return Object.fromEntries(languages.map(lang => [lang, getCanonicalUrl(lang, pathname)]))
 }
 
 export function toTitleCase(value: string): string {

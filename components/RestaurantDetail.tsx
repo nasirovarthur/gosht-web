@@ -11,8 +11,9 @@ import Reveal from './Reveal';
 import { useHorizontalScroll } from '@/hooks/useHorizontalScroll';
 import { useLanguage } from '@/context/LanguageContext';
 import { pickLocalized, translations } from '@/types/i18n';
+import GoshtBranchDetail from './GoshtBranchDetail';
 
-interface RestaurantDetailProps {
+export interface RestaurantDetailProps {
   restaurant: {
     name: string;
     slug?: string;
@@ -29,7 +30,10 @@ interface RestaurantDetailProps {
     yearOpened?: string;
     menuFiles: string[];
     gallery: string[];
+    kidsGallery?: string[];
     mapLink: string;
+    directionsLink?: string;
+    mapCoordinates?: [number, number];
     mapEmbedUrl?: string;
     deliveryMenuEnabled?: boolean;
     chef?: {
@@ -63,7 +67,7 @@ function getMapCenter(mapEmbedUrl?: string, mapLink?: string): [number, number] 
   return [41.311081, 69.279737];
 }
 
-export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) {
+function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
   const { lang } = useLanguage();
   const scrollContainerRef = useHorizontalScroll(true);
   const t = translations.restaurantDetail;
@@ -347,4 +351,13 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
       ) : null}
     </main>
   );
+}
+
+const mainGoshtSlugs = new Set(['gosht-mirabad', 'gosht-west', 'gosht-boulevard', 'gosht-muqimiy']);
+
+export default function RestaurantDetail(props: RestaurantDetailProps) {
+  if (mainGoshtSlugs.has(props.restaurant.slug || '')) {
+    return <GoshtBranchDetail {...props} />;
+  }
+  return <OtherRestaurantDetail {...props} />;
 }

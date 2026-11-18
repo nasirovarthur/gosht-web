@@ -51,7 +51,11 @@ export const translations = {
   header: {
     menu: { uz: "MENU", ru: "МЕНЮ", en: "MENU" } as Localized,
     close: { uz: "YOPISH", ru: "ЗАКРЫТЬ", en: "CLOSE" } as Localized,
-    delivery: { uz: "YETKAZIB BERISH", ru: "ДОСТАВКА", en: "DELIVERY" } as Localized,
+    delivery: {
+      uz: "WEST’DAN YETKAZIB BERISH",
+      ru: "ДОСТАВКА ИЗ WEST",
+      en: "DELIVERY FROM WEST",
+    } as Localized,
   },
 
   footer: {

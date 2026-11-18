@@ -137,7 +137,7 @@ test('map entry keeps the original map and sidebar layout', () => {
 });
 
 let detailLang = 'ru';
-const Detail = load('../components/RestaurantDetail.tsx', {
+const detailImports = {
   react: { ...React, useEffect: () => {} },
   'next/image': { default: ({ src, alt }) => React.createElement('img', { src, alt }) },
   'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
@@ -147,6 +147,15 @@ const Detail = load('../components/RestaurantDetail.tsx', {
   '@/hooks/useHorizontalScroll': { useHorizontalScroll: () => ({ current: null }) },
   '@/context/LanguageContext': { useLanguage: () => ({ lang: detailLang }) },
   '@/types/i18n': load('../types/i18n.ts'),
+};
+const GoshtBranchDetail = load('../components/GoshtBranchDetail.tsx', {
+  ...detailImports,
+  './GoshtBranchDetail.module.css': { default: {} },
+  '@/lib/analytics/restaurant-actions': load('../lib/analytics/restaurant-actions.ts'),
+}).default;
+const Detail = load('../components/RestaurantDetail.tsx', {
+  ...detailImports,
+  './GoshtBranchDetail': { default: GoshtBranchDetail },
 }).default;
 const westDetail = {
   name: 'Gōsht', slug: 'gosht-west', branchName: 'GŌSHT WEST', address: 'Existing address',
@@ -154,52 +163,54 @@ const westDetail = {
   description: 'Existing description', menuFiles: [], gallery: [], mapLink: 'https://yandex.uz/maps', deliveryMenuEnabled: true,
 };
 
-test('West retains its prominent delivery menu without a booking control or PDF attachment', () => {
+test('West keeps its separate delivery link and a mobile call action in every language', () => {
   for (const lang of ['ru', 'uz', 'en']) {
     detailLang = lang;
     const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: westDetail }));
     const actions = html.split('data-testid="restaurant-actions"')[1];
     assert.ok(actions, lang);
-    assert.ok(actions.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
-    const labels = load('../types/i18n.ts').translations.restaurantDetail;
-    assert.ok(actions.includes(labels.deliveryMenu[lang]));
+    assert.ok(html.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
+    assert.ok(actions.includes('href="tel:+998995168800"'));
+    assert.ok(actions.includes('data-analytics-event="click_to_call"'));
+    assert.ok(!actions.includes('data-menu-format="pdf"'));
     assert.ok(!actions.includes('<button'));
-    assert.match(html, /pb-24/);
   }
 });
-test('branches without delivery keep restaurant PDFs only in their links without floating controls', () => {
+test('main branches without delivery expose their own restaurant PDF and mobile call action', () => {
   detailLang = 'ru';
   const restaurant = { ...westDetail, slug: 'gosht-muqimiy', deliveryMenuEnabled: false, menuFiles: ['https://cdn.sanity.io/existing-menu.pdf'] };
   const html = renderToStaticMarkup(React.createElement(Detail, { restaurant }));
-  assert.ok(!html.includes('data-testid="restaurant-actions"'));
+  assert.ok(html.includes('data-testid="restaurant-actions"'));
+  assert.ok(html.includes('data-restaurant-id="muqimiy"'));
   assert.ok(html.includes('Меню ресторана'));
   assert.ok(!html.includes('Меню доставки'));
   assert.ok(html.includes('href="https://cdn.sanity.io/existing-menu.pdf"'));
-  assert.match(html, /pb-24/);
+  assert.ok(html.includes('data-analytics-event="get_directions"'));
+  assert.ok(html.includes('href="/ru/restaurants/gosht-muqimiy/menu"'));
+  assert.match(html, /href="\/ru\/restaurants\/gosht-muqimiy\/menu"[^>]*data-menu-format="page"/);
 });
-test('West keeps one delivery button and one ordinary restaurant-menu link in every locale', () => {
+test('West distinguishes its own PDF from its one delivery link in every locale', () => {
   for (const lang of ['ru', 'uz', 'en']) {
     detailLang = lang;
     const pdf = `https://cdn.sanity.io/west-${lang}.pdf`;
     const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, menuFiles: [pdf] } }));
     const actions = html.split('data-testid="restaurant-actions"')[1];
-    const labels = load('../types/i18n.ts').translations.restaurantDetail;
-    assert.ok(!actions.includes(labels.menu[lang]));
-    assert.ok(actions.includes(labels.deliveryMenu[lang]));
-    assert.ok(!actions.includes(`href="${pdf}"`));
+    assert.ok(actions.includes(`href="${pdf}"`));
+    assert.ok(actions.includes('data-menu-format="pdf"'));
+    assert.ok(actions.includes('data-restaurant-id="west"'));
     assert.ok(html.includes(`href="${pdf}" target="_blank" rel="noopener noreferrer"`));
-    assert.equal(html.split(`href="${pdf}"`).length - 1, 1);
-    assert.ok(actions.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
+    assert.equal(html.split(`href="${pdf}"`).length - 1, 3, 'hero, family section and mobile actions use the selected PDF');
+    assert.ok(!actions.includes(`href="/${lang}/restaurants/gosht-west/menu"`));
     assert.equal(html.split(`href="/${lang}/restaurants/gosht-west/menu"`).length - 1, 1);
-    assert.equal(actions.match(/<a\b/g)?.length, 1);
+    assert.equal(actions.match(/<a\b/g)?.length, 2);
     assert.ok(!actions.includes('<button'));
-    assert.match(html, /pb-24/);
   }
 });
-test('branches without any menu retain their existing page without empty controls', () => {
+test('other branches without any menu retain their existing page without empty controls', () => {
   detailLang = 'ru';
-  const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, deliveryMenuEnabled: false } }));
+  const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, slug: 'gosht-doner-ecobazar', deliveryMenuEnabled: false } }));
   assert.ok(!html.includes('data-testid="restaurant-actions"'));
+  assert.match(html, /pb-24/);
 });
 test('restaurant detail and catalogue queries select language-tagged PDFs and preserve untagged legacy files', () => {
   for (const file of ['../app/[lang]/restaurants/[slug]/page.tsx', '../app/[lang]/restaurants/[slug]/menu/page.tsx']) {

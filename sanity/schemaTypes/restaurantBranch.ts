@@ -151,6 +151,14 @@ export const restaurantBranch = defineType({
       hidden: ({document}) => document?.projectType === 'barbershop',
     }),
     defineField({
+      name: 'kidsGallery',
+      title: 'Фото детской площадки филиала',
+      description: 'Реальные фотографии именно этого филиала. Показываются в блоке для гостей с детьми.',
+      type: 'array',
+      of: [{ type: 'image', options: { hotspot: true } }],
+      hidden: ({document}) => document?.projectType === 'barbershop',
+    }),
+    defineField({
       name: 'hasPlayground',
       title: 'Есть детская площадка? (для ресторанов)',
       type: 'boolean',

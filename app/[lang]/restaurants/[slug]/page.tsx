@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import RestaurantDetail from "@/components/RestaurantDetail";
+import { hasGoshtDeliveryMenu } from "@/lib/restaurantMenu";
 import SeoJsonLd from "@/components/SeoJsonLd";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { getBreadcrumbSchema, getVenueSchema } from "@/lib/seo/schema";
@@ -20,6 +21,7 @@ type BranchRestaurantRaw = {
   menuFiles?: string[];
   menu?: string;
   gallery?: string[];
+  kidsGallery?: string[];
   map?: {
     coordinates?: string;
     latitude?: number;
@@ -57,6 +59,7 @@ type LegacyRestaurantRaw = {
   menuFiles?: string[];
   menu?: string;
   gallery?: string[];
+  kidsGallery?: string[];
   map?: {
     coordinates?: string;
     latitude?: number;
@@ -94,22 +97,11 @@ function buildSlugCandidates(slug: string): string[] {
   return Array.from(new Set([slug, trimmed, `/${trimmed}`]));
 }
 
-function hasIikoDeliveryMenu(
-  slug: string,
-  city: BranchRestaurantRaw["city"] | undefined,
-  projectType: "restaurant" | "barbershop" | undefined
-): boolean {
-  const normalizedSlug = slug.replace(/^\/+|\/+$/g, "");
-  return (
-    normalizedSlug === "gosht-west" &&
-    (city === undefined || city === "tashkent") &&
-    projectType !== "barbershop"
-  );
-}
-
 function buildMapUrls(map: BranchRestaurantRaw["map"] | LegacyRestaurantRaw["map"]): {
   mapLink: string;
   mapEmbedUrl?: string;
+  directionsLink?: string;
+  mapCoordinates?: [number, number];
 } {
   const parsed = parseCoordinates(map?.coordinates);
   const latitude =
@@ -124,8 +116,10 @@ function buildMapUrls(map: BranchRestaurantRaw["map"] | LegacyRestaurantRaw["map
   }
 
   return {
-    mapLink: `https://yandex.uz/maps/?ll=${longitude},${latitude}&z=${zoom}`,
+    mapLink: `https://yandex.uz/maps/?ll=${longitude},${latitude}&z=${zoom}&pt=${longitude},${latitude},pm2rdm`,
     mapEmbedUrl: `https://yandex.uz/map-widget/v1/?ll=${longitude},${latitude}&z=${zoom}`,
+    directionsLink: `https://yandex.uz/maps/?rtext=~${latitude},${longitude}&rtt=auto`,
+    mapCoordinates: [latitude, longitude],
   };
 }
 
@@ -150,6 +144,7 @@ async function getBranchRestaurantBySlug(slug: string, language: LangCode): Prom
       "menuFiles": menuFiles[!defined(language) || language == $language].asset->url,
       "menu": menuFile.asset->url,
       "gallery": gallery[].asset->url,
+      "kidsGallery": kidsGallery[].asset->url,
       map {
         coordinates,
         latitude,
@@ -194,6 +189,7 @@ async function getLegacyRestaurantBySlug(slug: string, language: LangCode): Prom
       "menuFiles": menuFiles[!defined(language) || language == $language].asset->url,
       "menu": menuFile.asset->url,
       "gallery": gallery[].asset->url,
+      "kidsGallery": kidsGallery[].asset->url,
       map {
         coordinates,
         latitude,
@@ -377,7 +373,7 @@ export default async function RestaurantPage({
   const branchRestaurant = await getBranchRestaurantBySlug(slug, language);
 
   if (branchRestaurant) {
-    const { mapLink, mapEmbedUrl } = buildMapUrls(branchRestaurant.map);
+    const { mapLink, mapEmbedUrl, directionsLink, mapCoordinates } = buildMapUrls(branchRestaurant.map);
     const projectName = pickLocalized(branchRestaurant.project?.name, language);
     const branchName =
       pickLocalized(branchRestaurant.branchName, language) || projectName;
@@ -442,13 +438,18 @@ export default async function RestaurantPage({
             yearOpened: branchRestaurant.yearOpened,
             menuFiles,
             gallery: branchRestaurant.gallery || [],
+            kidsGallery: branchRestaurant.kidsGallery || [],
             mapLink,
             mapEmbedUrl,
-            deliveryMenuEnabled: hasIikoDeliveryMenu(
+            directionsLink,
+            mapCoordinates,
+            deliveryMenuEnabled: hasGoshtDeliveryMenu({
               slug,
-              branchRestaurant.city,
-              branchRestaurant.project?.projectType
-            ),
+              source: "branch",
+              city: branchRestaurant.city,
+              projectType: branchRestaurant.project?.projectType,
+              names: [projectName, branchName],
+            }),
             chef: {
               title: pickLocalized(branchRestaurant.project?.lead?.title, language),
               name: pickLocalized(branchRestaurant.project?.lead?.name, language),
@@ -466,7 +467,7 @@ export default async function RestaurantPage({
     notFound();
   }
 
-  const { mapLink, mapEmbedUrl } = buildMapUrls(legacyRestaurant.map);
+  const { mapLink, mapEmbedUrl, directionsLink, mapCoordinates } = buildMapUrls(legacyRestaurant.map);
   const projectName = pickLocalized(legacyRestaurant.name, language);
   const branchName =
     pickLocalized(legacyRestaurant.branchName, language) || projectName;
@@ -521,9 +522,16 @@ export default async function RestaurantPage({
           yearOpened: legacyRestaurant.yearOpened,
           menuFiles,
           gallery: legacyRestaurant.gallery || [],
+          kidsGallery: legacyRestaurant.kidsGallery || [],
           mapLink,
           mapEmbedUrl,
-          deliveryMenuEnabled: slug.replace(/^\/+|\/+$/g, "") === "gosht-west",
+          directionsLink,
+          mapCoordinates,
+          deliveryMenuEnabled: hasGoshtDeliveryMenu({
+            slug,
+            source: "legacy",
+            names: [projectName, branchName],
+          }),
           chef: {
             title: pickLocalized(legacyRestaurant.chef?.title, language),
             name: pickLocalized(legacyRestaurant.chef?.name, language),

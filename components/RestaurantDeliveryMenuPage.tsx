@@ -2,11 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '@/context/LanguageContext';
 import { useBodyScrollLock } from '@/lib/useBodyScrollLock';
+import { getRestaurantAnalyticsId, trackRestaurantMenuPage } from '@/lib/analytics/restaurant-actions';
 import { pickLocalized, translations } from '@/types/i18n';
 import styles from './RestaurantDeliveryMenuPage.module.css';
 import type { Localized } from '@/types/i18n';
@@ -258,6 +260,11 @@ export default function RestaurantDeliveryMenuPage({
   initialDishId,
 }: RestaurantDeliveryMenuProps) {
   const { lang } = useLanguage();
+  const pathname = usePathname();
+  const analyticsRestaurantId = getRestaurantAnalyticsId(backHref.split('/').filter(Boolean).pop());
+  useEffect(() => {
+    trackRestaurantMenuPage(pathname, lang);
+  }, [pathname, lang]);
   const t = translations.restaurantDetail;
   const hasApiDishes = Array.isArray(dishes) && dishes.length > 0;
   const showOrderPanel = requireApiDishes || hasApiDishes;
@@ -491,7 +498,7 @@ export default function RestaurantDeliveryMenuPage({
   const deliveryInfoLabels =
     lang === 'ru'
       ? {
-          section: 'МЕНЮ ДОСТАВКИ',
+          section: showOrderPanel ? 'МЕНЮ ДОСТАВКИ' : 'МЕНЮ РЕСТОРАНА',
           deliveryTerms: 'Условия доставки',
           contactInfo: 'Контактная информация',
           address: 'Адрес',
@@ -501,7 +508,7 @@ export default function RestaurantDeliveryMenuPage({
         }
       : lang === 'en'
         ? {
-            section: 'DELIVERY MENU',
+            section: showOrderPanel ? 'DELIVERY MENU' : 'RESTAURANT MENU',
             deliveryTerms: 'Delivery Terms',
             contactInfo: 'Contact Information',
             address: 'Address',
@@ -510,7 +517,7 @@ export default function RestaurantDeliveryMenuPage({
             termsLine2: 'Delivery time and final cost depend on your area and kitchen load.',
           }
         : {
-            section: 'YETKAZIB BERISH MENYUSI',
+            section: showOrderPanel ? 'YETKAZIB BERISH MENYUSI' : 'RESTORAN MENYUSI',
             deliveryTerms: 'Yetkazib berish shartlari',
             contactInfo: "Bog'lanish ma'lumotlari",
             address: 'Manzil',
@@ -521,6 +528,7 @@ export default function RestaurantDeliveryMenuPage({
 
   const menuFiles = Array.isArray(restaurant.menuFiles) ? restaurant.menuFiles.filter(Boolean) : [];
   const fullMenuUrl = menuFiles[0];
+  const hasRegularPdfMenu = !showOrderPanel && Boolean(fullMenuUrl);
   const hasPhone = Boolean(restaurant.phone);
   const closeInfoLabel = lang === 'ru' ? 'Закрыть' : lang === 'en' ? 'Close' : 'Yopish';
   const heroTitle = restaurant.branchName.replace(/\bGOSHT\b/i, 'GŌSHT');
@@ -715,6 +723,9 @@ export default function RestaurantDeliveryMenuPage({
                     {hasPhone ? (
                       <a
                         href={`tel:${restaurant.phone}`}
+                        data-analytics-event="click_to_call"
+                        data-restaurant-id={analyticsRestaurantId}
+                        data-cta-location="menu_page"
                         className="mt-4 inline-block border-b border-strong pb-1 text-[17px] leading-snug text-primary transition-colors hover:text-secondary md:text-[18px]"
                       >
                         {restaurant.phone}
@@ -731,16 +742,20 @@ export default function RestaurantDeliveryMenuPage({
                 </div>
 
                 <div className="flex flex-col gap-4 md:col-span-2 md:flex-row 2xl:col-span-1 2xl:flex-col">
-                  <button
+                  {showOrderPanel && <button
                     type="button"
                     onClick={() => setActiveInfoPopup('delivery')}
                     className="inline-flex h-[50px] w-[230px] max-w-full items-center justify-center rounded-full border border-subtle px-7 text-[12px] uppercase tracking-[0.16em] text-secondary transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
                   >
                     {deliveryInfoLabels.deliveryTerms}
-                  </button>
+                  </button>}
                   {fullMenuUrl ? (
                     <a
                       href={fullMenuUrl}
+                      data-analytics-event="view_menu"
+                      data-restaurant-id={analyticsRestaurantId}
+                      data-cta-location="menu_page"
+                      data-menu-format="pdf"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex h-[50px] w-[230px] max-w-full items-center justify-center rounded-full border border-subtle px-7 text-[12px] uppercase tracking-[0.16em] text-secondary transition-colors hover:bg-[color:var(--interactive-hover)] hover:text-primary"
@@ -754,7 +769,7 @@ export default function RestaurantDeliveryMenuPage({
               </div>
             </div>
 
-            <div
+            {!hasRegularPdfMenu && <div
               className="mt-7 flex items-center gap-2 overflow-x-auto pb-1"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
@@ -776,7 +791,7 @@ export default function RestaurantDeliveryMenuPage({
                   {pickLocalized(category.label, lang)}
                 </button>
               ))}
-            </div>
+            </div>}
 
             {subcategoryOptions.length > 1 ? (
               <div
@@ -813,11 +828,11 @@ export default function RestaurantDeliveryMenuPage({
               </div>
             ) : null}
 
-            <div className="mt-7 grid grid-cols-1 items-start gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:auto-rows-[minmax(210px,auto)]">
+            {!hasRegularPdfMenu && <div className="mt-7 grid grid-cols-1 items-start gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:auto-rows-[minmax(210px,auto)]">
               {filteredDishes.length === 0 ? (
                 <div className="sm:col-span-2 xl:col-span-4 rounded-[22px] border border-subtle bg-card px-5 py-8 text-body text-secondary" role="status">
                   {menuDishes.length === 0 ? emptyMenuLabel : emptyCategoryLabel}
-                  {menuDishes.length === 0 && hasPhone && <a className="mt-4 block w-fit border-b border-strong pb-1 text-primary" href={`tel:${restaurant.phone}`}>{restaurant.phone}</a>}
+                  {menuDishes.length === 0 && hasPhone && <a className="mt-4 block w-fit border-b border-strong pb-1 text-primary" href={`tel:${restaurant.phone}`} data-analytics-event="click_to_call" data-restaurant-id={analyticsRestaurantId} data-cta-location="menu_page">{restaurant.phone}</a>}
                 </div>
               ) : filteredDishes.map((dish, index) => {
                 const imageSrc =
@@ -874,7 +889,7 @@ export default function RestaurantDeliveryMenuPage({
                   </article>
                 );
               })}
-            </div>
+            </div>}
 
           </div>
 

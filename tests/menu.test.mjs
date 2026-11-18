@@ -192,12 +192,14 @@ test('an unavailable API shows an existing kitchen photo, not invented dish card
   assert.doesNotMatch(html, /<h3>|120.*000/);
 });
 
-function renderMenu(dishes, props = {}) {
+function renderMenu(dishes, props = {}, lang = 'ru') {
   const component = load('../components/RestaurantDeliveryMenuPage.tsx', {
     'next/image': { __esModule: true, default: ({ src, alt }) => React.createElement('img', { src, alt }) },
     'next/link': { __esModule: true, default: ({ children, href, ...props }) => React.createElement('a', { href, ...props }, children) },
-    '@/context/LanguageContext': { useLanguage: () => ({ lang: 'ru' }) },
+    'next/navigation': { usePathname: () => '/ru/restaurants/gosht-west/menu' },
+    '@/context/LanguageContext': { useLanguage: () => ({ lang }) },
     '@/lib/useBodyScrollLock': { useBodyScrollLock: () => {} },
+    '@/lib/analytics/restaurant-actions': { getRestaurantAnalyticsId: () => 'west', trackRestaurantMenuPage: () => {} },
     './RestaurantDeliveryMenuPage.module.css': { dishTitleContainer: 'dish-title-container', dishTitle: 'dish-title' },
     '@/types/i18n': { pickLocalized: (value, language) => value?.[language] || '', translations: { restaurantDetail: { workingHours: localized('Режим работы'), openFullMenu: localized('Открыть меню') } } },
   }).default;
@@ -236,4 +238,28 @@ test('dish dialogs preserve long names and reserve separate space for their clos
 test('non-delivery PDF menus never acquire a demo order panel', () => {
   assert.doesNotMatch(renderMenu([]), /id="menu-contact"/);
   assert.match(renderMenu([], { requireApiDishes: true }), /id="menu-contact"/);
+});
+
+test('regular PDF menus use restaurant labels and remain available without delivery controls in every language', () => {
+  const restaurant = { name: 'Gosht', branchName: 'Gosht Mirabad', address: 'Tashkent', phone: '+998712073889', workingHours: '10:00 - 23:00', menuFiles: ['https://cdn.sanity.io/files/fixture/production/mirabad-menu.pdf'], gallery: [] };
+  const labels = {
+    ru: { restaurant: 'МЕНЮ РЕСТОРАНА', delivery: 'МЕНЮ ДОСТАВКИ', terms: 'Условия доставки' },
+    uz: { restaurant: 'RESTORAN MENYUSI', delivery: 'YETKAZIB BERISH MENYUSI', terms: 'Yetkazib berish shartlari' },
+    en: { restaurant: 'RESTAURANT MENU', delivery: 'DELIVERY MENU', terms: 'Delivery Terms' },
+  };
+  for (const [lang, text] of Object.entries(labels)) {
+    const props = { restaurant, backHref: `/${lang}/restaurants/gosht-mirabad` };
+    const html = renderMenu([], props, lang);
+    assert.ok(html.includes(text.restaurant));
+    assert.ok(!html.includes(text.delivery));
+    assert.ok(!html.includes(text.terms));
+    assert.match(html, /<a href="https:\/\/cdn\.sanity\.io\/files\/fixture\/production\/mirabad-menu\.pdf"[^>]*target="_blank"/);
+    assert.doesNotMatch(html, /role="status"|id="menu-contact"|aria-pressed=/);
+
+    const delivery = renderMenu([], { ...props, requireApiDishes: true }, lang);
+    assert.ok(delivery.includes(text.delivery));
+    assert.ok(delivery.includes(text.terms));
+    assert.match(delivery, /role="status"/);
+    assert.match(delivery, /id="menu-contact"/);
+  }
 });

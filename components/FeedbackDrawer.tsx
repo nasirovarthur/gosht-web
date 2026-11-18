@@ -7,10 +7,12 @@ import TurnstileWidget from "@/components/TurnstileWidget";
 import { pickLocalized } from "@/types/i18n";
 import type { LangCode, LocalizedOptional } from "@/types/i18n";
 import type { FeedbackSettingsData } from "@/types/feedback";
+import { trackAcceptedFeedback } from "@/lib/analytics/restaurant-actions";
 
 type FeedbackRestaurantOption = {
   id: string;
   name: LocalizedOptional;
+  analyticsRestaurantId?: string;
 };
 
 type FeedbackDrawerProps = {
@@ -159,6 +161,8 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const selectRef = useRef<HTMLDivElement | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
+  const submissionRef = useRef<{ requestId: string; signature: string } | null>(null);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -251,6 +255,7 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submittingRef.current) return;
     setSubmitMessage(null);
 
     if (!restaurantId || !name.trim() || !phone.trim() || !message.trim() || !consentChecked) {
@@ -266,7 +271,16 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
       return;
     }
 
+    const signature = JSON.stringify([
+      restaurantId, name.trim(), phone.trim(), email.trim(), message.trim(),
+      photos.map((photo) => [photo.name, photo.size, photo.lastModified, photo.type]),
+    ]);
+    if (submissionRef.current?.signature !== signature) {
+      submissionRef.current = { requestId: crypto.randomUUID(), signature };
+    }
+
     const formData = new FormData();
+    formData.set("requestId", submissionRef.current.requestId);
     formData.set("restaurantId", restaurantId);
     formData.set("restaurantName", restaurantName);
     formData.set("name", name.trim());
@@ -281,6 +295,7 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
       formData.append("photos", photo);
     });
 
+    submittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -289,13 +304,21 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
         body: formData,
       });
 
-      if (!response.ok) {
-        const payload = (await response
-          .json()
-          .catch(() => null)) as { error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        requestId?: string;
+        error?: string;
+      } | null;
+      if (!response.ok || payload?.ok !== true || !payload.requestId) {
         throw new Error(payload?.error || `HTTP ${response.status}`);
       }
 
+      trackAcceptedFeedback({
+        requestId: payload.requestId,
+        restaurantId: selectedRestaurant?.analyticsRestaurantId,
+        language: lang,
+      });
+      submissionRef.current = null;
       setSubmitMessage({ type: "ok" });
       setRestaurantId("");
       setName("");
@@ -314,6 +337,7 @@ export default function FeedbackDrawer({ isOpen, onClose, lang, settings }: Feed
       const message = error instanceof Error ? error.message : defaultError;
       setSubmitMessage({ type: "error", text: message || defaultError });
     } finally {
+      submittingRef.current = false;
       setTurnstileToken("");
       setTurnstileResetKey((prev) => prev + 1);
       setIsSubmitting(false);

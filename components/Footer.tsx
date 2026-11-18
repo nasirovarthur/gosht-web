@@ -73,7 +73,7 @@ export default function Footer({ settings, navItems }: FooterProps) {
     setLang(nextLang);
 
     if (!pathname) {
-      router.push(`/${nextLang}`, { scroll: false });
+      router.push(`/${nextLang}${window.location.search}${window.location.hash}`, { scroll: false });
       return;
     }
 
@@ -82,7 +82,8 @@ export default function Footer({ settings, navItems }: FooterProps) {
       ? pathname.replace(/^\/(uz|ru|en)(?=\/|$)/, `/${nextLang}`)
       : `/${nextLang}${pathname === "/" ? "" : pathname}`;
 
-    router.push(nextPathname || `/${nextLang}`, { scroll: false });
+    const destination = `${nextPathname || `/${nextLang}`}${window.location.search}${window.location.hash}`;
+    router.push(destination, { scroll: false });
   };
 
   if (pathname.includes("/studio")) {

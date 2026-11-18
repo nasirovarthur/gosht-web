@@ -22,6 +22,7 @@ export function LanguageProvider({ children, initialLang = "uz" }: { children: R
 
   useEffect(() => {
     if (typeof document !== "undefined") {
+      document.documentElement.lang = initialLang;
       persistPreferredLanguage(initialLang);
     }
   }, [initialLang]);

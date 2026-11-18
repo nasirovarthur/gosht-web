@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { RestaurantAnalyticsId } from '@/lib/analytics/restaurant-actions';
 
 type YMapInstance = {
   destroy: () => void;
@@ -33,6 +34,7 @@ declare global {
 }
 
 interface YandexMapProps {
+  restaurantId?: RestaurantAnalyticsId;
   center: [number, number];
   branchName: string;
   address: string;
@@ -42,6 +44,7 @@ interface YandexMapProps {
 }
 
 export default function YandexMap({
+  restaurantId,
   center,
   branchName,
   address,
@@ -150,6 +153,9 @@ export default function YandexMap({
         <div ref={mapContainerRef} className="w-full h-full" />
         <a
           href={mapLink}
+          data-analytics-event="get_directions"
+          data-restaurant-id={restaurantId}
+          data-cta-location="branch_map"
           target="_blank"
           rel="noopener noreferrer"
           className="absolute right-4 bottom-4 px-4 py-2 text-ui text-white border border-white/20 bg-black/55 hover:bg-black/75 transition-colors"
@@ -164,6 +170,9 @@ export default function YandexMap({
     <div className="w-full bg-card flex items-center justify-center" style={{ height }}>
       <a
         href={mapLink}
+        data-analytics-event="get_directions"
+        data-restaurant-id={restaurantId}
+        data-cta-location="branch_map"
         target="_blank"
         rel="noopener noreferrer"
         className="text-white hover:text-white/70 transition-colors text-base lg:text-lg font-light border-b border-white/20 hover:border-white/40 pb-1"

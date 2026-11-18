@@ -35,9 +35,10 @@ export default function Header({ navItems = [], feedbackSettings }: HeaderProps)
     const scrollPosition = window.scrollY;
     
     setLang(newLang);
-    const newPathname = pathname.replace(/^\/(uz|ru|en)/, `/${newLang}`);
-    
-    router.push(newPathname || `/${newLang}`, { scroll: false });
+    const newPathname = pathname.replace(/^\/(uz|ru|en)(?=\/|$)/, `/${newLang}`);
+    const destination = `${newPathname || `/${newLang}`}${window.location.search}${window.location.hash}`;
+
+    router.push(destination, { scroll: false });
     
     setTimeout(() => {
       window.scrollTo(0, scrollPosition);

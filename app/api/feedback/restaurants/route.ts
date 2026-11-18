@@ -7,12 +7,14 @@ import {
   isTrustedOriginRequest,
 } from "@/lib/serverSecurity";
 import type { LocalizedOptional } from "@/types/i18n";
+import { getRestaurantAnalyticsId } from "@/lib/analytics/restaurant-actions";
 
 export const runtime = "nodejs";
 
 type RestaurantOption = {
   id: string;
   name: LocalizedOptional;
+  analyticsRestaurantId?: string;
 };
 
 export async function GET(request: NextRequest) {
@@ -46,6 +48,9 @@ export async function GET(request: NextRequest) {
     const restaurants: RestaurantOption[] = data.projects.map((project) => ({
       id: project.id,
       name: project.name,
+      analyticsRestaurantId: project.branches.length === 1
+        ? getRestaurantAnalyticsId(project.branches[0].slug)
+        : undefined,
     }));
 
     return NextResponse.json(

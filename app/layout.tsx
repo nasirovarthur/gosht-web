@@ -2,11 +2,12 @@ import "./globals.css";
 import localFont from "next/font/local";
 import Script from "next/script";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import SeoJsonLd from "@/components/SeoJsonLd";
 import { getOrganizationSchema, getWebsiteSchema } from "@/lib/seo/schema";
-import { getSiteUrl } from "@/lib/seo/site";
+import { getSiteUrl, resolveLang } from "@/lib/seo/site";
 
 const GTM_CONTAINER_ID = "GTM-K4ZXKJGN";
 
@@ -91,13 +92,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const requestHeaders = await headers();
+  const language = resolveLang(requestHeaders.get("x-gosht-language") || "uz");
+
   return (
-    <html suppressHydrationWarning>
+    <html lang={language} suppressHydrationWarning>
       <head>
         <Script id="google-tag-manager" strategy="beforeInteractive">
           {`

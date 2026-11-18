@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { RestaurantBranchItem } from '@/lib/getRestaurantBranches';
 import type { LangCode } from '@/types/i18n';
 import { pickLocalized } from '@/types/i18n';
+import { getRestaurantAnalyticsId } from '@/lib/analytics/restaurant-actions';
 
 type YMapPlacemark = {
   events?: {
@@ -182,6 +183,9 @@ export default function RestaurantsMap({
         {activeBranch?.mapLink ? (
           <a
             href={activeBranch.mapLink}
+            data-analytics-event="get_directions"
+            data-restaurant-id={getRestaurantAnalyticsId(activeBranch.slug)}
+            data-cta-location="restaurants_map"
             target="_blank"
             rel="noopener noreferrer"
             className="absolute bottom-4 right-4 border border-white/20 bg-black/60 px-4 py-3 text-[12px] uppercase tracking-[0.18em] text-white/90 transition-colors hover:bg-black/80"

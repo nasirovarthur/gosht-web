@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const SUPPORTED_LANGUAGES = ["uz", "ru", "en"];
 const DEFAULT_LANGUAGE = "uz";
+const PRODUCTION_HOSTS = new Set(["gosht.uz", "www.gosht.uz"]);
 
 function extractLanguageFromPathname(pathname: string): string | null {
   const match = pathname.match(/^\/(uz|ru|en)(?=\/|$)/);
@@ -18,44 +19,62 @@ function safeParsePathname(url: string): string | null {
 
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const destination = request.nextUrl.clone();
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0].trim();
+  const requestHostname = destination.hostname.toLowerCase();
+  const headerHostname = request.headers.get("host")?.toLowerCase().split(":")[0];
+  const forwardedHostname = forwardedHost?.toLowerCase().split(":")[0];
+  const isLoopbackRequest = [requestHostname, headerHostname].some(hostname =>
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]"
+  );
+  const hostname = [headerHostname, requestHostname].find(value => value && PRODUCTION_HOSTS.has(value))
+    || (isLoopbackRequest && forwardedHostname && PRODUCTION_HOSTS.has(forwardedHostname) ? forwardedHostname : requestHostname);
+  const protocol = (request.headers.get("x-forwarded-proto")?.split(",")[0].trim()
+    || destination.protocol.replace(":", "")).toLowerCase();
+  const isProductionHost = PRODUCTION_HOSTS.has(hostname);
+  const needsCanonicalOrigin = isProductionHost && (hostname !== "gosht.uz" || protocol !== "https");
 
-  if (
+  if (isProductionHost) {
+    destination.protocol = "https:";
+    destination.hostname = "gosht.uz";
+    destination.port = "";
+  }
+
+  const skipLanguage =
     pathname === "/studio" ||
     pathname.startsWith("/studio/") ||
     pathname === "/robots.txt" ||
-    pathname === "/sitemap.xml"
-  ) {
-    return NextResponse.next();
+    pathname === "/sitemap.xml" ||
+    pathname === "/api" ||
+    pathname.startsWith("/api/");
+  const pathnameLanguage = extractLanguageFromPathname(pathname);
+
+  if (!skipLanguage && !pathnameLanguage) {
+    const referer = request.headers.get("referer");
+    const refererPathname = referer ? safeParsePathname(referer) : null;
+    const refererLanguage = refererPathname
+      ? extractLanguageFromPathname(refererPathname)
+      : null;
+    const preferredLanguage = request.cookies.get("preferredLanguage")?.value;
+    const resolvedLanguage = SUPPORTED_LANGUAGES.includes(refererLanguage || "")
+      ? refererLanguage!
+      : SUPPORTED_LANGUAGES.includes(preferredLanguage || "")
+        ? preferredLanguage!
+        : DEFAULT_LANGUAGE;
+
+    destination.pathname = pathname === "/"
+      ? `/${resolvedLanguage}`
+      : `/${resolvedLanguage}${pathname}`;
+    return NextResponse.redirect(destination, 307);
   }
 
-  const pathnameHasLanguage = SUPPORTED_LANGUAGES.some(
-    (lang) => pathname.startsWith(`/${lang}/`) || pathname === `/${lang}`
-  );
-
-  const referer = request.headers.get("referer");
-  const refererPathname = referer ? safeParsePathname(referer) : null;
-  const refererLanguage = refererPathname
-    ? extractLanguageFromPathname(refererPathname)
-    : null;
-  const preferredLanguage = request.cookies.get("preferredLanguage")?.value;
-
-  const resolvedLanguage = SUPPORTED_LANGUAGES.includes(refererLanguage || "")
-    ? refererLanguage!
-    : SUPPORTED_LANGUAGES.includes(preferredLanguage || "")
-      ? preferredLanguage!
-      : DEFAULT_LANGUAGE;
-
-  if (!pathnameHasLanguage && pathname === "/") {
-    return NextResponse.redirect(new URL(`/${resolvedLanguage}`, request.url));
+  if (needsCanonicalOrigin) {
+    return NextResponse.redirect(destination, 308);
   }
 
-  if (!pathnameHasLanguage && pathname !== "/" && !pathname.startsWith("/api")) {
-    return NextResponse.redirect(
-      new URL(`/${resolvedLanguage}${pathname}`, request.url)
-    );
-  }
-
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-gosht-language", pathnameLanguage || DEFAULT_LANGUAGE);
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {
