@@ -147,7 +147,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
                   ? "object-cover brightness-[0.85]"
                   : "object-cover object-center brightness-[0.6]"}
                 style={slide.imagePosition ? { objectPosition: slide.imagePosition } : undefined}
-                priority={index === 0 || (index === 1 && Boolean(slides[0].imagePosition))}
+                priority={index === 0}
               />
               {/* Градиент теперь ВНУТРИ, чтобы не было "отслойки" при движении */}
               <div
