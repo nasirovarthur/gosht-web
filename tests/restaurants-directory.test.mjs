@@ -156,6 +156,7 @@ const GoshtBranchDetail = load('../components/GoshtBranchDetail.tsx', {
 const Detail = load('../components/RestaurantDetail.tsx', {
   ...detailImports,
   './GoshtBranchDetail': { default: GoshtBranchDetail },
+  '@/lib/analytics/restaurant-actions': load('../lib/analytics/restaurant-actions.ts'),
 }).default;
 const westDetail = {
   name: 'Gōsht', slug: 'gosht-west', branchName: 'GŌSHT WEST', address: 'Existing address',
@@ -211,6 +212,20 @@ test('other branches without any menu retain their existing page without empty c
   const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, slug: 'gosht-doner-ecobazar', deliveryMenuEnabled: false } }));
   assert.ok(!html.includes('data-testid="restaurant-actions"'));
   assert.match(html, /pb-24/);
+});
+test('Gosht branches retain the original horizontal desktop scroll and responsive gallery', () => {
+  const source = readFileSync(new URL('../components/RestaurantDetail.tsx', import.meta.url), 'utf8');
+  assert.match(source, /const scrollContainerRef = useHorizontalScroll\(true\)/);
+  assert.match(source, /window\.innerWidth >= 1024/);
+  assert.match(source, /lg:flex-row lg:items-start/);
+  assert.match(source, /orientation="vertical" effect="projects" maskTopEdge/);
+  assert.doesNotMatch(source, /return <GoshtBranchDetail/);
+  for (const slug of ['gosht-mirabad', 'gosht-west', 'gosht-boulevard', 'gosht-muqimiy']) {
+    const html = renderToStaticMarkup(React.createElement(Detail, { restaurant: { ...westDetail, slug } }));
+    assert.match(html, /lg:overflow-x-auto/);
+    assert.match(html, /lg:flex-row lg:items-start/);
+    assert.match(html, /family-heading/);
+  }
 });
 test('restaurant detail and catalogue queries select language-tagged PDFs and preserve untagged legacy files', () => {
   for (const file of ['../app/[lang]/restaurants/[slug]/page.tsx', '../app/[lang]/restaurants/[slug]/menu/page.tsx']) {

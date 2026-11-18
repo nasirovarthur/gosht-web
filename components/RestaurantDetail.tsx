@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBasketShopping } from '@fortawesome/free-solid-svg-icons';
+import { faBasketShopping, faPhone, faLocationArrow, faUtensils } from '@fortawesome/free-solid-svg-icons';
 import ImageSlider from './ImageSlider';
 import YandexMap from './restaurant/YandexMap';
 import Reveal from './Reveal';
@@ -12,6 +12,7 @@ import { useHorizontalScroll } from '@/hooks/useHorizontalScroll';
 import { useLanguage } from '@/context/LanguageContext';
 import { pickLocalized, translations } from '@/types/i18n';
 import GoshtBranchDetail from './GoshtBranchDetail';
+import { getRestaurantAnalyticsId } from '@/lib/analytics/restaurant-actions';
 
 export interface RestaurantDetailProps {
   restaurant: {
@@ -67,10 +68,13 @@ function getMapCenter(mapEmbedUrl?: string, mapLink?: string): [number, number] 
   return [41.311081, 69.279737];
 }
 
-function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
+export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) {
   const { lang } = useLanguage();
   const scrollContainerRef = useHorizontalScroll(true);
   const t = translations.restaurantDetail;
+  const isMainBranch = mainGoshtSlugs.has(restaurant.slug || '');
+  const restaurantId = getRestaurantAnalyticsId(restaurant.slug);
+  const analytics = isMainBranch ? { 'data-restaurant-id': restaurantId, 'data-cta-location': 'branch_page' } : {};
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -101,7 +105,7 @@ function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
   const chefImage = restaurant.chef?.image?.trim() || '';
   const hasChefBlock = Boolean(chefTitle || chefName || chefDescription || chefImage);
 
-  const [mapLat, mapLon] = getMapCenter(restaurant.mapEmbedUrl, restaurant.mapLink);
+  const [mapLat, mapLon] = restaurant.mapCoordinates || getMapCenter(restaurant.mapEmbedUrl, restaurant.mapLink);
   const hasGallery = Array.isArray(restaurant.gallery) && restaurant.gallery.length > 0;
   const menuFiles = Array.isArray(restaurant.menuFiles) ? restaurant.menuFiles.filter(Boolean) : [];
   const hasMenuLink = menuFiles.length > 0;
@@ -167,6 +171,8 @@ function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
                         {restaurant.phone ? (
                           <a
                             href={`tel:${restaurant.phone}`}
+                            data-analytics-event={isMainBranch ? 'click_to_call' : undefined}
+                            {...analytics}
                             className="inline-block border-b border-white/20 pb-1 text-body font-light text-white transition-colors hover:border-white/40 hover:text-white/75"
                           >
                             {restaurant.phone}
@@ -190,6 +196,9 @@ function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
                                 href={menuUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                data-analytics-event={isMainBranch ? 'view_menu' : undefined}
+                                data-menu-format={isMainBranch ? 'pdf' : undefined}
+                                {...analytics}
                                 className="inline-block border-b border-white/20 pb-1 text-body font-light text-white transition-colors hover:border-white/40 hover:text-white/75"
                               >
                                 {menuFiles.length === 1
@@ -205,6 +214,21 @@ function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
                       </div>
                     </div>
                   </div>
+                  {isMainBranch && (
+                    <div className="mt-7 flex flex-wrap gap-3">
+                      <a href={`tel:${restaurant.phone}`} data-analytics-event="click_to_call" {...analytics} className="inline-flex min-h-11 items-center gap-3 rounded-full border border-white/20 px-5 text-sm text-white transition-colors hover:bg-white/5">
+                        <FontAwesomeIcon icon={faPhone} className="h-4 w-4" aria-hidden="true" />
+                        {lang === 'ru' ? 'Позвонить' : lang === 'en' ? 'Call the restaurant' : 'Qo‘ng‘iroq qilish'}
+                      </a>
+                      <a href={restaurant.directionsLink || restaurant.mapLink} target="_blank" rel="noopener noreferrer" data-analytics-event="get_directions" {...analytics} className="inline-flex min-h-11 items-center gap-3 rounded-full border border-white/20 px-5 text-sm text-white transition-colors hover:bg-white/5">
+                        <FontAwesomeIcon icon={faLocationArrow} className="h-4 w-4" aria-hidden="true" />
+                        {lang === 'ru' ? 'Построить маршрут' : lang === 'en' ? 'Get directions' : 'Yo‘nalish olish'}
+                      </a>
+                      {deliveryMenuHref && <Link href={deliveryMenuHref} data-analytics-event="view_menu" data-menu-format="page" {...analytics} className="inline-flex min-h-11 items-center border-b border-white/20 text-sm text-white">
+                        {lang === 'ru' ? 'Доставка из GŌSHT West' : lang === 'en' ? 'Delivery from GŌSHT West' : 'GŌSHT West’dan yetkazib berish'}
+                      </Link>}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -263,6 +287,8 @@ function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
             </div>
           </section>
 
+          {isMainBranch && <GoshtBranchDetail restaurant={restaurant} />}
+
           {hasChefBlock ? (
             <section className="page-x border-t border-white/10 pt-12 lg:w-screen lg:flex-shrink-0">
               <div className="w-full grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(280px,400px)_minmax(0,1fr)] xl:grid-cols-[minmax(320px,460px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(360px,560px)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
@@ -304,7 +330,7 @@ function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
           <section className="page-x border-t border-white/10 pt-12 lg:w-screen lg:flex-shrink-0">
             <div className="w-full">
               <Reveal as="div" distance={26} blur={6}>
-                {restaurant.mapEmbedUrl ? (
+                {restaurant.mapEmbedUrl || restaurant.mapCoordinates ? (
                   <YandexMap
                     center={[mapLat, mapLon]}
                     branchName={restaurant.branchName}
@@ -312,11 +338,14 @@ function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
                     mapLink={restaurant.mapLink}
                     openMapLabel={pickLocalized(t.openMap, lang)}
                     height="min(72vh, 760px)"
+                    restaurantId={isMainBranch ? restaurantId : undefined}
                   />
                 ) : (
                   <div className="flex min-h-[420px] items-center justify-center border border-white/10 bg-card">
                     <a
                       href={restaurant.mapLink}
+                      data-analytics-event={isMainBranch ? 'get_directions' : undefined}
+                      {...analytics}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="border-b border-white/20 pb-1 text-base font-light text-white transition-colors hover:border-white/40 hover:text-white/75 lg:text-lg"
@@ -331,7 +360,32 @@ function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
         </div>
       </div>
 
-      {deliveryMenuHref ? (
+      {isMainBranch ? (
+        <div
+          role="group"
+          aria-label={pickLocalized(t.actions, lang)}
+          data-testid="restaurant-actions"
+          className="pointer-events-none fixed bottom-[max(16px,env(safe-area-inset-bottom))] left-0 right-0 z-30 px-4 sm:left-7 sm:right-auto sm:px-0 md:bottom-7"
+        >
+          <div className="pointer-events-auto flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <a
+              href={`tel:${restaurant.phone}`}
+              data-analytics-event="click_to_call"
+              data-restaurant-id={restaurantId}
+              data-cta-location="branch_actions"
+              className="inline-flex h-11 w-full items-center justify-center gap-3 rounded-full border border-white/20 bg-base px-5 text-sm font-light uppercase tracking-normal text-white transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto sm:justify-start md:h-[60px] md:gap-4 md:px-7 md:text-base"
+            >
+              <FontAwesomeIcon icon={faPhone} aria-hidden="true" className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
+              <span>{lang === 'ru' ? 'Позвонить' : lang === 'en' ? 'Call the restaurant' : 'Qo‘ng‘iroq qilish'}</span>
+            </a>
+            {hasMenuLink && <a href={menuFiles[0]} target="_blank" rel="noopener noreferrer" data-analytics-event="view_menu" data-menu-format="pdf" data-restaurant-id={restaurantId} data-cta-location="branch_actions" className="inline-flex h-11 w-full items-center justify-center gap-3 rounded-full border border-white/20 bg-base px-5 text-sm font-light uppercase text-white transition-colors hover:bg-white/5 sm:w-auto md:h-[60px] md:px-7 md:text-base">
+              <FontAwesomeIcon icon={faUtensils} aria-hidden="true" className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
+              <span>{pickLocalized(t.menu, lang)}</span>
+            </a>}
+          </div>
+        </div>
+      ) : null}
+      {deliveryMenuHref && !isMainBranch ? (
         <div
           role="group"
           aria-label={pickLocalized(t.actions, lang)}
@@ -354,10 +408,3 @@ function OtherRestaurantDetail({ restaurant }: RestaurantDetailProps) {
 }
 
 const mainGoshtSlugs = new Set(['gosht-mirabad', 'gosht-west', 'gosht-boulevard', 'gosht-muqimiy']);
-
-export default function RestaurantDetail(props: RestaurantDetailProps) {
-  if (mainGoshtSlugs.has(props.restaurant.slug || '')) {
-    return <GoshtBranchDetail {...props} />;
-  }
-  return <OtherRestaurantDetail {...props} />;
-}
