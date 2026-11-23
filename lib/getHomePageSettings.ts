@@ -21,6 +21,8 @@ export type HomeHeroSlideRaw = {
   description?: LocalizedOptional
   imageSource?: 'custom' | 'event'
   customImage?: string
+  imagePosition?: string
+  showFirst?: boolean
   buttonMode?: 'none' | 'event' | 'custom'
   buttonText?: LocalizedOptional
   customButtonUrl?: string
@@ -118,6 +120,8 @@ export const getHomeHeroSliderSettingsDocument = cache(
             description,
             imageSource,
             "customImage": customImage.asset->url,
+            imagePosition,
+            showFirst,
             buttonMode,
             buttonText,
             customButtonUrl,
@@ -246,6 +250,10 @@ export function normalizeHomeHeroSlide(raw: HomeHeroSlideRaw) {
     buttonMode,
     showButton: buttonMode !== 'none',
     image,
+    imagePosition: raw.imagePosition && /^(100|\d{1,2})% (100|\d{1,2})%$/.test(raw.imagePosition)
+      ? raw.imagePosition
+      : undefined,
+    showFirst: raw.showFirst === true,
     buttonUrl: buttonMode === 'custom' ? raw.customButtonUrl : undefined,
     eventSlug: buttonMode === 'event' ? raw.event?.slug : undefined,
   }

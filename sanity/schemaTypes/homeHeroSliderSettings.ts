@@ -91,6 +91,13 @@ export const homeHeroSliderSettings = defineType({
               initialValue: true,
             }),
             defineField({
+              name: 'showFirst',
+              title: 'Показывать в начале слайдера',
+              description: 'Перед постоянным баннером открытия. Порядок таких слайдов задаётся в списке.',
+              type: 'boolean',
+              initialValue: false,
+            }),
+            defineField({
               name: 'sourceType',
               title: 'Источник контента',
               type: 'string',
@@ -150,6 +157,13 @@ export const homeHeroSliderSettings = defineType({
               type: 'image',
               options: { hotspot: true },
               hidden: ({ parent }) => parent?.imageSource !== 'custom',
+            }),
+            defineField({
+              name: 'imagePosition',
+              title: 'Фокус изображения',
+              description: 'Положение фона, например 75% 50%. Если пусто, используется центр.',
+              type: 'string',
+              validation: (rule) => rule.regex(/^(100|\d{1,2})% (100|\d{1,2})%$/),
             }),
             defineField({
               name: 'buttonMode',

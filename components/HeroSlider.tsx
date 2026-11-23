@@ -5,7 +5,11 @@ import type { LangCode } from "@/types/i18n";
 
 export default async function HeroSlider({ lang }: { lang: LangCode }) {
   const [banner, existingSlides] = await Promise.all([getAdminHomepageBanner(lang), getHeroSlides()]);
-  const slides = banner ? [banner, ...existingSlides] : existingSlides;
+  const slides = [
+    ...existingSlides.filter((slide) => slide.showFirst),
+    ...(banner ? [banner] : []),
+    ...existingSlides.filter((slide) => !slide.showFirst),
+  ];
   if (!slides.length) return null;
 
   return <HeroSliderClient slides={slides} />;
