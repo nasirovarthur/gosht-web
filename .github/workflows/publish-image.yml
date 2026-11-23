@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_commit:
-        description: Full commit SHA to publish from main
+        description: Full commit SHA for the isolated UZ events release
         required: true
         type: string
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Validate release input
         run: |
-          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${GITHUB_REF}" = "refs/heads/codex/uz-events-promotions-20261123"
           test "${{ inputs.release_commit }}" = "${GITHUB_SHA}"
           test -n "${NEXT_PUBLIC_TURNSTILE_SITE_KEY}"
 
@@ -57,7 +57,7 @@ jobs:
         run: node --test tests/restaurants-directory.test.mjs
 
       - name: Test menu and unified homepage layout
-        run: node --test tests/menu.test.mjs tests/home-feature-grid.test.mjs
+        run: node --test tests/menu.test.mjs tests/home-feature-grid.test.mjs tests/event-posters.test.mjs
 
       - name: Test restaurant routing, SEO, and analytics
         run: node --test tests/routing-seo.test.mjs tests/restaurant-analytics.test.mjs

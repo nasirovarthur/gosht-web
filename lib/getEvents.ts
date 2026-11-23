@@ -18,6 +18,7 @@ type EventRaw = {
   time?: LocalizedInput
   branch?: LocalizedInput
   image?: unknown
+  localizedImages?: Partial<Record<'uz' | 'ru' | 'en', unknown>>
   eventDate?: string
   showOnHome?: boolean
   homePriority?: number
@@ -222,6 +223,7 @@ async function fetchEventEntries(): Promise<EventEntry[]> {
       time,
       "branch": coalesce(branchRef->branchName, branch),
       image,
+      localizedImages,
       eventDate,
       showOnHome,
       homePriority,
@@ -247,6 +249,12 @@ async function fetchEventEntries(): Promise<EventEntry[]> {
           time: normalizeLocalized(item.time, { uz: '', ru: '', en: '' }),
           branch: normalizeLocalized(item.branch, { uz: '', ru: '', en: '' }),
           image: imageUrl,
+          localizedImages: Object.fromEntries(
+            (['uz', 'ru', 'en'] as const).flatMap((lang) => {
+              const image = item.localizedImages?.[lang]
+              return image ? [[lang, urlFor(image).url()]] : []
+            })
+          ),
           description: normalizeDescription(item.description),
           showOnHome: item.showOnHome !== false,
           homePriority: typeof item.homePriority === 'number' ? item.homePriority : 100,

@@ -20,6 +20,7 @@ const language={useLanguage:()=>({lang})};
 const Events=load('../components/EventsSection.tsx',{
   '@/context/LanguageContext':language,
   '@/types/i18n':{pickLocalized:(value,locale)=>value[locale]},
+  '@/lib/eventsData':load('../lib/eventsData.ts',{}),
   '@/components/SliderButton':{__esModule:true,default:({href,children,...props})=>React.createElement('a',{href,...props},children)},
   'next/link':{__esModule:true,default:({children,...props})=>React.createElement('a',props,children)},
   'next/image':{__esModule:true,default:({src,alt})=>React.createElement('img',{src,alt})},
