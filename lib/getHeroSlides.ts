@@ -11,6 +11,8 @@ type HeroSlide = {
   buttonText: { uz: string; ru: string; en: string }
   showButton: boolean
   image: string
+  imagePosition?: string
+  showFirst?: boolean
   buttonMode: 'none' | 'custom' | 'event'
   buttonUrl?: string
   eventSlug?: string

@@ -224,6 +224,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
 
         <div className="flex gap-2 md:gap-4">
             <button 
+                aria-label={lang === "ru" ? "Предыдущий баннер" : lang === "uz" ? "Oldingi banner" : "Previous banner"}
                 onClick={() => handleManualChange((currentIndex - 1 + slides.length) % slides.length)}
                 className="w-10 h-10 md:w-14 md:h-14 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black text-white transition-all active:scale-95"
             >
@@ -232,6 +233,7 @@ export default function HeroSliderClient({ slides }: { slides: Slide[] }) {
                 </svg>
             </button>
             <button 
+                aria-label={lang === "ru" ? "Следующий баннер" : lang === "uz" ? "Keyingi banner" : "Next banner"}
                 onClick={() => handleManualChange((currentIndex + 1) % slides.length)}
                 className="w-10 h-10 md:w-14 md:h-14 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black text-white transition-all active:scale-95"
             >
