@@ -13,6 +13,8 @@ export type EventItem = {
   date: { uz: string; ru: string; en: string };
   time: { uz: string; ru: string; en: string };
   branch: { uz: string; ru: string; en: string };
+  branchSlug?: string;
+  allBranches?: boolean;
   image: string;
   localizedImages?: Partial<Record<LangCode, string>>;
   description: { uz: string; ru: string; en: string }[];
