@@ -1,3 +1,5 @@
+import type { LangCode } from "@/types/i18n";
+
 // Re-export shared types from types/i18n for backwards compatibility
 export type { LangCode, Localized } from "@/types/i18n";
 
@@ -12,8 +14,13 @@ export type EventItem = {
   time: { uz: string; ru: string; en: string };
   branch: { uz: string; ru: string; en: string };
   image: string;
+  localizedImages?: Partial<Record<LangCode, string>>;
   description: { uz: string; ru: string; en: string }[];
 };
+
+export function getEventImage(event: Pick<EventItem, "image" | "localizedImages">, lang: LangCode): string {
+  return event.localizedImages?.[lang] || event.image;
+}
 
 /**
  * Fallback events data.

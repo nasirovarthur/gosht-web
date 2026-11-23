@@ -128,8 +128,13 @@ export const event = defineType({
       options: {
         filter: 'isActive != false',
       },
-      validation: (rule) => rule.required(),
+      validation: (rule) => rule.custom((value, context) =>
+        value || (context.document?.branch as LocalizedStringValue | undefined)?.uz
+          ? true
+          : 'Выберите филиал или укажите место проведения'
+      ),
     }),
+    localizedStringField('branch', 'Место проведения (если несколько филиалов)'),
     defineField({
       name: 'image',
       title: 'Изображение',
@@ -138,11 +143,22 @@ export const event = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'localizedImages',
+      title: 'Изображения по языкам (необязательно)',
+      type: 'object',
+      fields: [
+        defineField({ name: 'uz', title: "O'zbekcha", type: 'image' }),
+        defineField({ name: 'ru', title: 'Русский', type: 'image' }),
+        defineField({ name: 'en', title: 'English', type: 'image' }),
+      ],
+    }),
+    defineField({
       name: 'description',
       title: 'Описание (абзацы)',
       type: 'array',
       of: [
         defineArrayMember({
+          name: 'eventParagraph',
           type: 'object',
           fields: [localizedTextField('text', 'Текст абзаца', 5, true, true)],
           preview: {

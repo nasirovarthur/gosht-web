@@ -9,6 +9,7 @@ import "swiper/css";
 import SliderButton from "@/components/SliderButton";
 import Reveal from "@/components/Reveal";
 import type { EventItem, LangCode, Localized } from "@/lib/eventsData";
+import { getEventImage } from "@/lib/eventsData";
 
 function pickLocalized(value: Localized, lang: LangCode): string {
   return value[lang] || value.uz;
@@ -26,13 +27,13 @@ function RelatedEventCard({
   return (
     <article className="w-full h-auto">
       <Link href={`/${lang}/events/${item.slug}`} className="group block w-full h-auto">
-        <div className="relative w-full aspect-[5/3] overflow-hidden border border-white/10 bg-card">
+        <div className="relative w-full aspect-[1200/628] overflow-hidden border border-white/10 bg-card">
           {!imageFailed && (
             <Image
-              src={item.image}
+              src={getEventImage(item, lang)}
               alt={pickLocalized(item.title, lang)}
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+              className="object-contain"
               sizes="(max-width: 1024px) 100vw, 25vw"
               onError={() => setImageFailed(true)}
             />
@@ -120,19 +121,19 @@ export default function EventDetailPage({
           </Reveal>
 
           <Reveal as="div" className="mt-12 max-w-[1040px]" delay={110} distance={54} blur={12}>
-            <div className="relative w-full aspect-[16/10] overflow-hidden border border-white/10 bg-card">
+            <div className="relative w-full aspect-[1200/628] overflow-hidden border border-white/10 bg-card">
               <Image
-                src={event.image}
+                src={getEventImage(event, lang)}
                 alt={title}
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="(max-width: 1024px) 100vw, 1040px"
               />
             </div>
           </Reveal>
 
           <Reveal as="div" className="mt-12 md:mt-14 max-w-[1040px]" delay={180} distance={34} blur={8}>
-            <div className="space-y-7 text-[15px] md:text-[17px] leading-relaxed text-white/72 font-light text-right">
+            <div className="space-y-7 text-[15px] md:text-[17px] leading-relaxed text-white/72 font-light text-left">
               {event.description.map((paragraph, index) => (
                 <p key={`${event.id}-paragraph-${index}`}>{pickLocalized(paragraph, lang)}</p>
               ))}

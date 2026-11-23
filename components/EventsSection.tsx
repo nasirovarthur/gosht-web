@@ -8,6 +8,7 @@ import SliderButton from "@/components/SliderButton";
 import { pickLocalized } from "@/types/i18n";
 import type { Localized } from "@/types/i18n";
 import type { EventItem } from "@/lib/eventsData";
+import { getEventImage } from "@/lib/eventsData";
 import grid from "./HomeFeatureGrid.module.css";
 import styles from "./EventsSection.module.css";
 
@@ -33,7 +34,7 @@ function EventCard({
         <div className={grid.photo}>
           {!imageFailed && (
             <Image
-              src={item.image}
+              src={getEventImage(item, lang)}
               alt={item.title[lang]}
               fill
               sizes={variant === "featured" ? "(max-width: 1199px) 100vw, (min-width: 1728px) 1120px, 70vw" : "(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 28vw"}

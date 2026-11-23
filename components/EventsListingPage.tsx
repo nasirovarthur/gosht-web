@@ -8,6 +8,7 @@ import Reveal from "@/components/Reveal";
 import { pickLocalized } from "@/types/i18n";
 import type { Localized } from "@/types/i18n";
 import type { EventCategory, EventItem } from "@/lib/eventsData";
+import { getEventImage } from "@/lib/eventsData";
 
 type TabValue = "all" | EventCategory;
 type EventsListingLabels = {
@@ -49,13 +50,13 @@ function EventsCard({ event, index }: { event: EventItem; index: number }) {
   return (
     <Reveal as="article" className="group w-full" delay={Math.min(index, 5) * 80} distance={48} blur={10}>
       <Link href={`/${lang}/events/${event.slug}`} className="block w-full">
-        <div className="relative w-full aspect-[16/10] overflow-hidden bg-card border border-white/10">
+        <div className="relative w-full aspect-[1200/628] overflow-hidden bg-card border border-white/10">
           {!imageFailed && (
             <Image
-              src={event.image}
+              src={getEventImage(event, lang)}
               alt={title}
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+              className="object-contain"
               sizes="(max-width: 1024px) 100vw, 33vw"
               onError={() => setImageFailed(true)}
             />

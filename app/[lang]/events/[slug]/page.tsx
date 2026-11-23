@@ -10,12 +10,14 @@ import { client } from "@/lib/sanity";
 import { pickLocalized } from "@/types/i18n";
 import type { LocalizedOptional } from "@/types/i18n";
 import type { LangCode } from "@/lib/eventsData";
+import { getEventImage } from "@/lib/eventsData";
 
 type EventSeoRecord = {
   title?: LocalizedOptional;
   branch?: LocalizedOptional;
   description?: Array<{ text?: LocalizedOptional }>;
   image?: string;
+  localizedImages?: Partial<Record<LangCode, string>>;
   eventDate?: string;
 };
 
@@ -33,6 +35,11 @@ async function getEventSeoRecord(slug: string): Promise<EventSeoRecord | null> {
           text
         },
         "image": image.asset->url,
+        "localizedImages": {
+          "uz": localizedImages.uz.asset->url,
+          "ru": localizedImages.ru.asset->url,
+          "en": localizedImages.en.asset->url
+        },
         eventDate
       }
     `,
@@ -95,7 +102,7 @@ export async function generateMetadata({
     pathname: `events/${slug}`,
     title,
     description: buildEventDescription(language, title, branch, descriptionParagraphs),
-    image: event.image,
+    image: getEventImage({ image: event.image || "", localizedImages: event.localizedImages }, language),
     type: "article",
     keywords: [title, branch, "Gōsht Group events", "restaurant events"].filter(Boolean),
   });
@@ -134,7 +141,7 @@ export default async function EventPage({
           pickLocalized(event.branch, language),
           event.description.map((paragraph) => pickLocalized(paragraph, language)).filter(Boolean)
         ),
-        image: event.image,
+        image: getEventImage(event, language),
         startDate: eventSeoRecord.eventDate,
         locationName: pickLocalized(event.branch, language),
       })
