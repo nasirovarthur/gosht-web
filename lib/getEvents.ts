@@ -1,6 +1,7 @@
 import { client, urlFor } from '@/lib/sanity'
 import { eventsData, type EventCategory, type EventItem, type Localized } from '@/lib/eventsData'
 import { singletonDocumentIds } from '@/sanity/singletons'
+import { isAllEventBranches } from '@/lib/eventVenue'
 import {
   getHomeEventsBlockSettingsDocument,
   normalizeLocalized as normalizeHomeLocalized,
@@ -17,6 +18,8 @@ type EventRaw = {
   date?: LocalizedInput
   time?: LocalizedInput
   branch?: LocalizedInput
+  branchSlug?: string | null
+  branchReferenceId?: string | null
   image?: unknown
   localizedImages?: Partial<Record<'uz' | 'ru' | 'en', unknown>>
   eventDate?: string
@@ -222,6 +225,8 @@ async function fetchEventEntries(): Promise<EventEntry[]> {
       date,
       time,
       "branch": coalesce(branchRef->branchName, branch),
+      "branchSlug": select(branchRef->isActive != false => branchRef->slug.current),
+      "branchReferenceId": branchRef._ref,
       image,
       localizedImages,
       eventDate,
@@ -248,6 +253,8 @@ async function fetchEventEntries(): Promise<EventEntry[]> {
           date: normalizeLocalized(item.date, { uz: '', ru: '', en: '' }),
           time: normalizeLocalized(item.time, { uz: '', ru: '', en: '' }),
           branch: normalizeLocalized(item.branch, { uz: '', ru: '', en: '' }),
+          branchSlug: item.branchSlug || undefined,
+          allBranches: !item.branchReferenceId && isAllEventBranches(item.branch),
           image: imageUrl,
           localizedImages: Object.fromEntries(
             (['uz', 'ru', 'en'] as const).flatMap((lang) => {

@@ -10,6 +10,7 @@ import SliderButton from "@/components/SliderButton";
 import Reveal from "@/components/Reveal";
 import type { EventItem, LangCode, Localized } from "@/lib/eventsData";
 import { getEventImage } from "@/lib/eventsData";
+import EventVenueLink from "@/components/EventVenueLink";
 
 function pickLocalized(value: Localized, lang: LangCode): string {
   return value[lang] || value.uz;
@@ -116,7 +117,7 @@ export default function EventDetailPage({
               <span className="text-white/35">•</span>
               <span>{time}</span>
               <span className="text-white/35">•</span>
-              <span className="text-white">{branch}</span>
+              <EventVenueLink event={event} branch={branch} lang={lang} />
             </p>
           </Reveal>
 
