@@ -5,7 +5,7 @@ export const singletonDocumentIds = {
   projectsPageSettings: 'projects-page-settings',
   aboutPageSettings: 'about-page-settings',
   partnersPageSettings: 'partners-page-settings',
-  homeHeroSliderSettings: 'home-hero-slider-settings',
+  homeHeroSliderSettings: 'home-hero-slider-settings-uz',
   homeRunningLineSettings: 'home-running-line-settings',
   homeGroupStorySettings: 'home-group-story-settings',
   homeEventsBlockSettings: 'home-events-block-settings',
